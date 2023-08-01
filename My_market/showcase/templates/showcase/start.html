@@ -8,23 +8,60 @@
 	<link rel="stylesheet" type="text/css" href="{% static 'showcase/css/main.css' %}">
 	<link rel="stylesheet" type="text/css" href="{% static 'showcase/css/bootstrap.css' %}">
 	
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.1/css/fontawesome.min.css">
-
-
-
+<!--	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.1/css/fontawesome.min.css">
+-->
 
 </head>
 <body>
 
+<!--панель сверху - шапка. -->
+<header>
+	<img src="{% static 'showcase/images/i.jpg' %}" alt="Лого">
+<h1>Название Магазина</h1>
+
+	<p>Войти</p>
+	<p>Регистрация</p>
+
+</header>
+
+
+
 <!--Боковая панель слева. Он не меняется и будет стандартным-->
 	<aside>
-		<img src="{% static 'showcase/images/i.jpg' %}" alt="Лого">
-		<span class="logo">Интернет магазин</span>
-		<h3>Навигация</h3>
+
+		<!--<span class="logo">Товары</span>-->
+		<br><br><br><br><br>
+		<h3>Группы товаров</h3>
 		<ul>
-			<a href="/"><li><i class="fa-thin fa-house"></i>Главная</li></a>
-			<a href="basket"><li><i class="fa-thin fa-cart-shopping"></i>Корзина</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Контакты</li></a>
+			<a href="{% url 'start'%}"><li><i class="fa-thin fa-house"></i>Группа 1</li></a>
+			<a href="{% url 'basket'%}"><li><i class="fa-thin fa-cart-shopping"></i>Группа 2</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
 		</ul>
 
 
@@ -37,6 +74,13 @@
 
 
 </main>
+
+
+<footer>
+	<p>Контакты</p>
+	<p>Информация о нас</p>
+
+</footer>
 
 
 	
