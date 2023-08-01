@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>{% block title %}{% endblock %}</title>
+	<link rel="stylesheet" type="text/css" href="{% static 'showcase/css/main.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'showcase/css/bootstrap.css' %}">
+	
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.1/css/fontawesome.min.css">
+
+
+
+
+</head>
+<body>
+
+<!--Боковая панель слева. Он не меняется и будет стандартным-->
+	<aside>
+		<img src="{% static 'showcase/images/i.jpg' %}" alt="Лого">
+		<span class="logo">Интернет магазин</span>
+		<h3>Навигация</h3>
+		<ul>
+			<a href="/"><li><i class="fa-thin fa-house"></i>Главная</li></a>
+			<a href="basket"><li><i class="fa-thin fa-cart-shopping"></i>Корзина</li></a>
+			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Контакты</li></a>
+		</ul>
+
+
+	</aside>
+
+<!--Основная часть в середине, она будет меняться-->
+<main>
+	{% block content %}
+	{% endblock %}
+
+
+</main>
+
+
+	
+</body>
+</html>

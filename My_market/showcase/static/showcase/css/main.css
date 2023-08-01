@@ -1,0 +1,51 @@
+body {
+	background: lightgrey;
+}
+
+aside{
+	float: left;
+	background: burlywood;
+	width: 20%;
+	padding: 2.5%;
+	height: 100vh;
+	color: white;
+	border-right: 5px solid slategrey;
+}
+
+aside img {
+	filter: invert(1);
+
+	width: 200px;
+	float: left;
+}
+
+aside .logo {
+	font-size: 38px;	
+	font-weight: bold;
+	position: relative;
+	top: -10px;
+	left: 10px;
+}
+
+aside h3 {
+	margin-top: 50px;
+	font-size: 28px;
+}
+
+
+aside ul {list-style: initial;}
+
+aside ul li {
+	color: black;
+	display: block;
+	margin-top: 20px;
+	transition: all .6s ease;
+}
+
+aside ul li:hover, aside ul a:hover{
+	color: red;
+	text-decoration: none;
+	transform: scale(1.05);
+}
+
+
