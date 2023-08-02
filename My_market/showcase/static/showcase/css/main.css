@@ -7,7 +7,7 @@ position: fixed;
 float: top;
 background: slategrey;
 height: 20vh;
-padding: 2.5%;
+padding: 1.5%;
 color: #fff; /* Цвет текста */
 width: 100%; /* Ширина слоя */
 }
@@ -22,21 +22,31 @@ text-align: right;
 color: black;
 }
 
+header img {
+
+/*filter: invert(1);*/	
+	float: left;
+	border: 5px solid darkblue;
+	width: 150px;
+}
+
+header h3{
+text-align: right;
+color: darkorange;
+
+}
+
 aside{
 	float: left;
 	background: burlywood;
 	width: 20%;
 	padding: 2.5%;
-	height: 100vh;
+	height: 100%;
 	color: white;
 	border-right: 5px solid slategrey;
 }
 
-header img {
-	filter: invert(1);
-	width: 150px;
-	float: left;
-}
+
 
 aside .logo {
 	font-size: 38px;	
@@ -67,27 +77,45 @@ aside ul li:hover, aside ul a:hover{
 	transform: scale(1.05);
 }
 
-main .sale {
+main {
 float: left;
 color: black;
-margin-top: 100px;
+margin-top: 250px;
 text-align: center;
 width: 75%;
+
 }
+
 
 main .sale h1 { font-size: 50px;}
 main .sale p { max-width: 400px; margin: 20px auto;}
 
 
+body{
+	height: 100%;
+}
 
 footer{
-position: fixed; /* Фиксированное положение */
-    left: 0; bottom: 0; /* Левый нижний угол */
-    padding: 10px; /* Поля вокруг текста */
-    background: #39b54a; /* Цвет фона */
-    color: #fff; /* Цвет текста */
-    width: 100%; /* Ширина слоя */
+position: fixed;
+    right: 0; bottom: 0;
+    padding: 10px; 
+    background: #39b54a; 
+    color: #fff; 
+    width: 100%; 
+
+/*flex: 1 1 auto;*/
 }
+
+/*
+position: fixed;
+float: top;
+background: slategrey;
+height: 20vh;
+padding: 1.5%;
+color: #fff; 
+width: 100%; 
+*/
+
 
 
 

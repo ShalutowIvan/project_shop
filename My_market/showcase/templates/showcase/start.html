@@ -4,7 +4,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>{% block title %}{% endblock %}</title>
+	<title>ИНТЕРНЕТ МАГАЗИН</title>
 	<link rel="stylesheet" type="text/css" href="{% static 'showcase/css/main.css' %}">
 	<link rel="stylesheet" type="text/css" href="{% static 'showcase/css/bootstrap.css' %}">
 	
@@ -20,8 +20,8 @@
 <h1>Название Магазина</h1>
 
 	<p>Войти</p>
-	<p>Регистрация</p>
-
+	<p>Регистрация</p> 
+	<a href="{% url 'basket'%}"><p>Корзина</p></a>
 </header>
 
 
@@ -31,38 +31,12 @@
 
 		<!--<span class="logo">Товары</span>-->
 		<br><br><br><br><br>
-		<h3>Группы товаров</h3>
-		<ul>
-			<a href="{% url 'start'%}"><li><i class="fa-thin fa-house"></i>Группа 1</li></a>
-			<a href="{% url 'basket'%}"><li><i class="fa-thin fa-cart-shopping"></i>Группа 2</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-			<a href=""><li><i class="fa-thin fa-paper-plane"></i>Группа 3</li></a>
-		</ul>
+		<a href="{% url 'start'%}"><i class="fa-thin fa-house"></i><h3>Группы товаров</h3></a>
+			
+
+			<a href=""><p>{{data}}</p></a>
+			
+
 
 
 	</aside>
@@ -72,15 +46,15 @@
 	{% block content %}
 	{% endblock %}
 
-
-</main>
-
-
 <footer>
 	<p>Контакты</p>
 	<p>Информация о нас</p>
 
 </footer>
+
+</main>
+
+
 
 
 	
