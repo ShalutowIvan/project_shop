@@ -33,8 +33,8 @@
 		<br><br><br><br><br>
 		<a href="{% url 'start'%}"><i class="fa-thin fa-house"></i><h3>Группы товаров</h3></a>
 			
-{% for i in data.values %}
-			<a href=""><p>{{i}}</p></a>
+{% for i in data %}
+			<a href=""><p>{{i.name_group}}</p></a>
 			
 {% endfor %}
 

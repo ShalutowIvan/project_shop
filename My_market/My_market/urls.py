@@ -15,16 +15,18 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
-from showcase.views import *
 
-from django.conf.urls.static import static
-from django.contrib import admin
-from django.urls import path
+from showcase.views import *
 from django.urls import path, include
-from My_market import settings
+
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),    
-    path('', include('showcase.urls'))
-]
+    path('', include('showcase.urls'))#тут указали стартовую страницу от которой будут идти все другие ссылки приложения
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+
+if settings.DEBUG:#в случае включенного режима дебага то есть DEBUG=True мы к маршрутам urlpatterns которые мы указали выше добавляем маршрут для статических данных графических файлов и указываем наш добавленный урл и корневую папку где будут храниться файлы, скорее всего static это функция такая. Делается это только в отладочном режиме, на реальных серверах это уже настроено, но у нас не настроено. static надо импортировать из django.conf.urls.static. DEBUG должен быть True. Теперь тестовый сервер может их брать по адресу media и отображать на html странице
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

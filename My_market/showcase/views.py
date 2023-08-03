@@ -1,12 +1,15 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseNotFound, Http404
 
+from .models import *
 # Create your views here.
 
+
+
 def index(request):
-    dat = {'группа 1': 'товар 1', 'группа 1': 'товар 2', 'группа 1': 'товар 3', 'группа 1': 'товар 4'}
-    # data = [1, 2, 3, 4]
-    return render(request, "showcase/home.html", {"data": dat})
+    data = Group.objects.all()
+    print(data)
+    return render(request, "showcase/start.html", {"data": data})
 
 def basket(request):
     return render(request, "showcase/basket.html")
