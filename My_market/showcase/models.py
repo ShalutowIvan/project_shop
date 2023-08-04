@@ -9,7 +9,7 @@ class Goods(models.Model):
 	photo = models.ImageField(upload_to="photos/%Y/%m/%d/", verbose_name="Фото")
 	stock = models.FloatField(verbose_name="Остаток")
 	availability = models.BooleanField(default=True, verbose_name="Доступность")
-	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара")
+	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара", null=True)#миграцию пока не делал с null
 
 	def __str__(self):
 		return self.name_product
@@ -25,7 +25,7 @@ class Goods(models.Model):
 
 #модель групп. База наполняться и изменяться будет через API
 class Group(models.Model):
-	name_group = models.CharField(max_length=255, default='_', verbose_name="Название группы")
+	name_group = models.CharField(max_length=255, default='_', db_index=True, verbose_name="Название группы")
 	slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name="URL")
 
 	def __str__(self):

@@ -6,7 +6,7 @@ from .models import *
 
 
 
-def index(request):
+def product(request):
     data = Group.objects.all()
     print(data)
     return render(request, "showcase/start.html", {"data": data})
