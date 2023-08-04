@@ -32,8 +32,8 @@ class Group(models.Model):
 		return self.name_group
 
 
-	# def get_absolute_url(self):
-	# 	return reverse('post', kwargs={'post_slug': self.slug})
+	def get_absolute_url(self):
+		return reverse('group', kwargs={'group_slug': self.slug})
 
 	class Meta:
 		verbose_name = "Группа"

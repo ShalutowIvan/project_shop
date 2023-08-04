@@ -31,10 +31,11 @@
 
 		<!--<span class="logo">Товары</span>-->
 		<br><br><br><br><br>
-		<a href="{% url 'start'%}"><i class="fa-thin fa-house"></i><h3>Группы товаров</h3></a>
+		<a href="{% url 'all_group'%}"><i class="fa-thin fa-house"></i><h3>Группы товаров</h3></a>
 			
 {% for i in data %}
-			<a href=""><p>{{i.name_group}}</p></a>
+
+			<a href="{{ i.get_absolute_url }}"><p>{{i.name_group}}</p></a>
 			
 {% endfor %}
 
@@ -46,16 +47,15 @@
 	{% block content %}
 	{% endblock %}
 
+
+
+</main>
+
 <footer>
 	<p>Контакты</p>
 	<p>Информация о нас</p>
 
 </footer>
-
-</main>
-
-
-
 
 	
 </body>

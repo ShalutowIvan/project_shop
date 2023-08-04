@@ -1,0 +1,19 @@
+{% extends 'showcase/start.html' %}
+
+
+{% block content %}
+
+
+
+{% if product.photo %}
+<p><img class="img-article-left" src="{{prod.photo.url}}"></p>
+{% endif %}
+
+{{product.name_product|linebreaks}}
+
+{{product.price|linebreaks}}
+
+
+{% endblock %}
+
+
