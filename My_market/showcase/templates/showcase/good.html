@@ -5,13 +5,18 @@
 
 
 
-{% if product.photo %}
-<p><img class="img-article-left" src="{{prod.photo.url}}"></p>
+{% for g in goods %}
+
+<h3> Название товара {{g.name_product}}</h3>
+<p> Цена {{g.price}}</p>
+<p> Доступна для продажи {{g.availability}}</p>
+
+{% if g.photo %}
+<p><img class="img-article-left" src="{{g.photo.url}}"></p>
 {% endif %}
 
-{{product.name_product|linebreaks}}
 
-{{product.price|linebreaks}}
+{% endfor %}
 
 
 {% endblock %}
