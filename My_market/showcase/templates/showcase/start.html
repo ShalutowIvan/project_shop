@@ -33,7 +33,7 @@
 		<br><br><br><br><br>
 		<a href="{% url 'all_group'%}"><i class="fa-thin fa-house"></i><h3>Группы товаров</h3></a>
 			
-{% for i in data %}
+{% for i in dat %}
 
 			<a href="{{ i.get_absolute_url }}"><p>{{i.name_group}}</p></a>
 			

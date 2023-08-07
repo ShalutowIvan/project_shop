@@ -2,6 +2,10 @@ body {
 	background: lightgrey;
 }
 
+
+
+
+
 header{
 position: fixed;
 float: top;
@@ -77,13 +81,16 @@ aside ul li:hover, aside ul a:hover{
 	transform: scale(1.05);
 }
 
-main {
-float: left;
-color: black;
-margin-top: 250px;
-text-align: center;
-width: 75%;
 
+
+p.img.product-img {
+	width: 50px;
+	height: 10%;
+	
+	
+	
+	
+	padding: 0 10px 10px 0;
 }
 
 

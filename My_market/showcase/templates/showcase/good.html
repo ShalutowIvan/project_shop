@@ -7,12 +7,12 @@
 
 {% for g in goods %}
 
-<h3> Название товара {{g.name_product}}</h3>
+<h1> Название товара {{g.name_product}}</h1>
 <p> Цена {{g.price}}</p>
 <p> Доступна для продажи {{g.availability}}</p>
 
 {% if g.photo %}
-<p><img class="img-article-left" src="{{g.photo.url}}"></p>
+<p><img class="product-img" src="{{g.photo.url}}"></p>
 {% endif %}
 
 
