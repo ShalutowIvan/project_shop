@@ -69,65 +69,65 @@ class Organization(models.Model):
 
 
 #список заказов хочу купить
-# class Order_list_want_by(models.Model):
-# 	name_product = models.CharField(max_length=255, default='_', verbose_name="Название товара")
-# 	slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name="URL")
-# 	price = models.DecimalField(max_digits=19, decimal_places=2, verbose_name="Цена")
-# 	quantity = models.FloatField(verbose_name="Количество")
-# 	availability = models.BooleanField(default=True, verbose_name="Доступность")
-# 	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара")
-# 	time_create = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
-# 	time_update = models.DateTimeField(auto_now=True, verbose_name="Время изменения")
+class Order_list_want_by(models.Model):
+	name_product = models.CharField(max_length=255, default='_', verbose_name="Название товара")
+	slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name="URL")
+	price = models.DecimalField(max_digits=19, decimal_places=2, verbose_name="Цена")
+	quantity = models.FloatField(verbose_name="Количество")
+	availability = models.BooleanField(default=True, verbose_name="Доступность")
+	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара")
+	time_create = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
+	time_update = models.DateTimeField(auto_now=True, verbose_name="Время изменения")
 
 
 
-# 	def __str__(self):
-# 		return self.name_product
+	def __str__(self):
+		return self.name_product
 
 
-# 	class Meta:
-# 		verbose_name = "Товары, которые хочу купить"
-# 		verbose_name_plural = "Товары, которые хочу купить"
-# 		ordering = ['time_create', 'name']
+	class Meta:
+		verbose_name = "Товары, которые хочу купить"
+		verbose_name_plural = "Товары, которые хочу купить"
+		ordering = ['time_create', 'name_product']
 
 
 
 # #список заказов купили раньше - история покупок
-# class Order_list_bought(models.Model):
-# 	name_product = models.CharField(max_length=255, default='_', verbose_name="Название товара")
-# 	# slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name="URL")
-# 	price = models.DecimalField(max_digits=19, decimal_places=2, verbose_name="Цена")
-# 	quantity = models.FloatField(verbose_name="Количество")
-# 	# availability = models.BooleanField(default=True, verbose_name="Доступность")
-# 	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара")
-# 	time_create = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
+class Order_list_bought(models.Model):
+	name_product = models.CharField(max_length=255, default='_', verbose_name="Название товара")
+	# slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name="URL")
+	price = models.DecimalField(max_digits=19, decimal_places=2, verbose_name="Цена")
+	quantity = models.FloatField(verbose_name="Количество")
+	# availability = models.BooleanField(default=True, verbose_name="Доступность")
+	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара")
+	time_create = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
 
-# 	def __str__(self):
-# 		return self.name_product
+	def __str__(self):
+		return self.name_product
 
 
-# 	class Meta:
-# 		verbose_name = "История покупок"
-# 		verbose_name_plural = "История покупок"
-# 		ordering = ['time_create', 'name']
+	class Meta:
+		verbose_name = "История покупок"
+		verbose_name_plural = "История покупок"
+		ordering = ['time_create', 'name_product']
 
 
 # #товары в корзине
-# class Goods_in_basket(models.Model):
-# 	name_product = models.CharField(max_length=255, default='_', verbose_name="Название товара")
-# 	slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name="URL")
-# 	price = models.DecimalField(max_digits=19, decimal_places=2, verbose_name="Цена")
-# 	quantity = models.FloatField(verbose_name="Количество")
-# 	availability = models.BooleanField(default=True, verbose_name="Доступность")
-# 	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара")
+class Goods_in_basket(models.Model):
+	name_product = models.CharField(max_length=255, default='_', verbose_name="Название товара")
+	slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name="URL")
+	price = models.DecimalField(max_digits=19, decimal_places=2, verbose_name="Цена")
+	quantity = models.FloatField(verbose_name="Количество")
+	availability = models.BooleanField(default=True, verbose_name="Доступность")
+	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара")
 
-# 	def __str__(self):
-# 		return self.name_product
+	def __str__(self):
+		return self.name_product
 
-# 	class Meta:
-# 		verbose_name = "Товары в корзине"
-# 		verbose_name_plural = "Товары в корзине"
-# 		ordering = ['-price', 'name']
+	class Meta:
+		verbose_name = "Товары в корзине"
+		verbose_name_plural = "Товары в корзине"
+		ordering = ['-price', 'name_product']
 
 
 # class Users(models.Model):

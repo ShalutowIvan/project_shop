@@ -15,22 +15,33 @@ from .models import *
 
 
 
-def all_group(request):
-    dat = Group.objects.all()
+def start(request):
+    gr = Group.objects.all()
+    org = Organization.objects.all()
+    gd = Goods.objects.all()
+
+    dat = {
+    "gr": gr,
+    "org": org[0],
+    "gd": gd,
+    }
+
     # print(data)
-    return render(request, "showcase/start.html", {"dat": dat})
+    return render(request, "showcase/start.html", context=dat)
 
 
-#сделать чтобы при переходе по урл выходила список товаров, урл должна тенуться по группе
+
+
+
 
 def show_group(request, group_slug): 
     groups = Group.objects.filter(slug=group_slug)
     goods = Goods.objects.filter(group_id=groups[0].id)
-    dat = Group.objects.all()
-    print(groups)
+    gr = Group.objects.all()
+    # print(groups)
     data = {
     'goods': goods,    
-    'dat': dat,
+    'gr': gr,
     'title': 'Товары',
     # 'gr_selected': groups[0].id,
     # 'groups': groups,

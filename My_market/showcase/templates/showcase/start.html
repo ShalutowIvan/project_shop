@@ -17,7 +17,7 @@
 <!--панель сверху - шапка. -->
 <header>
 	<img src="{% static 'showcase/images/i.jpg' %}" alt="Лого">
-<h1>Название Магазина</h1>
+<h1>{{ org.name_org }}</h1>
 
 	<p>Войти</p>
 	<p>Регистрация</p> 
@@ -31,9 +31,9 @@
 
 		<!--<span class="logo">Товары</span>-->
 		<br><br><br><br><br>
-		<a href="{% url 'all_group'%}"><i class="fa-thin fa-house"></i><h3>Группы товаров</h3></a>
+		<a href="{% url 'start' %}"><i class="fa-thin fa-house"></i><h3>Группы товаров</h3></a>
 			
-{% for i in dat %}
+{% for i in gr %}
 
 			<a href="{{ i.get_absolute_url }}"><p>{{i.name_group}}</p></a>
 			
@@ -44,7 +44,21 @@
 
 <!--Основная часть в середине, она будет меняться-->
 <main>
+<br><br><br><br><br><br><br><br><br>
+{% for j in gd %}
+
+<h1> Название товара {{j.name_product}}</h1>
+<p> Цена {{j.price}}</p>
+<p> Доступна для продажи {{j.availability}}</p>
+
+{% if j.photo %}
+<p><img class="product-img" src="{{j.photo.url}}"></p>
+{% endif %}
+
+
+{% endfor %}
 	{% block content %}
+
 	{% endblock %}
 
 
@@ -52,8 +66,8 @@
 </main>
 
 <footer>
-	<p>Контакты</p>
-	<p>Информация о нас</p>
+	<p>Телефон: {{ org.phone }}</p>
+	<p>Информация о нас: {{ org.about }}</p>
 
 </footer>
 

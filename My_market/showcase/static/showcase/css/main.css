@@ -1,10 +1,12 @@
-body {
-	background: lightgrey;
-}
-
-
-
-
+/*html, body {
+	font-family: 'Arial';
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	width: 100%;
+	color: #444;
+}*/
+/*это стиль для картинки товаров. Первая позиция отображается под хедером и не видно название товара*/
 
 header{
 position: fixed;
@@ -28,7 +30,6 @@ color: black;
 
 header img {
 
-/*filter: invert(1);*/	
 	float: left;
 	border: 5px solid darkblue;
 	width: 150px;
@@ -45,7 +46,7 @@ aside{
 	background: burlywood;
 	width: 20%;
 	padding: 2.5%;
-	height: 100%;
+	height: 100vh;
 	color: white;
 	border-right: 5px solid slategrey;
 }
@@ -83,19 +84,27 @@ aside ul li:hover, aside ul a:hover{
 
 
 
-p.img.product-img {
-	width: 50px;
-	height: 10%;
-	
-	
-	
-	
+main{
+	text-align: center;
+	float: center;
+	background: seagreen;
+	width: 80%;
+	/*padding: 2.5%;*/
+	height: 100vh;
+	color: white;
+	border-right: 5px solid slategrey;
+
+}
+
+img.product-img {
+	max-width: 200px;
+	height: auto;
+	/*float: center;*/
 	padding: 0 10px 10px 0;
+	/*top: 1000px;*/
 }
 
 
-main .sale h1 { font-size: 50px;}
-main .sale p { max-width: 400px; margin: 20px auto;}
 
 
 body{
