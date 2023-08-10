@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Goods, Group, Organization
+from .models import *
 # Register your models here.
 
 class GoodsAdmin(admin.ModelAdmin):
@@ -7,7 +7,7 @@ class GoodsAdmin(admin.ModelAdmin):
 	list_display_links = ('id', 'name_product')#это для отображения ссылок для перехода на нужные поля сайта
 	search_fields = ('name_product', )#это инфа по каким полям будет идти поиск. Далее идем в файл models.py для уазания названия полей на русском языке. 
 	list_editable = ('availability',)#это чтобы через админку можно было редачить этот параметр
-	list_filter = ('availability', )#для фильтра по этим параметрам в админке
+	list_filter = ('group', )#для фильтра по этим параметрам в админке
 	prepopulated_fields = {"slug": ("name_product",)}
 
 
@@ -31,3 +31,33 @@ class OrganizationAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Organization, OrganizationAdmin)
+
+
+class Order_list_want_byAdmin(admin.ModelAdmin):
+	list_display = ('id', 'name_product', 'price', 'quantity', 'availability')
+	list_display_links = ('id', 'name_product')
+	search_fields = ('name_product', )
+	list_filter = ('group', )
+
+
+admin.site.register(Order_list_want_by, Order_list_want_byAdmin)
+
+
+class Order_list_boughtAdmin(admin.ModelAdmin):
+	list_display = ('id', 'name_product', 'price', 'quantity',)
+	list_display_links = ('id', 'name_product')
+	search_fields = ('name_product', )
+	list_filter = ('group', )
+
+
+admin.site.register(Order_list_bought, Order_list_boughtAdmin)
+
+
+class Goods_in_basketAdmin(admin.ModelAdmin):
+	list_display = ('id', 'name_product', 'price', 'quantity', 'availability')
+	list_display_links = ('id', 'name_product')
+	search_fields = ('name_product', )
+	list_filter = ('group', )
+
+
+admin.site.register(Goods_in_basket, Goods_in_basketAdmin)

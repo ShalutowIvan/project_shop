@@ -112,7 +112,7 @@ class Order_list_bought(models.Model):
 		ordering = ['time_create', 'name_product']
 
 
-# #товары в корзине
+# товары в корзине
 class Goods_in_basket(models.Model):
 	name_product = models.CharField(max_length=255, default='_', verbose_name="Название товара")
 	slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name="URL")
