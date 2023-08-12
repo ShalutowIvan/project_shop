@@ -21,6 +21,7 @@ class Goods(models.Model):
 		verbose_name = "Товар"
 		verbose_name_plural = "Товары"#это для множественного числа, чтобы буква s не дописывалась автоматом
 		ordering = ['stock', 'name_product']
+		index_together = (('id', 'slug'),)
 
 
 #модель групп. База наполняться и изменяться будет через API
@@ -117,7 +118,7 @@ class Goods_in_basket(models.Model):
 	name_product = models.CharField(max_length=255, default='_', verbose_name="Название товара")
 	slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name="URL")
 	price = models.DecimalField(max_digits=19, decimal_places=2, verbose_name="Цена")
-	quantity = models.FloatField(verbose_name="Количество")
+	quantity = models.FloatField(default=0, verbose_name="Количество")
 	availability = models.BooleanField(default=True, verbose_name="Доступность")
 	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара")
 

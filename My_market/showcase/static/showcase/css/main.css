@@ -91,7 +91,7 @@ aside ul li:hover, aside ul a:hover{
 
 main{
 	text-align: center;
-	float: center;
+	
 	background-color: seagreen;
 	width: 60%;
 	padding: 2.5%;
@@ -109,7 +109,9 @@ img.product-img {
 	/*top: 1000px;*/
 }
 
-
+main .form-group{
+	width: 70px;
+}
 
 
 body{
@@ -117,7 +119,7 @@ body{
 }
 
 footer{
-position: fixed;
+	position: fixed;
     right: 0; bottom: 0;
     padding: 10px; 
     background: #39b54a; 

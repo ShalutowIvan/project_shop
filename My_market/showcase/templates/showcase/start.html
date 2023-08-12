@@ -42,6 +42,8 @@
 <!--Основная часть в середине, она будет меняться-->
 <main>
 <br><br><br><br><br><br><br><br><br>
+
+
 {% for j in gd %}
 
 <h1> Название товара {{j.name_product}}</h1>
@@ -51,6 +53,21 @@
 {% if j.photo %}
 <p><img class="product-img" src="{{j.photo.url}}"></p>
 {% endif %}
+
+<!--форма для добавления корзины -->
+<form action="{% url 'start' %}" method="post">
+	{% csrf_token %}
+<div class="form-group">	
+	<p><label class="form-label" for="{{ form.quantity.id_for_label }}">{{form.quantity.label}}: </label>{{ form.quantity }}</p>
+</div>
+
+
+
+<button type="submit">Добавить в корзину</button>
+
+</form>
+<!--конец форма -->
+
 
 
 {% endfor %}
