@@ -20,8 +20,9 @@
 	<img src="{% static 'showcase/images/i.jpg' %}" alt="Лого">
 <h1>{{ org.name_org }}</h1>
 
-	<p>Войти</p>
-	<p>Регистрация</p> 
+	<a href="{% url 'login' %}"><p>Войти</p></a>
+	<a href="{% url 'register' %}"><p>Регистрация</p></a>
+	<a href="{% url 'logout' %}"><p>Выйти</p></a>
 	<a href="{% url 'basket'%}"><p>Корзина</p></a>
 </header>
 
