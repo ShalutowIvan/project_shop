@@ -11,7 +11,7 @@ class GoodsAdmin(admin.ModelAdmin):
 	prepopulated_fields = {"slug": ("name_product",)}
 
 
-admin.site.register(Goods, GoodsAdmin)
+admin.site.register(Goods, GoodsAdmin)#можно регать и декоратором. Декоратор можно юзать к классу
 
 
 class GroupAdmin(admin.ModelAdmin):

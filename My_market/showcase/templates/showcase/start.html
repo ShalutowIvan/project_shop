@@ -18,12 +18,22 @@
 <!--панель сверху - шапка. -->
 <header>
 	<img src="{% static 'showcase/images/i.jpg' %}" alt="Лого">
-<h1>{{ org.name_org }}</h1>
+	<h1>{{ org.name_org }}</h1>
+
+
+
+	{% if request.user.is_authenticated %}
+
+	<p>{{user.username}}</p>
+	<a href="{% url 'logout' %}"><p>Выйти</p></a>
+	<a href="{% url 'basket'%}"><p>Корзина</p></a>
+{% else %}
 
 	<a href="{% url 'login' %}"><p>Войти</p></a>
 	<a href="{% url 'register' %}"><p>Регистрация</p></a>
-	<a href="{% url 'logout' %}"><p>Выйти</p></a>
-	<a href="{% url 'basket'%}"><p>Корзина</p></a>
+				{% endif %}
+
+
 </header>
 
 
@@ -56,17 +66,17 @@
 {% endif %}
 
 <!--форма для добавления корзины -->
+	{% if request.user.is_authenticated %}
 <form action="{% url 'start' %}" method="post">
 	{% csrf_token %}
 <div class="form-group">	
 	<p><label class="form-label" for="{{ form.quantity.id_for_label }}">{{form.quantity.label}}: </label>{{ form.quantity }}</p>
 </div>
 
-
-
 <button type="submit">Добавить в корзину</button>
 
 </form>
+	{% endif %}
 <!--конец форма -->
 
 

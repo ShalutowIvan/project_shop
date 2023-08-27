@@ -15,7 +15,11 @@
 <p><img class="product-img" src="{{g.photo.url}}"></p>
 {% endif %}
 
+
+{% if request.user.is_authenticated %}
 <a href=""><button>Добавить в корзину</button></a>
+{% endif %}
+
 
 {% endfor %}
 

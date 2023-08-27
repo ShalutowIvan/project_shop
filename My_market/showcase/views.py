@@ -47,7 +47,7 @@ class GoodsHome(ListView):
         org = Organization.objects.all()
         context['org'] = org[0]
         context['form'] = AddGoodForm()
-        
+
         
         return context
 
@@ -120,6 +120,8 @@ class GroupShow(ListView):
 
 
 def basket(request):
+    context = request.session.items()
+    print(context)
     return render(request, "showcase/basket.html")
 
 #разобраться с добавлением товара в корзину
@@ -156,3 +158,7 @@ class LoginUser(LoginView):
 def logout_user(request):#функция для выхода, чтобы выйти из аккаунта
     logout(request)#эта функция вызывает стандартную функцию джанго для выхода пользователя.
     return redirect('login')
+
+
+#начал пилить корзину. Добавил приложение корзины.
+
