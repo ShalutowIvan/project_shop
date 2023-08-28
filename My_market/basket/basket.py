@@ -30,6 +30,7 @@ class Basket:
             self.basket[good_id]['quantity'] += quantity#иначе добавляем колво
         self.save()
 
+
     def save(self):
     # Обновление сессии basket
         self.session[settings.BASKET_SESSION_ID] = self.basket
@@ -45,6 +46,7 @@ class Basket:
         if good_id in self.basket:
             del self.basket[good_id]
             self.save()
+
 
     def __iter__(self):
     
@@ -63,6 +65,21 @@ class Basket:
             yield item
 
 
+    def __len__(self):
+        """
+        Подсчет всех товаров в корзине.
+        """
+        return sum(item['quantity'] for item in self.basket.values())
 
 
+    def get_total_price(self):
+        """
+        Подсчет стоимости товаров в корзине.
+        """
+        return sum(Decimal(item['price']) * item['quantity'] for item in self.basket.values())
 
+
+    def clear(self):
+        # удаление корзины из сессии
+        del self.session[settings.BASKET_SESSION_ID]
+        self.session.modified = True
