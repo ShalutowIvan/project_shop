@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'showcase.apps.ShowcaseConfig',
-    'basket.apps.BasketConfig'
+    # 'basket.apps.BasketConfig'
 ]
 
 MIDDLEWARE = [
