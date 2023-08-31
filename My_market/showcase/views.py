@@ -45,7 +45,8 @@ class GoodsHome(ListView):
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
         org = Organization.objects.all()
-        context['org'] = org[0]
+        if org:
+            context['org'] = org[0]
         context['form'] = AddGoodForm()
 
         

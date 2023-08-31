@@ -53,11 +53,11 @@ class Order_list_boughtAdmin(admin.ModelAdmin):
 admin.site.register(Order_list_bought, Order_list_boughtAdmin)
 
 
-class Goods_in_basketAdmin(admin.ModelAdmin):
-	list_display = ('id', 'name_product', 'price', 'quantity', 'availability')
-	list_display_links = ('id', 'name_product')
-	search_fields = ('name_product', )
-	list_filter = ('group', )
+class BasketsAdmin(admin.ModelAdmin):
+	list_display = ('id', 'user', 'product', 'price', 'quantity', 'availability')
+	list_display_links = ('id', 'product')
+	search_fields = ('user', 'product' )
+	
 
 
-admin.site.register(Goods_in_basket, Goods_in_basketAdmin)
+admin.site.register(Baskets, BasketsAdmin)

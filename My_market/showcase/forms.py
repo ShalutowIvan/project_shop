@@ -25,7 +25,7 @@ class AddGoodForm(forms.ModelForm):
 
 
     class Meta:
-        model = Goods_in_basket
+        model = Baskets
         fields = ['quantity']
         widgets = {
             'quantity': forms.TextInput(attrs={'class': 'form-input'}),

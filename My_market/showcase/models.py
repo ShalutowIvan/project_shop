@@ -1,5 +1,7 @@
 from django.db import models
 from django.urls import reverse
+from django.contrib.auth.models import User
+
 
 #Модель для товаров. База наполняться и изменяться будет через API
 class Goods(models.Model):
@@ -114,9 +116,9 @@ class Order_list_bought(models.Model):
 
 
 # товары в корзине
-class Goods_in_basket(models.Model):
-	user = models.ForeignKey(to=User, on_delete=models.CASCADE)
-	product = models.ForeignKey(to=Goods, on_delete=models.CASCADE)
+class Baskets(models.Model):
+	user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Пользователь")
+	product = models.ForeignKey(to=Goods, on_delete=models.CASCADE, verbose_name="Товар")
 	quantity = models.FloatField(default=0, verbose_name="Количество")
 	created_timestamp = models.DateTimeField(auto_now_add=True)
 	availability = models.BooleanField(default=True, verbose_name="Доступность")
@@ -129,10 +131,11 @@ class Goods_in_basket(models.Model):
 	class Meta:
 		verbose_name = "Товары в корзине"
 		verbose_name_plural = "Товары в корзине"
-		ordering = ['-price', 'name_product']
+		ordering = ['-price', 'product']
 
-	def sum(self):
-		return self.product.price * self.quantity
-# миграции не срабатывают. что то не так с таблицей юзер он не импортировался
+	# def sum(self):
+	# 	return self.product.price * self.quantity
+# миграции не срабатывают. что то не так с таблицей юзер он не импортировался. 
+# Сама миграция не срабатывает
 
 # class Users(models.Model):
