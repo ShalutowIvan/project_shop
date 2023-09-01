@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404, HttpResponseRedirect
 from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView
@@ -7,6 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 
 from django.contrib.auth import logout, login
+from django.contrib.auth.models import User
 
 from .models import *
 from .forms import *
@@ -91,23 +92,40 @@ class GroupShow(ListView):
 
 
 
+#контроллер для кнопки добавления товара в корзину
+def add_in_basket(request, product_id):
+    product = Goods.objects.get(id=product_id)#тут мы получили объект товара по его id
+    baskets = Baskets.objects.filter(user=request.user, product=product)#делаем переменную с фильтром из корзины по пользователю и по ID продукта. В модели корзины есть параметр product мы его сравниваем с переменной product, которую указали выше, то есть фильтр он сравнивает и филтрует по тем полям которые мы прописали. Далее будет добавлять элементы в корзину. Тут возвращается только один товар.
 
-# def add_in_basket(request, name_product):
-#     # if request.method == 'POST':
-#     #     form = AddPostForm(request.POST, request.FILES)
-#     #     if form.is_valid():
-#     #         #print(form.cleaned_data)
-#     #         form.save()
-#     #         return redirect('home')
-#     # else:
-#     #     form = AddPostForm()
+    if not baskets.exists():#если корзина пустая, то добавляем продукт
+        Baskets.objects.create(user=request.user, product=product, quantity=1)
+    else:
+        basket = baskets.first()
+        basket.quantity += 1
+        basket.save()
+        #добавили элемент и сохранили в дб корзины. Теперь нужно чтобы мы оставались на той же страницы где и вызвали текущий контроллер. 
+    return HttpResponseRedirect(request.META['HTTP_REFERER'])#это перенаправление на ту же страницу где мы и были. ТО есть получается нажали добавить в корзину и там же и остались, и корзина пополнилась.
 
-# #сделать через форму в каждом товаре
-#     tovar = Goods.objects.filter(name_product=name_product)
-#     t_basket = Goods_in_basket.objects.create(name_product=tovar.name_product, price=tovar.price, quantity=1, group=tovar.group)
-#     # g_basket.save()
-#     print(tovar.name_product)
-#     return render(request, "showcase/start.html", {"tovar": tovar, 't_basket': t_basket})    
+
+
+    # if request.method == 'POST':
+    #     form = AddPostForm(request.POST, request.FILES)
+    #     if form.is_valid():
+    #         #print(form.cleaned_data)
+    #         form.save()
+    #         return redirect('home')
+    # else:
+    #     form = AddPostForm()
+
+#сделать через форму в каждом товаре
+    tovar = Goods.objects.filter(name_product=name_product)
+    t_basket = Goods_in_basket.objects.create(name_product=tovar.name_product, price=tovar.price, quantity=1, group=tovar.group)
+    # g_basket.save()
+    print(tovar.name_product)
+    return render(request, "showcase/start.html", {"tovar": tovar, 't_basket': t_basket})    
+
+# сделать контроллер обработчик событий для добавления в корзину для кнопки. То есть будет возвращаться в функции определенное действие. Импортируем модель юзера
+
 
 # {% url 'add_in_basket' %}
 # <form action="{% url 'add_in_basket' %}" method="post">
@@ -160,7 +178,7 @@ def logout_user(request):#функция для выхода, чтобы вый�
     logout(request)#эта функция вызывает стандартную функцию джанго для выхода пользователя.
     return redirect('login')
 
-
+# {% url 'showcase:add_in_basket' j.id %}
 #начал пилить корзину. Добавил приложение корзины.
 # ссылка на видяху с корзиной, ост 20 мин:
 # https://www.youtube.com/watch?v=XjkP2dSPv7g&t=352s&ab_channel=EngineerSpock-IT%26%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5

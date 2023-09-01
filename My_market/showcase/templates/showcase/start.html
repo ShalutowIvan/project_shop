@@ -26,7 +26,7 @@
 
 	<p>{{user.username}}</p>
 	<a href="{% url 'logout' %}"><p>Выйти</p></a>
-	<a href="{% url 'basket'%}"><p>Корзина</p></a>
+	<a href="{% url 'basket' %}"><p>Корзина</p></a>
 {% else %}
 
 	<a href="{% url 'login' %}"><p>Войти</p></a>
@@ -73,7 +73,7 @@
 	<p><label class="form-label" for="{{ form.quantity.id_for_label }}">{{form.quantity.label}}: </label>{{ form.quantity }}</p>
 </div>
 
-<button type="submit">Добавить в корзину</button>
+<a href="{% url 'add_in_basket' j.id %}"><button>Добавить в корзину</button></a>
 
 </form>
 	{% endif %}
