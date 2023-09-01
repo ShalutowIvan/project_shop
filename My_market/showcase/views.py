@@ -107,6 +107,29 @@ def add_in_basket(request, product_id):
     return HttpResponseRedirect(request.META['HTTP_REFERER'])#это перенаправление на ту же страницу где мы и были. ТО есть получается нажали добавить в корзину и там же и остались, и корзина пополнилась.
 
 
+def clear_basket(request):
+    Baskets.objects.all().delete()
+    # Baskets.save()
+    return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+
+
+
+    # < form
+    # action = "{% url 'start' %}"
+    # method = "post" >
+    # { % csrf_token %}
+    # < div
+    #
+    # class ="form-group" >
+    #
+    # < p > < label
+    #
+    # class ="form-label" for ="{{ form.quantity.id_for_label }}" > {{form.quantity.label}}: <
+    #
+    #     / label > {{form.quantity}} < / p >
+
+
 
     # if request.method == 'POST':
     #     form = AddPostForm(request.POST, request.FILES)
@@ -118,11 +141,11 @@ def add_in_basket(request, product_id):
     #     form = AddPostForm()
 
 #сделать через форму в каждом товаре
-    tovar = Goods.objects.filter(name_product=name_product)
-    t_basket = Goods_in_basket.objects.create(name_product=tovar.name_product, price=tovar.price, quantity=1, group=tovar.group)
-    # g_basket.save()
-    print(tovar.name_product)
-    return render(request, "showcase/start.html", {"tovar": tovar, 't_basket': t_basket})    
+    # tovar = Goods.objects.filter(name_product=name_product)
+    # t_basket = Goods_in_basket.objects.create(name_product=tovar.name_product, price=tovar.price, quantity=1, group=tovar.group)
+    # # g_basket.save()
+    # print(tovar.name_product)
+    # return render(request, "showcase/start.html", {"tovar": tovar, 't_basket': t_basket})
 
 # сделать контроллер обработчик событий для добавления в корзину для кнопки. То есть будет возвращаться в функции определенное действие. Импортируем модель юзера
 
@@ -139,9 +162,9 @@ def add_in_basket(request, product_id):
 
 
 def basket(request):
-    context = request.session.items()
-    print(context)
-    return render(request, "showcase/basket.html")
+    context = Baskets.objects.all()
+    # print(context)
+    return render(request, "showcase/basket.html", {'product_in_basket': context})
 
 #разобраться с добавлением товара в корзину
 
@@ -182,4 +205,14 @@ def logout_user(request):#функция для выхода, чтобы вый�
 #начал пилить корзину. Добавил приложение корзины.
 # ссылка на видяху с корзиной, ост 20 мин:
 # https://www.youtube.com/watch?v=XjkP2dSPv7g&t=352s&ab_channel=EngineerSpock-IT%26%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5
+
+
+
+def adminka(request):
+    return redirect('adminka')
+
+
+
+
+
 

@@ -20,7 +20,6 @@ class Migration(migrations.Migration):
                 ('quantity', models.FloatField(default=0, verbose_name='Количество')),
                 ('created_timestamp', models.DateTimeField(auto_now_add=True)),
                 ('availability', models.BooleanField(default=True, verbose_name='Доступность')),
-                ('price', models.DecimalField(decimal_places=2, max_digits=19, verbose_name='Цена')),
                 ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='showcase.goods', verbose_name='Товар')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='Пользователь')),
             ],

@@ -19,7 +19,7 @@
 <header>
 	<img src="{% static 'showcase/images/i.jpg' %}" alt="Лого">
 	<h1>{{ org.name_org }}</h1>
-
+	<a href="{% url 'adminka' %}"><h1>АДМИНКА</h1></a>
 
 
 	{% if request.user.is_authenticated %}
@@ -42,7 +42,7 @@
 	<aside>
 
 		<!--<span class="logo">Товары</span>-->
-		<br><br><br><br><br>
+		<br><br><br><br><br><br><br><br><br><br>
 		<a href="{% url 'start' %}"><i class="fa-thin fa-house"></i><h3>Группы товаров</h3></a>
 			
 {% show_gr %}
@@ -67,10 +67,7 @@
 
 <!--форма для добавления корзины -->
 	{% if request.user.is_authenticated %}
-<form action="{% url 'start' %}" method="post">
-	{% csrf_token %}
-<div class="form-group">	
-	<p><label class="form-label" for="{{ form.quantity.id_for_label }}">{{form.quantity.label}}: </label>{{ form.quantity }}</p>
+
 </div>
 
 <a href="{% url 'add_in_basket' j.id %}"><button>Добавить в корзину</button></a>

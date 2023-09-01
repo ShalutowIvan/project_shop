@@ -24,7 +24,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),    
-    path('', include('showcase.urls'))#тут указали стартовую страницу от которой будут идти все другие ссылки приложения
+    path('', include('showcase.urls')),#тут указали стартовую страницу от которой будут идти все другие ссылки приложения
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 #тут нужно будет дописать ссылки на корзину. так как корзина отдельное приложение
 

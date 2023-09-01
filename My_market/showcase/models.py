@@ -122,7 +122,7 @@ class Baskets(models.Model):
 	quantity = models.FloatField(default=0, verbose_name="Количество")
 	created_timestamp = models.DateTimeField(auto_now_add=True)
 	availability = models.BooleanField(default=True, verbose_name="Доступность")
-	price = models.DecimalField(max_digits=19, decimal_places=2, verbose_name="Цена")
+	price = models.DecimalField(default=0, max_digits=19, decimal_places=2, verbose_name="Цена")
 
 	
 	def __str__(self):
@@ -131,11 +131,10 @@ class Baskets(models.Model):
 	class Meta:
 		verbose_name = "Товары в корзине"
 		verbose_name_plural = "Товары в корзине"
-		ordering = ['-price', 'product']
+		ordering = ['product']
 
 	# def sum(self):
 	# 	return self.product.price * self.quantity
-# миграции не срабатывают. что то не так с таблицей юзер он не импортировался. 
-# Сама миграция не срабатывает
+
 
 # class Users(models.Model):

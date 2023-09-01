@@ -6,5 +6,20 @@
 {% block content %}
 <h1>Корзина</h1>
 <p>Покупки</p>
+<a href="{% url 'clear_basket' %}"><h3>Очистить корзину</h3></a>
+
+{% for i in product_in_basket %}
+
+<h1> Название товара: {{i.product}}</h1>
+<p> Количество: {{ i.quantity }}</p>
+
+
+{% if not i.photo %}
+<p><img class="product-img" src="{{i.photo.url}}"></p>
+{% endif %}
+
+
+
+{% endfor %}
 
 {% endblock %}
