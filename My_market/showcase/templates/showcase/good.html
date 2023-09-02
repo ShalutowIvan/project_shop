@@ -16,9 +16,9 @@
 {% endif %}
 
 
-{% if request.user.is_authenticated %}
-<a href=""><button>Добавить в корзину</button></a>
-{% endif %}
+
+<a href="{% url 'add_in_basket' g.id %}"><button>Добавить в корзину</button></a>
+
 
 
 {% endfor %}

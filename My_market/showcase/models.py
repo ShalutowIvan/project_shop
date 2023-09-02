@@ -115,6 +115,16 @@ class Order_list_bought(models.Model):
 		ordering = ['time_create', 'name_product']
 
 
+
+class BasketQuerySet(models.QuerySet):
+    def total_sum(self):
+        return sum(i.sum() for i in self)#тут self это как бы sql запрос к модели Baskets будет с фильтром по юзеру
+
+    def total_quantity(self):
+        return sum(i.quantity for i in self)
+
+
+
 # товары в корзине
 class Baskets(models.Model):
 	user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Пользователь")
@@ -124,7 +134,8 @@ class Baskets(models.Model):
 	availability = models.BooleanField(default=True, verbose_name="Доступность")
 	price = models.DecimalField(default=0, max_digits=19, decimal_places=2, verbose_name="Цена")
 
-	
+	objects = BasketQuerySet.as_manager()#тут переписали базовый объект на основании которого мы делаем sql запросы для текущей модели Baskets. Теперь тут запросы будут идти не стандартно. Выше прописан класс BasketQuerySet который наследует класс models.QuerySet
+
 	def __str__(self):
 		return f'Корзина для {self.user.username} | Продукт: {self.product.name_product}'
 
@@ -133,8 +144,17 @@ class Baskets(models.Model):
 		verbose_name_plural = "Товары в корзине"
 		ordering = ['product']
 
-	# def sum(self):
-	# 	return self.product.price * self.quantity
+	def sum(self):
+		return self.product.price * self.quantity
+
+
+	# def total_sum(self):
+	# 	basket = Baskets.objects.filter(user=self.user)
+	# 	return sum(i.sum() for i in basket)
+
+	# def total_quantity(self):
+	# 	basket = Baskets.objects.filter(user=self.user)
+	# 	return sum(i.quantity for i in basket)
 
 
 # class Users(models.Model):

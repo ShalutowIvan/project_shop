@@ -6,6 +6,10 @@ from django.views.generic import ListView, DetailView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 
+from django.contrib.auth.decorators import login_required#это чтобы в случае когда пользователь не авторизован контроллер не срабатывал
+
+
+
 from django.contrib.auth import logout, login
 from django.contrib.auth.models import User
 
@@ -89,15 +93,16 @@ class GroupShow(ListView):
         return context
 
 
-
-
+# {% if request.user.is_authenticated %}
+# {% endif %}
 
 #контроллер для кнопки добавления товара в корзину
+@login_required#декторатор который перекидывает на страницу авторизации при срабатывании текущей функции. Страница авторизации должна быть прописана в файле settings.py в переменной LOGIN_URL. Декоратор под нее настроен.
 def add_in_basket(request, product_id):
     product = Goods.objects.get(id=product_id)#тут мы получили объект товара по его id
-    baskets = Baskets.objects.filter(user=request.user, product=product)#делаем переменную с фильтром из корзины по пользователю и по ID продукта. В модели корзины есть параметр product мы его сравниваем с переменной product, которую указали выше, то есть фильтр он сравнивает и филтрует по тем полям которые мы прописали. Далее будет добавлять элементы в корзину. Тут возвращается только один товар.
+    baskets = Baskets.objects.filter(user=request.user, product=product)#делаем переменную с фильтром из корзины по пользователю и по ID продукта. В модели корзины есть параметр product мы его сравниваем с переменной product, которую указали выше, то есть фильтр он сравнивает и филтрует по тем полям которые мы прописали. Далее будет добавлять элементы в корзину. Тут возвращается только один товар. Для каждого товара тут будет создаваться отдельный объект
 
-    if not baskets.exists():#если корзина пустая, то добавляем продукт
+    if not baskets.exists():#если корзина с определенным товаром пустая, то добавляем продукт. Если есть уже такой товар, то к нему добавляет колво 1
         Baskets.objects.create(user=request.user, product=product, quantity=1)
     else:
         basket = baskets.first()
@@ -106,12 +111,35 @@ def add_in_basket(request, product_id):
         #добавили элемент и сохранили в дб корзины. Теперь нужно чтобы мы оставались на той же страницы где и вызвали текущий контроллер. 
     return HttpResponseRedirect(request.META['HTTP_REFERER'])#это перенаправление на ту же страницу где мы и были. ТО есть получается нажали добавить в корзину и там же и остались, и корзина пополнилась.
 
+# <p> Количество: {{ i.quantity }}</p>
 
-def clear_basket(request):
-    Baskets.objects.all().delete()
-    # Baskets.save()
+@login_required
+def basket_view(request):
+    basket = Baskets.objects.filter(user=request.user)#фильтрация по юзеру тут идет. То есть для каждого пользователя будет своя корзина
+    # total_sum = sum(i.sum() for i in basket )
+    # total_quantity = sum(i.quantity for i in basket)
+    #логику всю лучше прописывать в классах модели, а не в контроллерах. Сделаем это.
+    # total_sum = 0
+    # total_quantity = 0
+    # for i in basket:
+    #     total_sum += i.sum()
+    #     total_quantity += i.quantity
+    # 'total_sum': total_sum, 'total_quantity': total_quantity 
+    # context = {'basket': basket }
+
+
+    return render(request, "showcase/basket.html", {'basket': basket})
+
+
+@login_required
+def clear_basket(request, basket_id):
+    # Baskets.objects.all().delete()
+    del_basket = Baskets.objects.get(id=basket_id)
+    del_basket.delete()
+    
     return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
+# <a href="{% url 'clear_basket' %}"><h3>Очистить корзину</h3></a>
 
 
 
@@ -161,12 +189,9 @@ def clear_basket(request):
 
 
 
-def basket(request):
-    context = Baskets.objects.all()
-    # print(context)
-    return render(request, "showcase/basket.html", {'product_in_basket': context})
 
-#разобраться с добавлением товара в корзину
+
+
 
 
 
@@ -197,6 +222,7 @@ class LoginUser(LoginView):
     def get_success_url(self):
         return reverse_lazy('start')
 
+@login_required
 def logout_user(request):#функция для выхода, чтобы выйти из аккаунта
     logout(request)#эта функция вызывает стандартную функцию джанго для выхода пользователя.
     return redirect('login')

@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY =
+SECRET_KEY = 
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -135,3 +135,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')#тут формируется путь к каталогу media для сохранения фото
 MEDIA_URL = '/media/'#это добавление префикса к url графических файлов
+
+LOGIN_URL = '/login/'
+
+

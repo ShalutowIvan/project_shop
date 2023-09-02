@@ -6,13 +6,20 @@
 {% block content %}
 <h1>Корзина</h1>
 <p>Покупки</p>
-<a href="{% url 'clear_basket' %}"><h3>Очистить корзину</h3></a>
 
-{% for i in product_in_basket %}
+<p>Итоговое количество= {{ basket.total_quantity }}</p>
+<h4>Итоговая сумма= {{ basket.total_sum }}</h4>
+
+{% for i in basket %}
 
 <h1> Название товара: {{i.product}}</h1>
-<p> Количество: {{ i.quantity }}</p>
+<input name="basketID" type="number" value="{{ i.quantity }}" min="0">
 
+<p>Цена: {{ i.product.price }}</p>
+<p>Сумма цена * количество: {{ i.sum }}</p>
+
+
+<a href="{% url 'clear_basket' i.id %}"><p>Удалить</p></a>
 
 {% if not i.photo %}
 <p><img class="product-img" src="{{i.photo.url}}"></p>
