@@ -142,43 +142,22 @@ def clear_basket(request, basket_id):
     
     return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
+
+
 # <a href="{% url 'clear_basket' %}"><h3>Очистить корзину</h3></a>
 
+class Checkout(CreateView):
+    form_class = Order_form
+    template_name = 'showcase/checkout.html'
+    success_url = reverse_lazy('start')
+    login_url = reverse_lazy('start')
+    raise_exception = True
 
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
 
-    # < form
-    # action = "{% url 'start' %}"
-    # method = "post" >
-    # { % csrf_token %}
-    # < div
-    #
-    # class ="form-group" >
-    #
-    # < p > < label
-    #
-    # class ="form-label" for ="{{ form.quantity.id_for_label }}" > {{form.quantity.label}}: <
-    #
-    #     / label > {{form.quantity}} < / p >
+        return context
 
-
-
-    # if request.method == 'POST':
-    #     form = AddPostForm(request.POST, request.FILES)
-    #     if form.is_valid():
-    #         #print(form.cleaned_data)
-    #         form.save()
-    #         return redirect('home')
-    # else:
-    #     form = AddPostForm()
-
-#сделать через форму в каждом товаре
-    # tovar = Goods.objects.filter(name_product=name_product)
-    # t_basket = Goods_in_basket.objects.create(name_product=tovar.name_product, price=tovar.price, quantity=1, group=tovar.group)
-    # # g_basket.save()
-    # print(tovar.name_product)
-    # return render(request, "showcase/start.html", {"tovar": tovar, 't_basket': t_basket})
-
-# сделать контроллер обработчик событий для добавления в корзину для кнопки. То есть будет возвращаться в функции определенное действие. Импортируем модель юзера
 
 
 # {% url 'add_in_basket' %}

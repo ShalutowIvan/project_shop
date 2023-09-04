@@ -33,14 +33,14 @@ class OrganizationAdmin(admin.ModelAdmin):
 admin.site.register(Organization, OrganizationAdmin)
 
 
-class Order_list_want_byAdmin(admin.ModelAdmin):
-	list_display = ('id', 'name_product', 'price', 'quantity', 'availability')
-	list_display_links = ('id', 'name_product')
-	search_fields = ('name_product', )
-	list_filter = ('group', )
-
-
-admin.site.register(Order_list_want_by, Order_list_want_byAdmin)
+# class Order_list_want_byAdmin(admin.ModelAdmin):
+# 	list_display = ('id', 'name_product', 'price', 'quantity', 'availability')
+# 	list_display_links = ('id', 'name_product')
+# 	search_fields = ('name_product', )
+# 	list_filter = ('group', )
+#
+#
+# admin.site.register(Order_list_want_by, Order_list_want_byAdmin)
 
 
 class Order_list_boughtAdmin(admin.ModelAdmin):
@@ -57,7 +57,26 @@ class BasketsAdmin(admin.ModelAdmin):
 	list_display = ('id', 'user', 'product', 'price', 'quantity', 'availability')
 	list_display_links = ('id', 'product')
 	search_fields = ('user', 'product' )
-	
 
 
 admin.site.register(Baskets, BasketsAdmin)
+
+
+class OrderAdmin(admin.ModelAdmin):
+	list_display = ('fio', 'phone', 'e_mail', 'delivery_address', 'pay')
+	list_display_links = ('fio',)
+	search_fields = ('user', 'fio')
+
+admin.site.register(Order, OrderAdmin)
+
+
+class PaymentAdmin(admin.ModelAdmin):
+	list_display = ('payment',)
+	list_display_links = ('payment',)
+
+admin.site.register(Payment, PaymentAdmin)
+
+
+
+
+

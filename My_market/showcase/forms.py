@@ -65,3 +65,22 @@ class LoginUserForm(AuthenticationForm):#название сами придум�
 
 
 
+class Order_form(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = Order
+        fields = ['fio', 'phone', 'e_mail', 'delivery_address', 'pay']
+
+
+    def clean_title(self):
+        fio = self.cleaned_data['fio']
+        if len(fio) > 200:
+            raise ValidationError('Длина превышает 200 символов')
+
+        return fio
+
+
+
+
