@@ -9,6 +9,7 @@ from django.contrib.auth.views import LoginView
 from django.contrib.auth.decorators import login_required#это чтобы в случае когда пользователь не авторизован контроллер не срабатывал
 
 
+from django.core.paginator import Paginator
 
 from django.contrib.auth import logout, login
 from django.contrib.auth.models import User
@@ -43,6 +44,7 @@ from .utils import *
 
 
 class GoodsHome(ListView):
+    paginate_by = 1
     model = Goods
     template_name = 'showcase/start.html'
     context_object_name = 'gd'
@@ -75,6 +77,7 @@ class GoodsHome(ListView):
 
 
 class GroupShow(ListView):
+    paginate_by = 1
     model = Goods
     template_name = 'showcase/good.html'
     context_object_name = 'goods'
