@@ -70,7 +70,7 @@ class Order_form(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
     class Meta:
-        model = Order
+        model = Order_list_bought
         fields = ['fio', 'phone', 'e_mail', 'delivery_address', 'pay']
 
 

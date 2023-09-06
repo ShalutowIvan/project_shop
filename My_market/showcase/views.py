@@ -19,30 +19,6 @@ from .forms import *
 from .utils import *
 
 
-# def start(request):
-#     # gr = Group.objects.all()
-#     org = Organization.objects.all()
-#     gd = Goods.objects.all()
-
-#     form = AddGoodForm()
-
-#     # tovar = Goods.objects.filter(name_product=name_product)
-#     # t_basket = Goods_in_basket.objects.create(name_product=tovar.name_product, price=tovar.price, quantity=1, group=tovar.group)
-#     # g_basket.save()
-#     # print(tovar.name_product)
-    
-
-#     dat = {
-#     # "gr": gr,
-#     "org": org[0],
-#     "gd": gd,
-#     "form": form,
-#     }
-
-
-#     return render(request, "showcase/start.html", context=dat)
-
-
 class GoodsHome(ListView):
     paginate_by = 1
     model = Goods
@@ -59,21 +35,6 @@ class GoodsHome(ListView):
         
         return context
 
-
-
-# def show_group(request, group_slug): 
-#     groups = Group.objects.filter(slug=group_slug)
-#     goods = Goods.objects.filter(group_id=groups[0].id)
-#     # gr = Group.objects.all()
-#     # print(groups)
-#     data = {
-#     'goods': goods,    
-#     # 'gr': gr,
-#     'title': 'Товары',
-#     }
-   
-
-#     return render(request, "showcase/good.html", context=data)
 
 
 class GroupShow(ListView):
@@ -144,47 +105,13 @@ def clear_basket(request, basket_id):
 
 
 
-# <a href="{% url 'clear_basket' %}"><h3>Очистить корзину</h3></a>
-
-class Checkout(CreateView):
-    form_class = Order_form
-    template_name = 'showcase/checkout.html'
-    success_url = reverse_lazy('start')
-    login_url = reverse_lazy('start')
-    raise_exception = True
-
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        return context
-
-
-
-# {% url 'add_in_basket' %}
-# <form action="{% url 'add_in_basket' %}" method="post">
-# {% csrf_token %}
-# </form>
-
-# def show_product(request, product):
-#     return HttpResponse(f"<h1>Вася {product}</h1>")
-
-
-
-
-
-
-
-
-
-
 class RegisterUser(CreateView):
     form_class = RegisterUserForm
     template_name = 'showcase/register.html'
     success_url = reverse_lazy('login')
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        # c_def = self.get_user_context(title="Регистрация")
-        # return dict(list(context.items()) + list(c_def.items()))
+        
         context['title'] = "Регистрация"
         return context
 
@@ -209,18 +136,58 @@ def logout_user(request):#функция для выхода, чтобы вый�
     logout(request)#эта функция вызывает стандартную функцию джанго для выхода пользователя.
     return redirect('login')
 
-# {% url 'showcase:add_in_basket' j.id %}
-#начал пилить корзину. Добавил приложение корзины.
-# ссылка на видяху с корзиной, ост 20 мин:
-# https://www.youtube.com/watch?v=XjkP2dSPv7g&t=352s&ab_channel=EngineerSpock-IT%26%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5
-
-
 
 def adminka(request):
     return redirect('adminka')
 
 
 
+# class Checkout(CreateView):
+#     form_class = Order_form
+#     template_name = 'showcase/checkout.html'
+#     success_url = reverse_lazy('start')
+#     login_url = reverse_lazy('start')
+#     # raise_exception = True
+
+#     def get_context_data(self, *, object_list=None, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         pay_goods = Baskets.objects.filter(user=request.user)
+#         context['pay_goods'] = pay_goods
+#         return context
 
 
+def checkout(request):
+    if request.method == 'POST':
+        form = Order_form(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    else:
+        form = Order_form()
+    return render(request, 'showcase/checkout.html', {'form': form})
+
+# доделать checkout. Тут скорее всего во вьюшке чекаут должна заполняться таблица модели Order_list_bought с вводом полей для заказа, и остальные поля тянутся из таблицы корзина и таблица корзина должна очиститься после заказа и заказ нужно будет на отдельной вкладке отобразить с данными. 
+
+
+
+
+
+def view_checkout(request):
+    pay_goods = Baskets.objects.filter(user=request.user)
+
+    return render(request, "showcase/checkout_list.html", {'pay_goods': pay_goods})
+
+
+# def add_in_basket(request, product_id):
+#     product = Goods.objects.get(id=product_id)#тут мы получили объект товара по его id
+#     baskets = Baskets.objects.filter(user=request.user, product=product)#делаем переменную с фильтром из корзины по пользователю и по ID продукта. В модели корзины есть параметр product мы его сравниваем с переменной product, которую указали выше, то есть фильтр он сравнивает и филтрует по тем полям которые мы прописали. Далее будет добавлять элементы в корзину. Тут возвращается только один товар. Для каждого товара тут будет создаваться отдельный объект
+
+#     if not baskets.exists():#если корзина с определенным товаром пустая, то добавляем продукт. Если есть уже такой товар, то к нему добавляет колво 1
+#         Baskets.objects.create(user=request.user, product=product, quantity=1)
+#     else:
+#         basket = baskets.first()
+#         basket.quantity += 1
+#         basket.save()
+#         #добавили элемент и сохранили в дб корзины. Теперь нужно чтобы мы оставались на той же страницы где и вызвали текущий контроллер. 
+#     return HttpResponseRedirect(request.META['HTTP_REFERER'])
 

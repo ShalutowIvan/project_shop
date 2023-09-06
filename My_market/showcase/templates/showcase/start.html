@@ -27,6 +27,7 @@
 	<p>{{user.username}}</p>
 	<a href="{% url 'logout' %}"><p>Выйти</p></a>
 	<a href="{% url 'basket_view' %}"><p>Корзина</p></a>
+	<a href=""><p>Мои покупки</p></a>
 {% else %}
 
 	<a href="{% url 'login' %}"><p>Войти</p></a>
@@ -52,7 +53,7 @@
 
 <!--Основная часть в середине, она будет меняться-->
 <main>
-<br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br>
 
 {% if page_obj.has_other_pages %}
 

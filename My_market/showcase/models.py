@@ -95,24 +95,8 @@ class Organization(models.Model):
 
 
 
-# #список заказов купили раньше - история покупок
-class Order_list_bought(models.Model):
-	name_product = models.CharField(max_length=255, default='_', verbose_name="Название товара")
-	# slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name="URL")
-	price = models.DecimalField(max_digits=19, decimal_places=2, verbose_name="Цена")
-	quantity = models.FloatField(verbose_name="Количество")
-	# availability = models.BooleanField(default=True, verbose_name="Доступность")
-	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара")
-	time_create = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
-
-	def __str__(self):
-		return self.name_product
 
 
-	class Meta:
-		verbose_name = "История покупок"
-		verbose_name_plural = "История покупок"
-		ordering = ['time_create', 'name_product']
 
 
 
@@ -157,19 +141,48 @@ class Baskets(models.Model):
 	# 	return sum(i.quantity for i in basket)
 
 
-class Order(models.Model):
+# class Order(models.Model):
+# 	user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Пользователь")
+# 	created_timestamp = models.DateTimeField(auto_now_add=True)
+# 	fio = models.CharField(max_length=255, verbose_name="ФИО")
+# 	phone = models.IntegerField(default=0, verbose_name="Телефон")
+# 	e_mail = models.CharField(max_length=255, verbose_name="Электронная почта")
+# 	delivery_address = models.TextField(blank=True, verbose_name="Адрес доставки")
+# 	pay = models.ForeignKey('Payment', on_delete=models.PROTECT, verbose_name="Способ оплаты")
+
+# 	class Meta:
+# 		verbose_name = "Заказ"
+# 		verbose_name_plural = "Заказы"
+# 		ordering = ['created_timestamp']
+
+
+
+# #список заказов купили раньше - история покупок
+class Order_list_bought(models.Model):
 	user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Пользователь")
-	created_timestamp = models.DateTimeField(auto_now_add=True)
+	name_product = models.ForeignKey(to=Goods, on_delete=models.CASCADE, verbose_name="Товар")	
+	
+	price = models.DecimalField(max_digits=19, decimal_places=2, verbose_name="Цена")
+	quantity = models.FloatField(verbose_name="Количество")
+	# availability = models.BooleanField(default=True, verbose_name="Доступность")
+	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара")
+	time_create = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
+
+	
 	fio = models.CharField(max_length=255, verbose_name="ФИО")
 	phone = models.IntegerField(default=0, verbose_name="Телефон")
 	e_mail = models.CharField(max_length=255, verbose_name="Электронная почта")
 	delivery_address = models.TextField(blank=True, verbose_name="Адрес доставки")
-	pay = models.ForeignKey('payment', on_delete=models.PROTECT, verbose_name="Способ оплаты")
+	pay = models.ForeignKey('Payment', on_delete=models.PROTECT, verbose_name="Способ оплаты")
+
+	def __str__(self):
+		return self.name_product
+
 
 	class Meta:
-		verbose_name = "Заказ"
-		verbose_name_plural = "Заказы"
-		ordering = ['created_timestamp']
+		verbose_name = "История покупок"
+		verbose_name_plural = "История покупок"
+		ordering = ['time_create', 'name_product']
 
 
 class Payment(models.Model):

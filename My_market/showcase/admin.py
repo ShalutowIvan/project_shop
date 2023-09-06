@@ -62,12 +62,12 @@ class BasketsAdmin(admin.ModelAdmin):
 admin.site.register(Baskets, BasketsAdmin)
 
 
-class OrderAdmin(admin.ModelAdmin):
-	list_display = ('fio', 'phone', 'e_mail', 'delivery_address', 'pay')
-	list_display_links = ('fio',)
-	search_fields = ('user', 'fio')
+# class OrderAdmin(admin.ModelAdmin):
+# 	list_display = ('fio', 'phone', 'e_mail', 'delivery_address', 'pay')
+# 	list_display_links = ('fio',)
+# 	search_fields = ('user', 'fio')
 
-admin.site.register(Order, OrderAdmin)
+# admin.site.register(Order, OrderAdmin)
 
 
 class PaymentAdmin(admin.ModelAdmin):
