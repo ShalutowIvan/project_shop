@@ -142,29 +142,31 @@ def adminka(request):
 
 
 
-# class Checkout(CreateView):
-#     form_class = Order_form
-#     template_name = 'showcase/checkout.html'
-#     success_url = reverse_lazy('start')
-#     login_url = reverse_lazy('start')
-#     # raise_exception = True
+class Checkout(CreateView):
+    form_class = Order_form
+    template_name = 'showcase/checkout.html'
+    success_url = reverse_lazy('start')
+    login_url = reverse_lazy('start')
+    # raise_exception = True
 
-#     def get_context_data(self, *, object_list=None, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         pay_goods = Baskets.objects.filter(user=request.user)
-#         context['pay_goods'] = pay_goods
-#         return context
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        pay_goods = Baskets.objects.filter(user=self.request.user)
+        # pay = pay_goods
+        
+        print(context)
+        print()
+        # print(dict(list(pay_goods)))
+        # dict(list(context)+list(pay_goods))
+        # context = (list(context.items()) + list(pay_goods))
+        context['pay_goods'] = pay_goods
+        return context
 
+# возможно сделать кнопку подтвердить это будут занесены в БД данные формы. потом кнопка оформить заказ, это для занесения данных из формы и из корзины в таблицу заказы
 
-def checkout(request):
-    if request.method == 'POST':
-        form = Order_form(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('home')
-    else:
-        form = Order_form()
-    return render(request, 'showcase/checkout.html', {'form': form})
+# def check_out(request):
+    
+#     return 
 
 # доделать checkout. Тут скорее всего во вьюшке чекаут должна заполняться таблица модели Order_list_bought с вводом полей для заказа, и остальные поля тянутся из таблицы корзина и таблица корзина должна очиститься после заказа и заказ нужно будет на отдельной вкладке отобразить с данными. 
 

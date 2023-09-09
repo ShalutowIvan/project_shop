@@ -13,7 +13,7 @@ urlpatterns = [#тут подключаем все ссылки которые �
     path('baskets/<int:product_id>/', add_in_basket, name='add_in_basket'),#в шаблоне буде прописана название ссылки и цифра id продукта просто через пробел и будет срабатывать как ссылка
     path('admin/', adminka, name='adminka'),
     path('baskets/clear_basket/<int:basket_id>/', clear_basket, name='clear_basket'),
-    path('checkout/', checkout, name='checkout'),
+    path('checkout/', Checkout.as_view(), name='checkout'),
     # path('group/<str:name_product>/', add_in_basket, name='add_in_basket'),
     # path('product/<slug:product_slug>/', show_product, name='product')
     ]
