@@ -3,7 +3,7 @@ from .models import *
 # Register your models here.
 
 class GoodsAdmin(admin.ModelAdmin):
-	list_display = ('id', 'name_product', 'price', 'stock', 'availability')#это для отображения ссылок для перехода на нужные поля сайта
+	list_display = ('id', 'name_product', 'price', 'vendor_code', 'stock', 'availability')#это для отображения ссылок для перехода на нужные поля сайта
 	list_display_links = ('id', 'name_product')#это для отображения ссылок для перехода на нужные поля сайта
 	search_fields = ('name_product', )#это инфа по каким полям будет идти поиск. Далее идем в файл models.py для уазания названия полей на русском языке. 
 	list_editable = ('availability',)#это чтобы через админку можно было редачить этот параметр
@@ -44,17 +44,16 @@ admin.site.register(Organization, OrganizationAdmin)
 
 
 class Order_list_boughtAdmin(admin.ModelAdmin):
-	list_display = ('id', 'name_product', 'price', 'quantity',)
+	list_display = ('id', 'name_product', 'quantity',)
 	list_display_links = ('id', 'name_product')
 	search_fields = ('name_product', )
-	list_filter = ('group', )
-
+	
 
 admin.site.register(Order_list_bought, Order_list_boughtAdmin)
 
 
 class BasketsAdmin(admin.ModelAdmin):
-	list_display = ('id', 'user', 'product', 'price', 'quantity', 'availability')
+	list_display = ('id', 'user', 'product', 'quantity',)
 	list_display_links = ('id', 'product')
 	search_fields = ('user', 'product' )
 
@@ -77,6 +76,8 @@ class PaymentAdmin(admin.ModelAdmin):
 admin.site.register(Payment, PaymentAdmin)
 
 
+class ContactsAdmin(admin.ModelAdmin):
+	list_display = ('fio', 'phone', 'delivery_address', 'pay')
 
-
+admin.site.register(Contacts, ContactsAdmin)
 

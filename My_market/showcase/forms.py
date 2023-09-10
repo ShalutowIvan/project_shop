@@ -65,13 +65,13 @@ class LoginUserForm(AuthenticationForm):#название сами придум�
 
 
 
-class Order_form(forms.ModelForm):
+class Contacts_form(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     class Meta:
-        model = Order_list_bought
-        fields = ['fio', 'phone', 'e_mail', 'delivery_address', 'pay']
+        model = Contacts
+        fields = ['fio', 'phone', 'delivery_address', 'pay']
 
 
     def clean_title(self):

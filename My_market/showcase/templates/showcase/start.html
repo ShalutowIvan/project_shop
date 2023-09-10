@@ -20,7 +20,7 @@
 	<img src="{% static 'showcase/images/i.jpg' %}" alt="Лого">
 	<h1>{{ org.name_org }}</h1>
 	<a href="{% url 'adminka' %}"><h1>АДМИНКА</h1></a>
-
+	
 
 	{% if request.user.is_authenticated %}
 

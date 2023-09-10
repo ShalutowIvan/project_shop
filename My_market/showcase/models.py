@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 class Goods(models.Model):
 	name_product = models.CharField(max_length=255, default='_', verbose_name="Название товара")
 	slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name="URL")
+	vendor_code = models.CharField(max_length=255, default='_', verbose_name="Артикул")
 	price = models.DecimalField(max_digits=19, decimal_places=2, verbose_name="Цена")
 	photo = models.ImageField(upload_to="photos/%Y/%m/%d/", verbose_name="Фото")
 	stock = models.FloatField(verbose_name="Остаток")
@@ -95,11 +96,6 @@ class Organization(models.Model):
 
 
 
-
-
-
-
-
 class BasketQuerySet(models.QuerySet):
     def total_sum(self):
         return sum(i.sum() for i in self)#тут self это как бы sql запрос к модели Baskets будет с фильтром по юзеру
@@ -115,8 +111,8 @@ class Baskets(models.Model):
 	product = models.ForeignKey(to=Goods, on_delete=models.CASCADE, verbose_name="Товар")
 	quantity = models.IntegerField(default=0, verbose_name="Количество")
 	created_timestamp = models.DateTimeField(auto_now_add=True)
-	availability = models.BooleanField(default=True, verbose_name="Доступность")
-	price = models.DecimalField(default=0, max_digits=19, decimal_places=2, verbose_name="Цена")
+	# availability = models.BooleanField(default=True, verbose_name="Доступность")
+	# price = models.DecimalField(default=0, max_digits=19, decimal_places=2, verbose_name="Цена")
 
 	objects = BasketQuerySet.as_manager()#тут переписали базовый объект на основании которого мы делаем sql запросы для текущей модели Baskets. Теперь тут запросы будут идти не стандартно. Выше прописан класс BasketQuerySet который наследует класс models.QuerySet
 
@@ -160,20 +156,10 @@ class Baskets(models.Model):
 # #список заказов купили раньше - история покупок
 class Order_list_bought(models.Model):
 	user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Пользователь")
-	name_product = models.ForeignKey(to=Goods, on_delete=models.CASCADE, verbose_name="Товар")	
-	
-	price = models.DecimalField(max_digits=19, decimal_places=2, verbose_name="Цена")
-	quantity = models.FloatField(verbose_name="Количество")
-	# availability = models.BooleanField(default=True, verbose_name="Доступность")
-	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара")
+	name_product = models.ForeignKey(to=Goods, on_delete=models.CASCADE, verbose_name="Товар")		
+	quantity = models.FloatField(verbose_name="Количество")	
 	time_create = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
-
 	
-	fio = models.CharField(max_length=255, verbose_name="ФИО")
-	phone = models.IntegerField(default=0, verbose_name="Телефон")
-	e_mail = models.CharField(max_length=255, verbose_name="Электронная почта")
-	delivery_address = models.TextField(blank=True, verbose_name="Адрес доставки")
-	pay = models.ForeignKey('Payment', on_delete=models.PROTECT, verbose_name="Способ оплаты")
 
 	def __str__(self):
 		return self.name_product
@@ -183,6 +169,27 @@ class Order_list_bought(models.Model):
 		verbose_name = "История покупок"
 		verbose_name_plural = "История покупок"
 		ordering = ['time_create', 'name_product']
+
+
+
+class Contacts(models.Model):
+	fio = models.CharField(max_length=255, verbose_name="ФИО")
+	phone = models.IntegerField(default=0, verbose_name="Телефон")	
+	delivery_address = models.TextField(blank=True, verbose_name="Адрес доставки")
+	pay = models.ForeignKey('Payment', on_delete=models.PROTECT, verbose_name="Способ оплаты")
+
+
+	def __str__(self):
+		return f"ФИО: {self.fio} Телефон: {self.phone} Адрес доставки: {self.delivery_address} Способ оплаты: {self.pay.payment}"
+
+	# def __str__(self):
+	# 	return self.fio
+
+
+	class Meta:
+		verbose_name = "Контакты покупателя"
+		verbose_name_plural = "Контакты покупателя"
+
 
 
 class Payment(models.Model):

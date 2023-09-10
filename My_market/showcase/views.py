@@ -57,9 +57,6 @@ class GroupShow(ListView):
         return context
 
 
-# {% if request.user.is_authenticated %}
-# {% endif %}
-
 #контроллер для кнопки добавления товара в корзину
 @login_required#декторатор который перекидывает на страницу авторизации при срабатывании текущей функции. Страница авторизации должна быть прописана в файле settings.py в переменной LOGIN_URL. Декоратор под нее настроен.
 def add_in_basket(request, product_id):
@@ -142,31 +139,49 @@ def adminka(request):
 
 
 
-class Checkout(CreateView):
-    form_class = Order_form
-    template_name = 'showcase/checkout.html'
-    success_url = reverse_lazy('start')
+class Get_contacts(CreateView):
+    form_class = Contacts_form
+    template_name = 'showcase/contacts.html'
+    success_url = reverse_lazy('checkout')
     login_url = reverse_lazy('start')
     # raise_exception = True
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        pay_goods = Baskets.objects.filter(user=self.request.user)
+        # pay_goods = Baskets.objects.filter(user=self.request.user)
         # pay = pay_goods
         
-        print(context)
-        print()
-        # print(dict(list(pay_goods)))
+        # print(context)
+        # print()
+        # # print(dict(list(pay_goods)))
         # dict(list(context)+list(pay_goods))
         # context = (list(context.items()) + list(pay_goods))
-        context['pay_goods'] = pay_goods
+        # context['pay_goods'] = pay_goods
         return context
 
 # возможно сделать кнопку подтвердить это будут занесены в БД данные формы. потом кнопка оформить заказ, это для занесения данных из формы и из корзины в таблицу заказы
 
-# def check_out(request):
+
+#это для отрисовки
+def checkout_view(request):
+    order = Baskets.objects.filter(user=request.user)
+    contact = list(Contacts.objects.all())[-1]
     
-#     return 
+    context = {
+    'contact': contact,
+    'order': order,
+
+    }
+
+    return render(request, "showcase/checkout.html", context=context)
+
+
+#доделать тут функция для оформления заказа, заносит данные в таблицу заказа который будет в истории покупок
+def checkout(request):
+    pay_goods = Baskets.objects.filter(user=request.user)
+    #Order_list_bought
+    return render(request, "showcase/checkout_list.html", {'pay_goods': pay_goods})
+
 
 # доделать checkout. Тут скорее всего во вьюшке чекаут должна заполняться таблица модели Order_list_bought с вводом полей для заказа, и остальные поля тянутся из таблицы корзина и таблица корзина должна очиститься после заказа и заказ нужно будет на отдельной вкладке отобразить с данными. 
 
@@ -174,10 +189,7 @@ class Checkout(CreateView):
 
 
 
-def view_checkout(request):
-    pay_goods = Baskets.objects.filter(user=request.user)
 
-    return render(request, "showcase/checkout_list.html", {'pay_goods': pay_goods})
 
 
 # def add_in_basket(request, product_id):
