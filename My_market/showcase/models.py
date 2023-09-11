@@ -170,8 +170,19 @@ class Order_list_bought(models.Model):
 		verbose_name_plural = "История покупок"
 		ordering = ['time_create', 'name_product']
 
+#итоговая таблица с заказами
+class Order_list_final(models.Model):
+	order = models.ForeignKey(to=Order_list_bought, on_delete=models.CASCADE, verbose_name="Заказы")
 
+	def __str__(self):
+		return self.order
 
+	class Meta:
+		verbose_name = "История покупок итог"
+		verbose_name_plural = "История покупок итог"
+		ordering = ['id']
+
+#сделать такую таблицу, чтобы каждый заказ нумеровался
 class Contacts(models.Model):
 	fio = models.CharField(max_length=255, verbose_name="ФИО")
 	phone = models.IntegerField(default=0, verbose_name="Телефон")	

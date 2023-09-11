@@ -81,3 +81,9 @@ class ContactsAdmin(admin.ModelAdmin):
 
 admin.site.register(Contacts, ContactsAdmin)
 
+
+class Order_list_finalAdmin(admin.ModelAdmin):
+	list_display = ('order',)
+
+admin.site.register(Order_list_final, Order_list_finalAdmin)
+

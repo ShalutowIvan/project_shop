@@ -4,12 +4,17 @@
 {% block content %}
 
 
+<h1>{{ contact }}</h1>
+
+{% for i in order_list %}
+
+<p> Название товара {{i.name_product}}</p>
+<p> Цена {{i.price}}</p>
+<p> Время создания {{i.time_create}}</p>
 
 
 
-
-
-
+{% endfor %}
 
 
 {% endblock %}

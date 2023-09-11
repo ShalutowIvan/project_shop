@@ -163,17 +163,7 @@ class Get_contacts(CreateView):
 
 
 #это для отрисовки
-def checkout_view(request):
-    order = Baskets.objects.filter(user=request.user)
-    contact = list(Contacts.objects.all())[-1]
-    
-    context = {
-    'contact': contact,
-    'order': order,
 
-    }
-
-    return render(request, "showcase/checkout.html", context=context)
 
 
 #доделать тут функция для оформления заказа, заносит данные в таблицу заказа который будет в истории покупок
@@ -182,13 +172,37 @@ def checkout(request):
 
     for i in pay_goods:
         Order_list_bought.objects.create(user=i.user, name_product=i.product, quantity=i.quantity)
-
-    
     pay_goods.delete()
 
-    #Order_list_bought
-    return render(request, "showcase/checkout_list.html", {'pay_goods': pay_goods})
+    return redirect('start')
 
+def checkout_list(request):
+    order_list = Order_list_bought.objects.all()
+
+    contact = list(Contacts.objects.all())[-1] if len(list(Contacts.objects.all())) > 0 else "Пусто"
+
+    itog = {
+        'order_list': order_list,
+        'contact': contact,
+    }
+    #
+    # itog = {  }
+
+    return render(request, "showcase/checkout_list.html", context=itog)
+
+
+def checkout_view(request):
+    order = Baskets.objects.filter(user=request.user)
+    contact = list(Contacts.objects.all())[-1]
+    # final_order = Order_list_bought.objects.all()
+
+    context = {
+    'contact': contact,
+    'order': order,
+    # 'final_order': final_order,
+    }
+
+    return render(request, "showcase/checkout.html", context=context)
 
 # доделать checkout. Тут скорее всего во вьюшке чекаут должна заполняться таблица модели Order_list_bought с вводом полей для заказа, и остальные поля тянутся из таблицы корзина и таблица корзина должна очиститься после заказа и заказ нужно будет на отдельной вкладке отобразить с данными. 
 
