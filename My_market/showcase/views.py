@@ -179,6 +179,13 @@ def checkout_view(request):
 #доделать тут функция для оформления заказа, заносит данные в таблицу заказа который будет в истории покупок
 def checkout(request):
     pay_goods = Baskets.objects.filter(user=request.user)
+
+    for i in pay_goods:
+        Order_list_bought.objects.create(user=i.user, name_product=i.product, quantity=i.quantity)
+
+    
+    pay_goods.delete()
+
     #Order_list_bought
     return render(request, "showcase/checkout_list.html", {'pay_goods': pay_goods})
 

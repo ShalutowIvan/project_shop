@@ -162,7 +162,7 @@ class Order_list_bought(models.Model):
 	
 
 	def __str__(self):
-		return self.name_product
+		return f"Товар: {self.name_product}, Количество: {self.quantity}"
 
 
 	class Meta:
