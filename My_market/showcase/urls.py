@@ -14,7 +14,7 @@ urlpatterns = [#тут подключаем все ссылки которые �
     path('admin/', adminka, name='adminka'),
     path('baskets/clear_basket/<int:basket_id>/', clear_basket, name='clear_basket'),
     path('contacts/', Get_contacts.as_view(), name='contacts'),
-    path('checkout_view/', checkout_view, name='checkout_view'),
+    # path('checkout_view/', checkout_view, name='checkout_view'),
     path('checkout/', checkout, name='checkout'),
     path('checkout_list/', checkout_list, name='checkout_list'),
 

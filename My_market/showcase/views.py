@@ -169,9 +169,10 @@ class Get_contacts(CreateView):
 #доделать тут функция для оформления заказа, заносит данные в таблицу заказа который будет в истории покупок
 def checkout(request):
     pay_goods = Baskets.objects.filter(user=request.user)
+    id_contact = Contacts.objects.all().last().id
 
     for i in pay_goods:
-        Order_list_bought.objects.create(user=i.user, name_product=i.product, quantity=i.quantity)
+        Order_list_bought.objects.create(user=i.user, name_product=i.product, quantity=i.quantity, order_number=id_contact)
     pay_goods.delete()
 
     return redirect('start')
@@ -179,7 +180,8 @@ def checkout(request):
 def checkout_list(request):
     order_list = Order_list_bought.objects.all()
 
-    contact = list(Contacts.objects.all())[-1] if len(list(Contacts.objects.all())) > 0 else "Пусто"
+    contact = list(Contacts.objects.all())
+    contact = [i.id for i in contact]
 
     itog = {
         'order_list': order_list,
@@ -191,18 +193,18 @@ def checkout_list(request):
     return render(request, "showcase/checkout_list.html", context=itog)
 
 
-def checkout_view(request):
-    order = Baskets.objects.filter(user=request.user)
-    contact = list(Contacts.objects.all())[-1]
-    # final_order = Order_list_bought.objects.all()
-
-    context = {
-    'contact': contact,
-    'order': order,
-    # 'final_order': final_order,
-    }
-
-    return render(request, "showcase/checkout.html", context=context)
+# def checkout_view(request):
+#     order = Baskets.objects.filter(user=request.user)
+#     contact = list(Contacts.objects.all())[-1]
+#     # final_order = Order_list_bought.objects.all()
+#
+#     context = {
+#     'contact': contact,
+#     'order': order,
+#     # 'final_order': final_order,
+#     }
+#
+#     return render(request, "showcase/checkout.html", context=context)
 
 # доделать checkout. Тут скорее всего во вьюшке чекаут должна заполняться таблица модели Order_list_bought с вводом полей для заказа, и остальные поля тянутся из таблицы корзина и таблица корзина должна очиститься после заказа и заказ нужно будет на отдельной вкладке отобразить с данными. 
 

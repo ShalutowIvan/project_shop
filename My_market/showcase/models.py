@@ -157,7 +157,8 @@ class Baskets(models.Model):
 class Order_list_bought(models.Model):
 	user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Пользователь")
 	name_product = models.ForeignKey(to=Goods, on_delete=models.CASCADE, verbose_name="Товар")		
-	quantity = models.FloatField(verbose_name="Количество")	
+	quantity = models.FloatField(verbose_name="Количество")
+	order_number = models.IntegerField(default=0, verbose_name="Количество")
 	time_create = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
 	
 
@@ -173,6 +174,7 @@ class Order_list_bought(models.Model):
 #итоговая таблица с заказами
 class Order_list_final(models.Model):
 	order = models.ForeignKey(to=Order_list_bought, on_delete=models.CASCADE, verbose_name="Заказы")
+
 
 	def __str__(self):
 		return self.order
