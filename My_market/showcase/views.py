@@ -2,6 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponseRedirect
 from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.urls import reverse_lazy
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.views.generic import ListView, DetailView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
@@ -11,19 +13,20 @@ from django.contrib.auth.decorators import login_required#это чтобы в �
 
 from django.core.paginator import Paginator
 
-from django.contrib.auth import logout, login
+from django.contrib.auth import logout, login, get_user_model
 from django.contrib.auth.models import User
 
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMessage, send_mail
 from .token import account_activation_token
-
+from django.contrib.auth.tokens import default_token_generator as token_generator
 
 
 from .models import *
 from .forms import *
 from .utils import *
+# from ..My_market import settings
 
 
 class GoodsHome(ListView):
@@ -113,54 +116,99 @@ def clear_basket(request, basket_id):
 #     form_class = RegisterUserForm
 #     template_name = 'showcase/register.html'
 #     success_url = reverse_lazy('login')
+#
 #     def get_context_data(self, *, object_list=None, **kwargs):
 #         context = super().get_context_data(**kwargs)
-
+#
 #         context['title'] = "Регистрация"
 #         return context
 
+
+class RegisterUser(CreateView):
+    form_class = RegisterUserForm
+    template_name = 'showcase/register.html'
+    success_url = reverse_lazy('login')
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = "Регистрация"
+        return context
+
+
+    def form_valid(self, form):
+        user = form.save()
+        user.is_active = False
+        message =
+        send_mail('код подтверждения', message, settings.EMAIL_HOST_USER, ['test@mail.ru'], fail_silently=False)
+        # https: // docs.djangoproject.com / en / 4.2 / topics / email /  это ссылка на документацию по функции по отправке писем в джанго. Нужно дописать отправку письма со ссылкой зашифрованной, сделать дешифровку при активации. Или просто код отправлять и чтобы пользователь ввел код из письма для активации. Когда пользщователь нективаен, то параметр is_active у него фолз, и мы его изначально таким делаем при реге. А когда он перейдет по ссылке, то он становится тру.
+        # login(self.request, user)
+        return redirect('login')
+
+
+# user = self.form_class.save(commit=False)
+#         user.is_active = False
+#         user.save()
+#         current_site = get_current_site(self.request)
+#         mail_subject = 'Activation link has been sent to your email id / Ссылка активации была отправлена на ваш адрес электронной почты'
+#         message = render_to_string('showcase/acc_active_email.html', {
+#                             'user': user,
+#                             'domain': current_site.domain,
+#                             'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+#                             'token': token_generator.make_token(user),
+#                         })
+#         to_email = self.form_class.cleaned_data.get('email')
+#         email = EmailMessage(mail_subject, message, to=[to_email])
+#         email.send()
+
+
 #регистрация через функцию с верификацией почты, ниже будет несколько функций представления
-def signup(request): 
-    if request.method == 'POST': 
-        form = RegisterUserForm(request.POST) 
-        if form.is_valid(): 
-            # save form in the memory not in database 
-            user = form.save(commit=False) 
-            user.is_active = False 
-            user.save() 
-            # to get the domain of the current site 
-            current_site = get_current_site(request) 
-            mail_subject = 'Activation link has been sent to your email id / Ссылка активации была отправлена на ваш адрес электронной почты' 
-            message = render_to_string('showcase/acc_active_email.html', { 
-                'user': user, 
-                'domain': current_site.domain, 
-                'uid':urlsafe_base64_encode(force_bytes(user.pk)), 
-                'token':account_activation_token.make_token(user), 
-            })
-            to_email = form.cleaned_data.get('email') 
-            email = EmailMessage( 
-                        mail_subject, message, to=[to_email] 
-            ) 
-            email.send() 
-            return HttpResponse('Please confirm your email address to complete the registration / Пожалуйста, подтвердите свой адрес электронной почты, чтобы завершить регистрацию') 
-    else: 
-        form = RegisterUserForm() 
-    return render(request, 'register.html', {'form': form, 'title': "Регистрация"}) 
+# def signup(request):
+#     if not request.user.is_authenticated:
+#         if request.method == 'POST':
+#             form = RegisterUserForm(request.POST)
+#             if form.is_valid():
+#                 # save form in the memory not in database
+#                 user = form.save()
+#                 user.is_active = False
+#                 user.save()
+#                 # to get the domain of the current site
+#                 # current_site = get_current_site(request)
+#                 # mail_subject = 'Activation link has been sent to your email id / Ссылка активации была отправлена на ваш адрес электронной почты'
+#                 # message = render_to_string('showcase/acc_active_email.html', {
+#                 #     'user': user,
+#                 #     'domain': current_site.domain,
+#                 #     'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+#                 #     'token': token_generator.make_token(user),
+#                 # })
+#                 message = token_generator.make_token(user)
+#                 send_mail('код подтверждения', message,
+#                           settings.EMAIL_HOST_USER,
+#                           ['test@mail.ru'],
+#                           fail_silently=False)
+#
+#
+#                 to_email = form.cleaned_data.get('email')
+#                 email = EmailMessage(mail_subject, message, to=[to_email])
+#                 email.send()
+#             return render(request, 'registration/register.html', {'form': form})
+#         else:
+#             form = RegisterUserForm()
+#     return render(request, 'showcase/register.html', {'form': form, 'title': "Регистрация"})
 
 #функция для активации пользователя
-def activate(request, uidb64, token):
-    User = get_user_model()
-    try: 
-        uid = force_text(urlsafe_base64_decode(uidb64)) 
-        user = User.objects.get(pk=uid) 
-    except(TypeError, ValueError, OverflowError, User.DoesNotExist): 
-        user = None
-    if user is not None and account_activation_token.check_token(user, token): 
-        user.is_active = True
-        user.save() 
-        return HttpResponse('Thank you for your email confirmation. Now you can login your account. / Благодарим вас за подтверждение по электронной почте. Теперь вы можете войти в свою учетную запись.') 
-    else: 
-        return HttpResponse('Activation link is invalid! / Ссылка активации недействительна!') 
+# def activate(request, uidb64, token):
+#     User = get_user_model()
+#     try:
+#         uid = force_text(urlsafe_base64_decode(uidb64))
+#         user = User.objects.get(pk=uid)
+#     except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+#         user = None
+#     if user is not None and token_generator.check_token(user, token):
+#         user.is_active = True
+#         user.save()
+#         return HttpResponse('Thank you for your email confirmation. Now you can login your account. / Благодарим вас за подтверждение по электронной почте. Теперь вы можете войти в свою учетную запись.')
+#     else:
+#         return HttpResponse('Activation link is invalid! / Ссылка активации недействительна!')
 
 
 # https://pythonpip.ru/django/registratsiya-polzovatelya-django-s-podtverzhdeniem-po-email

@@ -9,10 +9,10 @@ urlpatterns = [#тут подключаем все ссылки которые �
     path('group/<slug:group_slug>/', GroupShow.as_view(), name='group'),
     path('login/', LoginUser.as_view(), name='login'),
 
-    # path('register/', RegisterUser.as_view(), name='register'),
+    path('register/', RegisterUser.as_view(), name='register'),
     #урл регистрации с подтвержлением почты
-    path('register/', signup, name='register'),
-    path('activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/', activate, name='activate'), 
+    # path('register/', signup, name='register'),
+    # path('activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/', activate, name='activate'),
 
 
     path('logout/', logout_user, name='logout'),
@@ -22,7 +22,7 @@ urlpatterns = [#тут подключаем все ссылки которые �
     path('contacts/', Get_contacts.as_view(), name='contacts'),    
     path('checkout/', checkout, name='checkout'),
     path('checkout_list/', checkout_list, name='checkout_list'),
-    path('confirm_email/', confirm_email, name='confirm_email'),
+    # path('confirm_email/', confirm_email, name='confirm_email'),
 
     # path('group/<str:name_product>/', add_in_basket, name='add_in_basket'),
     # path('product/<slug:product_slug>/', show_product, name='product')
