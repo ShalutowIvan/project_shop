@@ -14,6 +14,13 @@ from django.core.paginator import Paginator
 from django.contrib.auth import logout, login
 from django.contrib.auth.models import User
 
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.core.mail import EmailMessage
+from .token import account_activation_token
+
+
+
 from .models import *
 from .forms import *
 from .utils import *
@@ -101,19 +108,68 @@ def clear_basket(request, basket_id):
     return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
+#регистрация через класс без верификации почты
+# class RegisterUser(CreateView):
+#     form_class = RegisterUserForm
+#     template_name = 'showcase/register.html'
+#     success_url = reverse_lazy('login')
+#     def get_context_data(self, *, object_list=None, **kwargs):
+#         context = super().get_context_data(**kwargs)
 
-class RegisterUser(CreateView):
-    form_class = RegisterUserForm
-    template_name = 'showcase/register.html'
-    success_url = reverse_lazy('login')
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
-        
-        context['title'] = "Регистрация"
-        return context
+#         context['title'] = "Регистрация"
+#         return context
+
+#регистрация через функцию с верификацией почты, ниже будет несколько функций представления
+def signup(request): 
+    if request.method == 'POST': 
+        form = RegisterUserForm(request.POST) 
+        if form.is_valid(): 
+            # save form in the memory not in database 
+            user = form.save(commit=False) 
+            user.is_active = False 
+            user.save() 
+            # to get the domain of the current site 
+            current_site = get_current_site(request) 
+            mail_subject = 'Activation link has been sent to your email id / Ссылка активации была отправлена на ваш адрес электронной почты' 
+            message = render_to_string('showcase/acc_active_email.html', { 
+                'user': user, 
+                'domain': current_site.domain, 
+                'uid':urlsafe_base64_encode(force_bytes(user.pk)), 
+                'token':account_activation_token.make_token(user), 
+            })
+            to_email = form.cleaned_data.get('email') 
+            email = EmailMessage( 
+                        mail_subject, message, to=[to_email] 
+            ) 
+            email.send() 
+            return HttpResponse('Please confirm your email address to complete the registration / Пожалуйста, подтвердите свой адрес электронной почты, чтобы завершить регистрацию') 
+    else: 
+        form = RegisterUserForm() 
+    return render(request, 'register.html', {'form': form, 'title': "Регистрация"}) 
+
+#функция для активации пользователя
+def activate(request, uidb64, token):
+    User = get_user_model()
+    try: 
+        uid = force_text(urlsafe_base64_decode(uidb64)) 
+        user = User.objects.get(pk=uid) 
+    except(TypeError, ValueError, OverflowError, User.DoesNotExist): 
+        user = None
+    if user is not None and account_activation_token.check_token(user, token): 
+        user.is_active = True
+        user.save() 
+        return HttpResponse('Thank you for your email confirmation. Now you can login your account. / Благодарим вас за подтверждение по электронной почте. Теперь вы можете войти в свою учетную запись.') 
+    else: 
+        return HttpResponse('Activation link is invalid! / Ссылка активации недействительна!') 
+
+
+# https://pythonpip.ru/django/registratsiya-polzovatelya-django-s-podtverzhdeniem-po-email
+# не работает импорт модуля six в файле token.py. Этот модуль удален, он был в старых версиях джанго. Надо гуглить и заменить этот модуль.
 
 
 
+
+#класс для авторизации
 class LoginUser(LoginView):
     form_class = LoginUserForm
     template_name = 'showcase/login.html'

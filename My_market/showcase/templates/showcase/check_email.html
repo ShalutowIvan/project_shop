@@ -1,0 +1,11 @@
+{% extends 'showcase/start.html' %}
+
+
+{% block content %}
+<br><br><br><br><br><br>
+<h5>Зайдите в почту и перейдите по ссылке из письма для подтверждения адреса почты</h5>
+
+{{ protocol }}://{{ domain }}{% url 'verify_mail' uidb64=uid token=token %}
+
+
+{% endblock %}

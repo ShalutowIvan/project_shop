@@ -138,4 +138,9 @@ MEDIA_URL = '/media/'#это добавление префикса к url гра
 
 LOGIN_URL = '/login/'
 
+EMAIL_USE_TLS = True 
+EMAIL_HOST = 'smtp.gmail.com' 
+EMAIL_HOST_USER = 'youremail@gmail.com' 
+EMAIL_HOST_PASSWORD = 'yourpassword' 
+EMAIL_PORT = 587 
 
