@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'showcase.apps.ShowcaseConfig',
-    # 'basket.apps.BasketConfig'
+    'regusers.apps.RegusersConfig',
 ]
 
 MIDDLEWARE = [
@@ -138,9 +138,30 @@ MEDIA_URL = '/media/'#это добавление префикса к url гра
 
 LOGIN_URL = '/login/'
 
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = True 
+EMAIL_USE_SSL = False
+EMAIL_PORT = 587 
+
+
+#тут исправить
+# EMAIL_HOST = env('EMAIL_HOST')
+# EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+# EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+
+
 EMAIL_HOST = 'smtp.gmail.com' 
 EMAIL_HOST_USER = 'youremail@gmail.com' 
 EMAIL_HOST_PASSWORD = 'yourpassword' 
-EMAIL_PORT = 587 
+
+
+
+
+
+
+
+
+
+
 

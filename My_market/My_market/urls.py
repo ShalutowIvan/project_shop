@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 
 from showcase.views import *
+from regusers.views import *
 from django.urls import path, include
 
 from django.conf import settings
@@ -25,6 +26,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),    
     path('', include('showcase.urls')),#тут указали стартовую страницу от которой будут идти все другие ссылки приложения
+    path('', include('regusers.urls'))
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 #тут нужно будет дописать ссылки на корзину. так как корзина отдельное приложение
 

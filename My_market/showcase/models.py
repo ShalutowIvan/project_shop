@@ -185,7 +185,8 @@ class Order_list_final(models.Model):
 		ordering = ['id']
 
 #сделать такую таблицу, чтобы каждый заказ нумеровался
-class Contacts(models.Model):
+class Contacts(models.Model):	
+	user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Пользователь")
 	fio = models.CharField(max_length=255, verbose_name="ФИО")
 	phone = models.IntegerField(default=0, verbose_name="Телефон")	
 	delivery_address = models.TextField(blank=True, verbose_name="Адрес доставки")

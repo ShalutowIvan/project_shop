@@ -25,13 +25,13 @@
 	{% if request.user.is_authenticated %}
 
 	<p>{{user.username}}</p>
-	<a href="{% url 'logout' %}"><p>Выйти</p></a>
+	<a href="{% url 'regusers:logout' %}"><p>Выйти</p></a>
 	<a href="{% url 'basket_view' %}"><p>Корзина</p></a>
 	<a href="{% url 'checkout_list' %}"><p>Мои покупки</p></a>
 {% else %}
 
-	<a href="{% url 'login' %}"><p>Войти</p></a>
-	<a href="{% url 'register' %}"><p>Регистрация</p></a>
+	<a href="{% url 'regusers:login' %}"><p>Войти</p></a>
+	<a href="{% url 'regusers:register' %}"><p>Регистрация</p></a>
 				{% endif %}
 
 
