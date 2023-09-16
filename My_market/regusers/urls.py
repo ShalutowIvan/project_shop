@@ -14,7 +14,12 @@ urlpatterns = [
     # path('activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/', activate, name='activate'),
 
     path('logout/', logout_user, name='logout'),
-	# path('confirm_email/', confirm_email, name='confirm_email'),
+    
+
+	path('confirm_email/', confirm_email, name='confirm_email'),
+	path('activate_user/<uidb64>/<token>/', Activate_user.as_view(), name='activate_user'),
+	
+	path('invalid_verify/', invalid_verify, name='invalid_verify'),
 
 ]
 

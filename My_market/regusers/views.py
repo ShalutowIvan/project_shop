@@ -6,7 +6,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.views.generic import ListView, DetailView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
-
+from django.views import View
 
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
@@ -18,11 +18,11 @@ from django.contrib.auth.tokens import default_token_generator as token_generato
 
 
 
-# from django.contrib.auth import logout, login, get_user_model, authenticate
+from django.contrib.auth import logout, login, get_user_model, authenticate
 from django.contrib import auth
 from django.contrib.auth.models import User
 from .forms import *
-# from .utils import *
+from .utils import *
 # from .token import account_activation_token
 # from ..settings import EMAIL_HOST_USER
 
@@ -104,19 +104,6 @@ def login_user(request):
 
             if user:#если пользователья есть в базе его авторизуем
 
-                # message = "Hello world"
-                # send_mail('код подтверждения', message,
-                #           'from@gmail.com',
-                #           [f'{user.email}'],
-                #           fail_silently=False)
-
-                # render_to_string('шаблон в который мы передаем параметры', данные шаблона)#этот шаблон потом можно отправить по почте, и польщзователь увидит письмо с шаблоном html страницы
-                # msg = EmailMultiAlternatives(subject='тема сообщения', to=['список адресов кому отправляем письмо'])
-                # msg.attach_alternative(html_content=шаблон который мы выше сделаем для письма, "text/html")#"text/html" это тип
-                # msg.send()#отправка письма
-                #все манипуляции с письмом нужно писать когда уже есть данные в форме или базе
-
-
                 auth.login(request, user)
                 return HttpResponseRedirect(reverse_lazy('start'))
 
@@ -127,19 +114,39 @@ def login_user(request):
     return render(request, 'regusers/login.html', context=context)
 
 
+
+
 #регистрация через функцию с верификацией почты, ниже будет несколько функций представления
 def register_user(request):
     if request.method == 'POST':
         form = RegisterUserForm(data=request.POST)#это словарь, в него можно данные записывать какие нам нужно после проверки валидации
         if form.is_valid():
-            # user = form.save(commit=False)
-            # user.is_active = False
-            # user.save()
-            # current_site = get_current_site(request)
-            # mail_subject = 'Activation link has been sent to your email id / Ссылка активации была отправлена на ваш адрес электронной почты'
+            user = form.save(commit=False)
+            user.is_active = False
+            user.save()
             
-            form.save()
-            return HttpResponseRedirect(reverse_lazy('regusers:login'))
+            send_email_verify(request, user)#функция для отправки письма пользователю для активации пользователя
+
+            
+            # message = {
+            # "url_activate": "regusers.activate"
+            # "user_id": user.id
+            # }
+            
+            # html_body = render_to_string('regusers/user_active.html', {'message': message})#этот шаблон потом можно отправить по почте, и пользователь увидит письмо с шаблоном html страницы
+            # msg = EmailMultiAlternatives(subject='Активация', to=[user.email,])
+            # msg.attach_alternative(html_body, "text/html")#"text/html" это тип
+            # msg.send()#отправка письма
+            # #все манипуляции с письмом нужно писать когда уже есть данные в форме или базе
+
+
+
+
+
+
+            # form.save()
+            return HttpResponseRedirect(reverse_lazy('regusers:confirm_email'))#редирект на страницу с текстом чтобы перешли по ссылке и активировали почту
+
     else:
         form = RegisterUserForm()
 
@@ -147,6 +154,41 @@ def register_user(request):
     return render(request, 'regusers/register.html', context=context)    
 
 
+
+def confirm_email(request):
+    t = "Перейдите в вашу почту и перейдите по ссылке из письма для подтверждения адреса почты"
+
+    return render(request, 'regusers/check_email.html', {"t": t})
+    
+
+
+#функция для активации пользователя. Сделал, она работает, но я ничего не понял что в ней делается
+class Activate_user(View):
+
+    def get(self, request, uidb64, token):
+        user = self.get_user(uidb64)
+
+        if user is not None and token_generator.check_token(user, token):
+            user.is_active = True
+            user.save()
+            login(request, user)
+            return redirect('start')
+        return redirect('regusers:invalid_verify')
+
+    @staticmethod
+    def get_user(uidb64):
+        try:
+            # urlsafe_base64_decode() decodes to bytestring
+            uid = urlsafe_base64_decode(uidb64).decode()
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError,
+                User.DoesNotExist, ValidationError):
+            user = None
+        return user
+
+
+def invalid_verify(request):
+    return redirect('regusers:invalid_verify')
 
 
 
@@ -187,20 +229,6 @@ def register_user(request):
 
 
 
-#функция для активации пользователя
-    # def activate(request, uidb64, token):
-#     User = get_user_model()
-#     try:
-#         uid = force_text(urlsafe_base64_decode(uidb64))
-#         user = User.objects.get(pk=uid)
-#     except(TypeError, ValueError, OverflowError, User.DoesNotExist):
-#         user = None
-#     if user is not None and token_generator.check_token(user, token):
-#         user.is_active = True
-#         user.save()
-#         return HttpResponse('Thank you for your email confirmation. Now you can login your account. / Благодарим вас за подтверждение по электронной почте. Теперь вы можете войти в свою учетную запись.')
-#     else:
-#         return HttpResponse('Activation link is invalid! / Ссылка активации недействительна!')
 
 
 
