@@ -9,7 +9,7 @@ from django.contrib.auth.views import LoginView
 
 
 from django.contrib.sites.shortcuts import get_current_site
-from django.template.loader import render_to_string, 
+from django.template.loader import render_to_string
 from django.core.mail import EmailMessage, send_mail, EmailMultiAlternatives
 
 from django.contrib.auth.decorators import login_required
