@@ -1,5 +1,6 @@
-
+{% extends 'showcase/start.html' %}
  
+{% block content %}
 
 <h1>{{title}}</h1>
  
@@ -22,9 +23,10 @@
 
     <button type="submit">Войти</button>
 
-    <a href=""><h3>Забыли пароль?</h3></a>
+    <a href="{% url 'regusers:forgot_password' %}"><h3>Забыли пароль?</h3></a>
 
 <a href="{% url 'regusers:register' %}"><h3>Перейти на страницу регистрации</h3></a>
 
 </form>
  
+{% endblock %}

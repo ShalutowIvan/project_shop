@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404, HttpResponseRe
 from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.urls import reverse_lazy, reverse
 from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+
 from django.views.generic import ListView, DetailView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
@@ -16,15 +16,14 @@ from django.contrib.auth.decorators import login_required
 
 from django.contrib.auth.tokens import default_token_generator as token_generator
 
-
+# from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 
 from django.contrib.auth import logout, login, get_user_model, authenticate
-from django.contrib import auth
+# from django.contrib import auth
 from django.contrib.auth.models import User
 from .forms import *
-from .utils import *
-# from .token import account_activation_token
-# from ..settings import EMAIL_HOST_USER
+from .utils import send_email_verify, get_user, send_email_restore_password
+
 
 
 
@@ -100,11 +99,11 @@ def login_user(request):
         if form.is_valid():#проверяем валидка ли форма. Для проверки используем встроенную функцию для форм в джанго. Там все проверки прописаны уже. 
             username = request.POST['username']
             password = request.POST['password']#взяли из пост запроса юзера и пароль
-            user = auth.authenticate(username=username, password=password)#аутенитифировали пользователя с данными из пост запроса, это нужно для проверки. Далее проверим пользователя. user это объект класса User, у которого есть поля из таблицы user, и есть тут поле is_active
+            user = authenticate(username=username, password=password)#аутенитифировали пользователя с данными из пост запроса, это нужно для проверки. Далее проверим пользователя. user это объект класса User, у которого есть поля из таблицы user, и есть тут поле is_active
 
             if user:#если пользователья есть в базе его авторизуем
 
-                auth.login(request, user)
+                login(request, user)
                 return HttpResponseRedirect(reverse_lazy('start'))
 
     else:
@@ -116,35 +115,18 @@ def login_user(request):
 
 
 
-#регистрация через функцию с верификацией почты, ниже будет несколько функций представления
+#регистрация через функцию с верификацией почты, ниже будет несколько функций представления. Разобраться с https потом. Этот параметр есть в функции send_email_verify
 def register_user(request):
     if request.method == 'POST':
         form = RegisterUserForm(data=request.POST)#это словарь, в него можно данные записывать какие нам нужно после проверки валидации
         if form.is_valid():
             user = form.save(commit=False)
             user.is_active = False
-            user.save()
-            
-            send_email_verify(request, user)#функция для отправки письма пользователю для активации пользователя
-
-            
-            # message = {
-            # "url_activate": "regusers.activate"
-            # "user_id": user.id
-            # }
-            
-            # html_body = render_to_string('regusers/user_active.html', {'message': message})#этот шаблон потом можно отправить по почте, и пользователь увидит письмо с шаблоном html страницы
-            # msg = EmailMultiAlternatives(subject='Активация', to=[user.email,])
-            # msg.attach_alternative(html_body, "text/html")#"text/html" это тип
-            # msg.send()#отправка письма
-            # #все манипуляции с письмом нужно писать когда уже есть данные в форме или базе
+            user.save()    
 
 
+            send_email_verify(request, user)#функция для отправки письма пользователю для активации пользователя. В ней есть еще параметр use_https, по умолчанию он False
 
-
-
-
-            # form.save()
             return HttpResponseRedirect(reverse_lazy('regusers:confirm_email'))#редирект на страницу с текстом чтобы перешли по ссылке и активировали почту
 
     else:
@@ -162,37 +144,104 @@ def confirm_email(request):
     
 
 
-#функция для активации пользователя. Сделал, она работает, но я ничего не понял что в ней делается
-class Activate_user(View):
+#функция для активации пользователя. Передаем в нее зашифрованный uidb64 и token. При удачной проверке, логинится пользователь. Если что-то не так, то redirect на некорректная ссылка 
+def activate_user(request, uidb64, token):
+    user = get_user(uidb64)
 
-    def get(self, request, uidb64, token):
-        user = self.get_user(uidb64)
+    if user is not None and token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        login(request, user)
+        return redirect('start')
 
-        if user is not None and token_generator.check_token(user, token):
-            user.is_active = True
-            user.save()
-            login(request, user)
-            return redirect('start')
-        return redirect('regusers:invalid_verify')
+    return redirect('regusers:invalid_verify')
 
-    @staticmethod
-    def get_user(uidb64):
-        try:
-            # urlsafe_base64_decode() decodes to bytestring
-            uid = urlsafe_base64_decode(uidb64).decode()
-            user = User.objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError,
-                User.DoesNotExist, ValidationError):
-            user = None
-        return user
 
 
 def invalid_verify(request):
     return redirect('regusers:invalid_verify')
 
 
+#фукнция для кнопки забыли пароль
+def forgot_password(request):
+    if request.method == "POST":
+        form = Forgot_passwordForm(data=request.POST)#передали какие-то данные из пост запроса. request.POST это словарь, из него можно по ключам брать данные и что-то с ними делать.
+        if form.is_valid():#проверяем валидка ли форма. Для проверки используем встроенную функцию для форм в джанго. Там все проверки прописаны уже. 
+            # email = form.save()
+            # user = User.objects.filter(email=email.email)
+            user = list(form.get_users(request.POST['email']))[0]
+            print(user.email)
+
+            send_email_restore_password(request, user)
+            # if user:#если пользователья есть в базе его авторизуем
+
+            #     login(request, user)
+            return HttpResponseRedirect(reverse_lazy('regusers:go_to_restore_password'))
+
+    else:
+        form = Forgot_passwordForm()#когда пользователь только входит на страницу, то срабатывает этот код, так как изначально срабатывает get запрос. Далее в контекст заносится форма, и передается через render функцию в html-ку. Кстати код в html form.as_p означает вывести всю форму через теги p параграфы просто подряд. Можно выводить через другие теги. 
+    
+    context = {'form': form}
+    return render(request, 'regusers/forgot_password.html', context=context)
+    
+
+def restore_password(request, uidb64, token):
+    
+    user = get_user(uidb64)
+
+    if user is not None and token_generator.check_token(user, token):
+
+        if request.method == "POST":
+                    # , user=user
+            form = Restore_passwordForm(data=request.POST, user=user)
+            if form.is_valid():
+                form.save()
+                
+                return HttpResponseRedirect(reverse_lazy('regusers:login'))
+        else:
+            form = Restore_passwordForm(user=user)
+
+        context = {'form': form}
+        return render(request, 'regusers/new_password.html', context=context)
+
+    else:
+        return redirect('regusers:invalid_verify')
+
+    
 
 
+
+
+
+def go_to_restore_password(request):
+    s = "На вашу почту выслали письмо для восстановления пароля. Перейдите в вашу почту для восстановления пароля"
+
+    return render(request, 'regusers/go_to_restore_password.html', {"s": s})
+
+
+
+# class Activate_user(View):
+
+#     def get(self, request, uidb64, token):
+#         user = self.get_user(uidb64)
+
+#         if user is not None and token_generator.check_token(user, token):
+#             user.is_active = True
+#             user.save()
+#             login(request, user)
+#             return redirect('start')
+#         return redirect('regusers:invalid_verify')
+
+#     @staticmethod
+#     def get_user(uidb64):
+#         try:
+#             # urlsafe_base64_decode() decodes to bytestring
+#             uid = urlsafe_base64_decode(uidb64).decode()
+#             user = User.objects.get(pk=uid)
+#         except (TypeError, ValueError, OverflowError,
+#                 User.DoesNotExist, ValidationError):
+#             user = None
+#         return user
 
 # def register_user(request):
     
@@ -238,17 +287,8 @@ def invalid_verify(request):
 
 @login_required
 def logout_user(request):#функция для выхода, чтобы выйти из аккаунта
-    auth.logout(request)#эта функция вызывает стандартную функцию джанго для выхода пользователя.
+    logout(request)#эта функция вызывает стандартную функцию джанго для выхода пользователя.
     return redirect('regusers:login')
 
 
 
-
-
-# {% extends 'showcase/start.html' %}
-
-# {% block content %}
-
-
-# {% endblock %}
-#вынес блоки для подтигивания главной страницы. Теперь там будет только форма. Если что переделать

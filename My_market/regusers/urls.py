@@ -17,9 +17,14 @@ urlpatterns = [
     
 
 	path('confirm_email/', confirm_email, name='confirm_email'),
-	path('activate_user/<uidb64>/<token>/', Activate_user.as_view(), name='activate_user'),
+	path('activate_user/<uidb64>/<token>/', activate_user, name='activate_user'),#тут должна быть функция, а не класс. Тут формируется урл с параметрами, мы их в шаблоне пишем при указании самой урл и потом далее параметры просто через пробел. Первый параметр <uidb64> (он кодируется через функцию кодировщик из джанго), второй параметр <token> (генерируется генератором токена из джанго). 
 	
 	path('invalid_verify/', invalid_verify, name='invalid_verify'),
 
+	path('forgot_password/', forgot_password, name='forgot_password'),
+
+	path('go_to_restore_password/', go_to_restore_password, name='go_to_restore_password'),
+
+	path('restore_password/<uidb64>/<token>/', restore_password, name='restore_password'),
 ]
 
