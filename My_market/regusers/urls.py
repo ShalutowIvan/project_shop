@@ -25,6 +25,8 @@ urlpatterns = [
 
 	path('go_to_restore_password/', go_to_restore_password, name='go_to_restore_password'),
 
-	path('restore_password/<uidb64>/<token>/', restore_password, name='restore_password'),
+	path('restore_password_url/<uidb64>/<token>/', restore_password_url, name='restore_password_url'),
+	path('restore_password_form/', restore_password_form, name='restore_password_form'),
+
 ]
 

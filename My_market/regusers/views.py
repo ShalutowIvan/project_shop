@@ -4,6 +4,8 @@ from django.urls import reverse_lazy, reverse
 from django.utils.encoding import force_bytes
 
 from django.views.generic import ListView, DetailView, CreateView
+from django.contrib.auth.views import PasswordResetConfirmView
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.views import View
@@ -170,7 +172,7 @@ def forgot_password(request):
             # email = form.save()
             # user = User.objects.filter(email=email.email)
             user = list(form.get_users(request.POST['email']))[0]
-            print(user.email)
+           
 
             send_email_restore_password(request, user)
             # if user:#если пользователья есть в базе его авторизуем
@@ -185,30 +187,98 @@ def forgot_password(request):
     return render(request, 'regusers/forgot_password.html', context=context)
     
 
-def restore_password(request, uidb64, token):
-    
+
+
+
+
+# if request.method == "POST":
+#             form = Restore_passwordForm(data=request.POST, user=user)
+#             if form.is_valid():
+#                 f = form.save()
+#                 if f.password2 == f.password1:
+#                     user.password = f.password2
+#                 user.save()
+#                 return HttpResponseRedirect(reverse_lazy('regusers:login'))
+#             # else:
+#             #     return redirect('regusers:invalid_verify')
+
+#         else:
+#             form = Restore_passwordForm(user=user)
+
+#         context = {'form': form}
+#         return render(request, 'regusers/new_password.html', context)
+
+
+
+
+def restore_password_url(request, uidb64, token):    
     user = get_user(uidb64)
-
+    # print(user.email)
     if user is not None and token_generator.check_token(user, token):
-
-        if request.method == "POST":
-                    # , user=user
-            form = Restore_passwordForm(data=request.POST, user=user)
-            if form.is_valid():
-                form.save()
-                
-                return HttpResponseRedirect(reverse_lazy('regusers:login'))
-        else:
-            form = Restore_passwordForm(user=user)
-
-        context = {'form': form}
-        return render(request, 'regusers/new_password.html', context=context)
+        user.save()          
+        # print(1, user)
+        # user = User.objects.filter(pk=user.pk)
+        # print(2, user)
+        # request.session['data'] = {"user": user}
+        request.session['data'] = user.id
+        # print(1, request.session.get('data'))
+        # data = {"user": user}
+        return HttpResponseRedirect(reverse_lazy('regusers:restore_password_form'))
+        # return render(request, 'regusers/new_password.html', data)
 
     else:
         return redirect('regusers:invalid_verify')
 
-    
 
+
+def restore_password_form(request):
+    user = request.session.get('data')
+    us = user
+    user = list(User.objects.filter(pk=us))[0]
+    # print(user.email)
+# , user=user
+    # print(3, user)
+    if request.method == "POST":        
+        form = Restore_passwordForm(data=request.POST, user=user)
+                
+        if form.is_valid():
+            # us = user
+            # user = User.objects.filter(pk=us)
+            form.save()
+            # if f.password2 == f.password1:
+            #     user.password = f.password2
+            # user.save()
+            del request.session['data']
+            return HttpResponseRedirect(reverse_lazy('regusers:login'))
+        else:
+            return redirect('regusers:invalid_verify')
+
+    else:
+        
+        form = Restore_passwordForm(user=us)
+
+
+# user=user
+    context = {'form': form}
+    return render(request, 'regusers/new_password.html', context)
+
+    
+# <p><label class="form-label" for="{{ form.password1.id_for_label }}">form.password1.label</label>{{ form.password1 }}</p>
+# <p><label class="form-label" for="{{ form.password2.id_for_label }}">form.password2.label</label>{{ form.password2 }}</p>
+
+
+
+ # uidb64=uid token=token 
+# if request.method == "POST":
+#             form = Restore_passwordForm(data=request.POST, user=user)
+#             if form.is_valid():
+#                 form.save()
+#                 return HttpResponseRedirect(reverse_lazy('regusers:login'))
+#         else:
+#             form = Restore_passwordForm(user=user)
+
+#         context = {'form': form}
+#         return render(request, 'regusers/new_password.html', context=context)
 
 
 
