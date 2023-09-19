@@ -124,8 +124,7 @@ def register_user(request):
         if form.is_valid():
             user = form.save(commit=False)
             user.is_active = False
-            user.save()    
-
+            user.save()
 
             send_email_verify(request, user)#функция для отправки письма пользователю для активации пользователя. В ней есть еще параметр use_https, по умолчанию он False
 
@@ -164,20 +163,18 @@ def invalid_verify(request):
     return redirect('regusers:invalid_verify')
 
 
-#фукнция для кнопки забыли пароль
+#фукнции для кнопки забыли пароль
+
+#это функция для ввода почты по которой будет восстанавливаться пароль и тут также отправляется письмо со ссылкой для сброса пароля
 def forgot_password(request):
     if request.method == "POST":
         form = Forgot_passwordForm(data=request.POST)#передали какие-то данные из пост запроса. request.POST это словарь, из него можно по ключам брать данные и что-то с ними делать.
         if form.is_valid():#проверяем валидка ли форма. Для проверки используем встроенную функцию для форм в джанго. Там все проверки прописаны уже. 
-            # email = form.save()
-            # user = User.objects.filter(email=email.email)
+            
             user = list(form.get_users(request.POST['email']))[0]
            
-
             send_email_restore_password(request, user)
-            # if user:#если пользователья есть в базе его авторизуем
-
-            #     login(request, user)
+           
             return HttpResponseRedirect(reverse_lazy('regusers:go_to_restore_password'))
 
     else:
@@ -187,105 +184,50 @@ def forgot_password(request):
     return render(request, 'regusers/forgot_password.html', context=context)
     
 
-
-
-
-
-# if request.method == "POST":
-#             form = Restore_passwordForm(data=request.POST, user=user)
-#             if form.is_valid():
-#                 f = form.save()
-#                 if f.password2 == f.password1:
-#                     user.password = f.password2
-#                 user.save()
-#                 return HttpResponseRedirect(reverse_lazy('regusers:login'))
-#             # else:
-#             #     return redirect('regusers:invalid_verify')
-
-#         else:
-#             form = Restore_passwordForm(user=user)
-
-#         context = {'form': form}
-#         return render(request, 'regusers/new_password.html', context)
-
-
-
-
+#это функция для расшифровки и обработки данных из ссылки для смены пароля. С нее потом идет редирест на функцию с формой для ввода нового пароля
 def restore_password_url(request, uidb64, token):    
-    user = get_user(uidb64)
-    # print(user.email)
+    user = get_user(uidb64)    
     if user is not None and token_generator.check_token(user, token):
         user.save()          
-        # print(1, user)
-        # user = User.objects.filter(pk=user.pk)
-        # print(2, user)
-        # request.session['data'] = {"user": user}
         request.session['data'] = user.id
-        # print(1, request.session.get('data'))
-        # data = {"user": user}
-        return HttpResponseRedirect(reverse_lazy('regusers:restore_password_form'))
-        # return render(request, 'regusers/new_password.html', data)
+            
+        return HttpResponseRedirect(reverse_lazy('regusers:restore_password_form'))        
 
     else:
         return redirect('regusers:invalid_verify')
 
 
-
+#функция с формой для ввода нового пароля.
 def restore_password_form(request):
     user = request.session.get('data')
     us = user
     user = list(User.objects.filter(pk=us))[0]
-    # print(user.email)
-# , user=user
-    # print(3, user)
+    
     if request.method == "POST":        
         form = Restore_passwordForm(data=request.POST, user=user)
                 
-        if form.is_valid():
-            # us = user
-            # user = User.objects.filter(pk=us)
+        if form.is_valid():            
+            
             form.save()
-            # if f.password2 == f.password1:
-            #     user.password = f.password2
-            # user.save()
+
+            login(request, user)
+            
             del request.session['data']
-            return HttpResponseRedirect(reverse_lazy('regusers:login'))
+
+            return HttpResponseRedirect(reverse_lazy('start'))
         else:
             return redirect('regusers:invalid_verify')
 
-    else:
-        
+    else:        
         form = Restore_passwordForm(user=us)
 
-
-# user=user
     context = {'form': form}
     return render(request, 'regusers/new_password.html', context)
-
-    
-# <p><label class="form-label" for="{{ form.password1.id_for_label }}">form.password1.label</label>{{ form.password1 }}</p>
-# <p><label class="form-label" for="{{ form.password2.id_for_label }}">form.password2.label</label>{{ form.password2 }}</p>
-
-
-
- # uidb64=uid token=token 
-# if request.method == "POST":
-#             form = Restore_passwordForm(data=request.POST, user=user)
-#             if form.is_valid():
-#                 form.save()
-#                 return HttpResponseRedirect(reverse_lazy('regusers:login'))
-#         else:
-#             form = Restore_passwordForm(user=user)
-
-#         context = {'form': form}
-#         return render(request, 'regusers/new_password.html', context=context)
-
 
 
 
 def go_to_restore_password(request):
     s = "На вашу почту выслали письмо для восстановления пароля. Перейдите в вашу почту для восстановления пароля"
-
     return render(request, 'regusers/go_to_restore_password.html', {"s": s})
 
 
@@ -348,11 +290,6 @@ def go_to_restore_password(request):
 
 
 
-
-
-
-
-# https: // docs.djangoproject.com / en / 4.2 / topics / email /  это ссылка на документацию по функции по отправке писем в джанго. Нужно дописать отправку письма со ссылкой зашифрованной, сделать дешифровку при активации. Или просто код отправлять и чтобы пользователь ввел код из письма для активации. Когда пользователь нективаен, то параметр is_active у него фолз, и мы его изначально таким делаем при реге. А когда он перейдет по ссылке, то он становится тру.
 
 
 @login_required

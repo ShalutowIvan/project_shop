@@ -22,6 +22,10 @@ class GoodsHome(ListView):
     model = Goods
     template_name = 'showcase/start.html'
     context_object_name = 'gd'
+
+
+    def get_queryset(self):#этот get_queryset для поиска товаров, товар ищется по названию всегда во всем каталоге, даже если зайти в группу то поиск будет также по всему каталогу. Потом доделать
+        return Goods.objects.filter(name_product__icontains=self.request.GET.get('q', ''))
     
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -36,25 +40,37 @@ class GoodsHome(ListView):
 
 
 class GroupShow(ListView):
-    paginate_by = 1
+    paginate_by = 10
     model = Goods
     template_name = 'showcase/good.html'
     context_object_name = 'goods'
-    allow_empty = False
+    allow_empty = True
 
     def get_queryset(self):
+        # q_set = Goods.objects.filter(group__slug=self.kwargs['group_slug'])
+        # if q_set == []:
+        #     return ["Пусто"]
+        # else:
         return Goods.objects.filter(group__slug=self.kwargs['group_slug'])
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        context['title'] = 'Группа - ' + str(context['goods'][0].group)
+        if len(context['goods']) == 0:
+            context['title'] = 'Группа - ' + "Пусто"
+        else:
+            context['title'] = 'Группа - ' + str(context['goods'][0].group)
+        
+
+
         org = Organization.objects.all()
         if org:
             context['org'] = org[0]
         context['form'] = AddGoodForm()
 
         return context
+
+
 
 
 #контроллер для кнопки добавления товара в корзину
@@ -196,4 +212,9 @@ def checkout_list(request):
 #         basket.save()
 #         #добавили элемент и сохранили в дб корзины. Теперь нужно чтобы мы оставались на той же страницы где и вызвали текущий контроллер. 
 #     return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+
+
+
+
 

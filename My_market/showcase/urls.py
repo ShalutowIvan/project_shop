@@ -13,6 +13,7 @@ urlpatterns = [
     path('contacts/', Get_contacts.as_view(), name='contacts'),    
     path('checkout/', checkout, name='checkout'),
     path('checkout_list/', checkout_list, name='checkout_list'),
+    # path('search/', SearchGood.as_view(), name='search'),
     
 
     # path('group/<str:name_product>/', add_in_basket, name='add_in_basket'),

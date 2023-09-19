@@ -1,12 +1,11 @@
-/*html, body {
-	font-family: 'Arial';
-	margin: 0;
-	padding: 0;
-	height: 100%;
-	width: 100%;
-	color: #444;
-}*/
+body {
+	background-image: url('img/fon4.jpg');
+}
 /*это стиль для картинки товаров. Первая позиция отображается под хедером и не видно название товара*/
+
+
+
+
 
 header{
 position: fixed;
@@ -46,14 +45,15 @@ color: darkorange;
 
 aside{
 	/*text-align: center;*/
+
 	float: left;
-	background-color: burlywood;
+	/*background-color: burlywood;*/
 	width: 20%;
 	padding: 2.5%;
 	/*min-height: 100vh;*/
-
+	/*height: 100vh;*/
 	color: black;
-	border-right: 5px solid slategrey;
+	/*border-right: 5px solid slategrey;*/
 }
 
 
@@ -90,16 +90,25 @@ aside ul li:hover, aside ul a:hover{
 
 
 main{
-	text-align: center;
-	
-	background-color: seagreen;
+	text-align: center;	
+	/*background-color: seagreen;*/
 	width: 60%;
-	padding: 2.5%;
-	/*height: 100vh;*/	
+	padding: 330px 0px 100px 0px;
+	/* height: 100vh;*/
 	color: black;
-	border-right: 5px solid slategrey;
+	/*border-right: 5px solid slategrey;*/
 	margin-left: 20%;
+	/*margin-bottom: 200px;*/
+	/*padding-bottom: 150%;*/
+ 	
 }
+
+/*.content_good {
+height: 100vh;
+background-color: seagreen;
+}*/
+
+
 
 img.product-img {
 	max-width: 200px;
@@ -118,32 +127,123 @@ body{
 	height: 100%;
 }
 
-footer{
+/*.footer{
+	box-sizing: border-box;
+
+	background: #39b54a;
+	padding: 15px;
+	color: #aaa;
+	font-size: 14px;
+	font-family: Verdana, Geneva, Arial, Helvetica;
+	text-align: left;
+	overflow: hidden;
+	
+	right: 0; bottom: 0;
+	width: 100%;
+}*/
+
+
+/*.footer{
+position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 80px;
 	position: fixed;
+} */
+
+.footer {
+
+background: #39b54a;
+/* position: sticky;*/
+position: fixed;
+bottom: 0;
+width: 100%;
+/*height: 10vh;*/
+}
+
+
+
+.footer p{
+text-align: left;
+color: black;
+}
+
+
+
+.list-pages {
+	text-align: center;
+	margin: 0 0 20px 0;
+
+}
+
+
+.list-pages ul {
+	margin: 20px 0 0 0;
+	padding: 0;
+	/*list-style: none;*/
+}
+
+.list-pages ul li {
+	display: inline-block;
+	margin: 0 20px 0 0;
+}
+
+.list-pages a {
+	color: greenyellow;
+	font-size: 24px;
+	text-decoration: none;
+}
+
+.list-pages .page-num, .page-num-selected, .page_selected {
+	display: inline-block;
+	width: 60px;
+	height: 40px;
+	padding: 3px 0 0 0;
+	border: 1px solid #d0d0d0;
+	border-radius: 30px;
+	background: royalblue;
+}
+
+.list-pages .page-num:hover {
+	box-shadow: 3px 3px 1px #d0d0d0; 
+
+
+}
+.list-pages .page-num-selected {
+	/* border: none;*/
+	color: red;
+	font-size: 20px;
+}
+
+
+.list-pages .page-num-selected:hover {
+	box-shadow: none; 
+}
+
+
+/*
+position: fixed;
     right: 0; bottom: 0;
     padding: 10px; 
     background: #39b54a; 
     color: #fff; 
     width: 100%; 
-
-/*flex: 1 1 auto;*/
-}
-
-/*
-position: fixed;
-float: top;
-background: slategrey;
-height: 20vh;
-padding: 1.5%;
-color: #fff; 
-width: 100%; 
 */
 
 
 
+/*
+	box-sizing: border-box;
 
-footer p{
-text-align: left;
-color: black;
-}
+	background: #3F4137;
+	padding: 5px;
+	color: #aaa;
+	font-size: 14px;
+	font-family: Verdana, Geneva, Arial, Helvetica;
+	text-align: left;
+	overflow: hidden;
+*/
+
+
 
