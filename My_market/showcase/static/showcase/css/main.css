@@ -10,7 +10,7 @@ body {
 header{
 position: fixed;
 float: top;
-background: slategrey;
+background: #F0E68C;
 height: 30vh;
 padding: 1.5%;
 color: #fff; /* Цвет текста */
@@ -39,8 +39,6 @@ text-align: right;
 color: darkorange;
 
 }
-
-
 
 
 aside{
@@ -87,8 +85,6 @@ aside ul li:hover, aside ul a:hover{
 	transform: scale(1.05);
 }
 
-
-
 main{
 	text-align: center;	
 	/*background-color: seagreen;*/
@@ -103,15 +99,40 @@ main{
  	
 }
 
-/*.content_good {
-height: 100vh;
-background-color: seagreen;
-}*/
+.add_basket{
+padding: 10px 20px;
+  font-size: 20px;
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+  color: #fff;
+  background-color: #4CAF50;
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 9px #999;
+}
+
+.add_basket:hover {background-color: #3e8e41}
+
+.add_basket:active {
+  background-color: #3e8e41;
+  box-shadow: 0 5px #666;
+  transform: translateY(4px);
+}
+
+
+#goods {
+height: 400px;
+display: inline-block;
+}
 
 
 
 img.product-img {
+/*    width: 200px;
+	height: 200px;*/
 	max-width: 200px;
+	max-height: 200px;
 	height: auto;
 	/*float: center;*/
 	padding: 0 10px 10px 0;
@@ -154,7 +175,7 @@ position: absolute;
 
 .footer {
 
-background: #39b54a;
+background: #F0E68C;
 /* position: sticky;*/
 position: fixed;
 bottom: 0;

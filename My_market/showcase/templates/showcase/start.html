@@ -67,36 +67,36 @@
 	<button type="submit">Найти</button>
 </form>
 
-
-
+<br>
 
 
 <div class="content_good">
 
 {% for j in gd %}
 
-<h1> Название товара {{j.name_product}}</h1>
-<p> Цена {{j.price}}</p>
-<p> Доступна для продажи {{j.availability}}</p>
 
+
+	<div id="goods">
 {% if j.photo %}
 <p><img class="product-img" src="{{j.photo.url}}"></p>
 {% endif %}
+	<h1> {{j.name_product}}</h1>
+<p> Цена {{j.price}}</p>
+<p> Доступна для продажи {{j.availability}}</p>
 
 <!--форма для добавления корзины -->
 	{% if request.user.is_authenticated %}
+<a href="{% url 'add_in_basket' j.id %}"><button class="add_basket">Добавить в корзину</button></a>
 
-
-
-<a href="{% url 'add_in_basket' j.id %}"><button>Добавить в корзину</button></a>
+	<br><br>
 
 
 	{% endif %}
 <!--конец форма -->
-
-
+</div>
 
 {% endfor %}
+			</nobr>
 </div>	
 
 	{% endblock %}

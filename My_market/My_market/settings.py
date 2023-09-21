@@ -141,8 +141,8 @@ LOGIN_URL = '/login/'
 
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_USE_TLS = False
-EMAIL_USE_SSL = True
+EMAIL_USE_TLS = USE_TLS
+EMAIL_USE_SSL = USE_SSL
 EMAIL_PORT = PORT
 EMAIL_HOST = HOST
 EMAIL_HOST_USER = HOST_USER

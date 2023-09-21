@@ -18,7 +18,7 @@ from .utils import *
 
 
 class GoodsHome(ListView):
-    paginate_by = 1
+    paginate_by = 11
     model = Goods
     template_name = 'showcase/start.html'
     context_object_name = 'gd'
