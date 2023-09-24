@@ -1,6 +1,7 @@
 from fastapi import FastAPI
-from models import *
+from models.models import *
 from typing import List
+from fastapi.responses import HTMLResponse
 
 
 
@@ -20,12 +21,18 @@ app = FastAPI(title="Склад интернет магазина", debug=True)#
 #         content=jsonable_encoder({"detail": exc.errors()}),
 #     )
 
-
-
+# КОМАНДА ЗАПУСКА ВЕБ СЕРВЕРА: uvicorn main:app --reload
+#pip install fastapi[all] - это установка фастапи
 
 @app.get("/")
 def home():
 	return "Склад товаров"
+
+
+@app.get("/Товары")
+def read_goods():
+    html_content = "<h1>Hello World</h1>"
+    return HTMLResponse(content=html_content)
 
 
 fake_trades = [
@@ -35,9 +42,9 @@ fake_trades = [
 
 
 
-@app.get("/trades")#trades это эндпоинт, точка конца
-def get_trades(limit: int = 1, offset: int = 0):#limit колво получаемых сделок, offset это сдвиг по списку сделок. Можно задавать формальные параметры чтобы был один и тот же запрос
-    return fake_trades[offset:][:limit]
+# @app.get("/trades")#trades это эндпоинт, точка конца
+# def get_trades(limit: int = 1, offset: int = 0):#limit колво получаемых сделок, offset это сдвиг по списку сделок. Можно задавать формальные параметры чтобы был один и тот же запрос
+#     return fake_trades[offset:][:limit]
 
 
 
@@ -56,9 +63,9 @@ fake_goods = [
 
 
 
-@app.get('/goods/{goods_id}', response_model=List[Goods])
-async def get_good(goods_id: int):
-	return [g for g in fake_goods if g.get("id") == goods_id ]
+# @app.get('/goods/{goods_id}', response_model=List[Goods])
+# async def get_good(goods_id: int):
+# 	return [g for g in fake_goods if g.get("id") == goods_id ]
 
 
 
