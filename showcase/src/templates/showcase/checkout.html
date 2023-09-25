@@ -1,0 +1,22 @@
+{% extends 'showcase/start.html' %}
+
+
+{% block content %}
+
+
+<h5>{{ contact }}</h5>
+
+{% for i in order %}
+
+<p> Название товара {{i.name_product}}</p>
+<p> Цена {{i.price}}</p>
+
+{% endfor %}
+
+<h1>Согласны с заказом?</h1>
+
+<a href="{% url 'checkout' %}"><h1>ДА</h1></a>
+
+{% endblock %}
+
+<!-- лишняя html страница на нее нет ссылок -->

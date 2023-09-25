@@ -1,11 +1,27 @@
+#этот файл для передачи паролей конфига в файл alembic.ini. Также тут передаются метаданные из базы данных через metadata
+
+
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
+
+
+import os
+import sys
+sys.path.append(os.path.join(sys.path[0], 'src'))#это нужно для миграций, потому что файл env.py не видит папку src
+
+
 from config import DB_HOST, DB_PORT, DB_PASS, DB_USER, DB_NAME
-from models.models import metadata
+
+
+#тут подключили модели из разных файлов и папок и ниже укажем эти модели в виде списка в переменной target_metadata
+from src.regusers.models import metadata as metadata_regusers
+from src.showcase.models import metadata as metadata_showcase
+
+#также файл alembic.ini отредачил. Теперь psycopg2 не юзаем, а только asyncpg
 
 
 # this is the Alembic Config object, which provides
@@ -21,9 +37,6 @@ config.set_section_option(section, "DB_NAME", DB_NAME)
 
 
 
-
-
-
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
@@ -34,7 +47,7 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 # target_metadata = None
-target_metadata = metadata
+target_metadata = [metadata_regusers, metadata_showcase]
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
