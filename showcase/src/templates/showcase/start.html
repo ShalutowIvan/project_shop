@@ -17,8 +17,7 @@
 <!--панель сверху - шапка. -->
 <header>
 	<img src="{{ url_for('static', path='images/i.jpg') }}" alt="Лого">
-	<h1>{{ org.name_org }}</h1>
-	<a href="{% url 'adminka' %}"><h1>АДМИНКА</h1></a>
+	<h1>{{ org.name_org }}</h1>	
 	
 
 	{% if request.user.is_authenticated %}

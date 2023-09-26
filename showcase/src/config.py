@@ -1,6 +1,18 @@
 from dotenv import load_dotenv
 import os
 
+
+# from pydantic_settings import BaseSettings
+
+
+# class Settings(BaseSettings):
+
+# 	appName: str = "showcase"
+
+# 	openapi_url: str = ''
+
+
+
 load_dotenv()
 
 DB_HOST=os.environ.get("DB_HOST")

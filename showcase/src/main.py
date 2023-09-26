@@ -10,16 +10,19 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Plai
 
 
 # from regusers.router import router as router_regusers
-# from showcase.router import router as router_showcase
+from showcase.router import router as router_showcase
 
 
 
 
-
-# from fastapi.exceptions import RequestValidationError#это декоратор для отображения ошибки на стороне сервера для пользователей. Возможно полезно для отладки. 
 # from fastapi import FastAPI, Request, status
 # from fastapi.encoders import jsonable_encoder
 # from fastapi.responses import JSONResponse
+
+# from config import Settings
+# setting = Settings()
+# openapi_url=setting.openapi_url,
+
 
 app = FastAPI(title="Склад интернет магазина", debug=True)#debug=True это для того чтобы в документации выводилсь ошибки как в консоли. 
 
@@ -31,7 +34,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 #так подключается роутер
-# app.include_router(router_pages)
+app.include_router(router_showcase)
 
 
 
@@ -41,15 +44,20 @@ templates = Jinja2Templates(directory="templates")
 #pip install fastapi[all] - это установка фастапи
 
 
-#пример контекстного оператора типа рендера в джанго
+# @app.get('/')
+# def index():
+#     return "Hello: {}".format(setting.appName)
+
+
+
+
+#пример контекстного оператора похож на рендер в джанго
 @app.get("/", response_class=HTMLResponse)
 async def start(request: Request):
     context = {
     "request": request,
     }
-    return templates.TemplateResponse("showcase/start.html", context)
-
-
+    return templates.TemplateResponse("showcase/test.html", context)
 
 
 
