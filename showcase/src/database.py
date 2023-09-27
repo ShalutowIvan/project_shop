@@ -18,13 +18,13 @@ from config import DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER
 
 
 
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 #для асинхронности добавить после postgresql
 # +asyncpg
 
-Base = declarative_base()
+# Base = declarative_base()
 
-engine = create_engine(DATABASE_URL)
+engine = create_async_engine(DATABASE_URL)
 #асинхронный движок create_async_engine
 
 # , poolclass=NullPool
@@ -34,21 +34,18 @@ metadata = MetaData()
 # engine = create_async_engine(DATABASE_URL)
 
 #это асинхронная сессия БД
-# async_session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+async_session_maker = sessionmaker(autoflush=False, bind=engine, class_=AsyncSession, expire_on_commit=False)
 
-async_session_maker = sessionmaker(autoflush=False, bind=engine, expire_on_commit=False)
+# async_session_maker = sessionmaker(autoflush=False, bind=engine, expire_on_commit=False)
 
 
-db = async_session_maker()
-
-# https://metanit.com/python/fastapi/2.3.php
-# тут описание как подкючиться к БД
+# db = async_session_maker()
 
 
 #это функция для асинхронного запуска. Как к ней делать запросы пока не знаю. 
-# async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
-#     async with async_session_maker() as session:
-#         yield session
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+    async with async_session_maker() as session:
+        yield session
 
 
 

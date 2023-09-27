@@ -1,5 +1,5 @@
 from fastapi import FastAPI, status, Response, Path, Request
-from fastapi.templating import Jinja2Templates
+
 from fastapi.staticfiles import StaticFiles
 
 
@@ -31,7 +31,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 #общая папка с шаблонами. Потом в функциях рендерах обращаться к ним по пути имени приложения например "showcase/test.html"
-templates = Jinja2Templates(directory="templates")
+
 
 #так подключается роутер
 app.include_router(router_showcase)
@@ -52,12 +52,12 @@ app.include_router(router_showcase)
 
 
 #пример контекстного оператора похож на рендер в джанго
-@app.get("/", response_class=HTMLResponse)
-async def start(request: Request):
-    context = {
-    "request": request,
-    }
-    return templates.TemplateResponse("showcase/test.html", context)
+# @app.get("/", response_class=HTMLResponse)
+# async def start(request: Request):
+#     context = {
+#     "request": request,
+#     }
+#     return templates.TemplateResponse("showcase/test.html", context)
 
 
 
@@ -90,25 +90,10 @@ async def start(request: Request):
 
 
 
-@app.get("/old")
-def old():
-    return RedirectResponse("/new")
-
- 
-@app.get("/new")
-def new():
-    return PlainTextResponse("Новая страница")
-
-
-
-
-
-
-
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", port=8000, host="127.0.0.1", reload=True, workers=3)
+    uvicorn.run("main:app", port=8000, host="127.0.0.1", reload=True)
 
 
 

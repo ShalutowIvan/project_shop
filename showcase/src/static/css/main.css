@@ -4,15 +4,12 @@ body {
 /*это стиль для картинки товаров. Первая позиция отображается под хедером и не видно название товара*/
 
 
-
-
-
 header{
 position: fixed;
-float: top;
+/*float: top;*/
 background: #F0E68C;
-height: 30vh;
-padding: 1.5%;
+height: 25vh;
+/*padding: 1.5%;*/
 color: #fff; /* Цвет текста */
 width: 100%; /* Ширина слоя */
 }
@@ -23,8 +20,18 @@ text-align: center;
 }
 
 header p{
+/*padding: 0px 0px 0px 0px;*/
 text-align: right;
 color: black;
+/*width: 200px;*/
+background: red;
+/*float: right;*/
+}
+
+
+.cap{
+text-align: right;
+	
 }
 
 header img {
@@ -143,10 +150,11 @@ main .form-group{
 	width: 70px;
 }
 
-
+/*
 body{
 	height: 100%;
 }
+*/
 
 /*.footer{
 	box-sizing: border-box;

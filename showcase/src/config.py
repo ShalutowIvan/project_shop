@@ -1,17 +1,10 @@
 from dotenv import load_dotenv
+from fastapi.templating import Jinja2Templates
 import os
 
 
-# from pydantic_settings import BaseSettings
-
-
-# class Settings(BaseSettings):
-
-# 	appName: str = "showcase"
-
-# 	openapi_url: str = ''
-
-
+#папка с шаблонами
+templates = Jinja2Templates(directory="templates")
 
 load_dotenv()
 
