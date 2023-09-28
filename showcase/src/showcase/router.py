@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, PlainTextResponse
-from fastapi.templating import Jinja2Templates
+
 
 from sqlalchemy import insert, select
 
@@ -9,11 +9,11 @@ from database import get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-from .models import *
+from showcase.models import *
 from config import templates
 
 router = APIRouter(
-    prefix="/home",
+    prefix="",
     tags=["Showcase"]
 )
 
