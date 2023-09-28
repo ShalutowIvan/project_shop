@@ -4,7 +4,7 @@ from fastapi import Depends
 
 from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
 
-
+from sqlalchemy.pool import NullPool
 
 from sqlalchemy.orm import sessionmaker
 
@@ -34,10 +34,10 @@ metadata = MetaData()
 # engine = create_async_engine(DATABASE_URL)
 
 #это асинхронная сессия БД
-async_session_maker = sessionmaker(autoflush=False, bind=engine, class_=AsyncSession, expire_on_commit=False)
-
+async_session_maker = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+# autoflush=False,
 # async_session_maker = sessionmaker(autoflush=False, bind=engine, expire_on_commit=False)
-
+# , poolclass=NullPool
 
 # db = async_session_maker()
 

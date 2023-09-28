@@ -9,7 +9,7 @@ from database import get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-from showcase.models import *
+from .models import *
 from config import templates
 
 router = APIRouter(
@@ -39,7 +39,7 @@ async def home(request: Request, session: AsyncSession = Depends(get_async_sessi
 
     context = {
     "request": request,    
-    "org": org.all()[0],
+    "org": org.all()[0] if org.all() != [] else [],
     "group": gr.all(),
     "gd": gd.all(),
 
