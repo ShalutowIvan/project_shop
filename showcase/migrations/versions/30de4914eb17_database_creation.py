@@ -81,6 +81,22 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['name_product'], ['goods.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+
+    op.create_table('organization',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name_org', sa.String(), nullable=True),
+    sa.Column('inn', sa.Integer(), nullable=False),
+    sa.Column('kpp', sa.Integer(), nullable=False),
+    sa.Column('ogrn', sa.Integer(), nullable=False),
+    sa.Column('working_mode', sa.String(), nullable=False),
+    sa.Column('about', sa.Text(), nullable=False),
+    sa.Column('adres', sa.String(), nullable=True),
+    sa.Column('phone', sa.Integer(), nullable=True),
+    sa.Column('email_name', sa.String(), nullable=True),
+    sa.Column('telegram', sa.String(), nullable=True),
+    sa.Column('whatsApp', sa.String(), nullable=True),
+    sa.PrimaryKeyConstraint('id')
+    )
     # ### end Alembic commands ###
 
 

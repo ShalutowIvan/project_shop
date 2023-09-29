@@ -1,7 +1,10 @@
-a = [i for i in range(10)]
-x = 1
-res = list(map(lambda x: pow(x, 2), a))
+class Paginator:
+    def __init__(self, limit: int = 10, skip: int = 0):
+        self.limit = limit
+        self.skip = skip
+
+a = Paginator()
+
+print(a.__dict__)
 
 
-
-print(res)

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, status, Response, Path, Request
+from fastapi import FastAPI, status, Response, Path, Request, Depends
 
 from fastapi.staticfiles import StaticFiles
 
@@ -11,7 +11,6 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Plai
 
 from regusers.router import router as router_regusers
 from showcase.router import router as router_showcase
-
 
 
 
@@ -42,6 +41,16 @@ app.include_router(router_regusers)
 #pip install fastapi[all] - это установка фастапи
 
 
+
+# from typing import Annotated
+# from fastapi.security import OAuth2PasswordBearer
+
+# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
+# @app.get("/items/")
+# async def read_items(token: Annotated[str, Depends(oauth2_scheme)]):
+#     return {"token": token}
 
 
 

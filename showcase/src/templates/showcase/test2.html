@@ -5,12 +5,31 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <title>АУТХ</title>
 </head>
 <body>
 
-<h1>{{ a_id }}</h1>
-<h1>{{ org }}</h1>
+
+
+
+<form action="{{ url_for('login') }}" method="post">
+  
+    <input name="username" placeholder="введите имя">
+    
+    <input type="password" name="password" placeholder="Пароль">
+  
+
+    
+
+
+  <input type="submit" value="Send" />
+
+
+
+</form>
+
+
+
 
 
 
