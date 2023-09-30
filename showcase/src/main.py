@@ -60,5 +60,10 @@ app.include_router(router_regusers)
 if __name__ == "__main__":
     uvicorn.run("main:app", port=8000, host="127.0.0.1", reload=True)
 
+#без fast-api users
+# https://www.youtube.com/watch?v=qKlq8TPrrbI&t=24s
+
+#с fast-api users
+# https://www.youtube.com/watch?v=nfueh3ei8HU&t=762s
 
 

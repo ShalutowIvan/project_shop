@@ -21,8 +21,8 @@ HOST_USER = os.environ.get("HOST_USER")
 HOST_PASSWORD = os.environ.get("HOST_PASSWORD")
 DEFAULT_EMAIL = os.environ.get("DEFAULT_EMAIL")
 
+KEY = os.environ.get("KEY")
 
+ALG = os.environ.get("ALGORITHM")
 
-
-
-
+EXPIRE_MINUTES = os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES")
