@@ -25,4 +25,4 @@ KEY = os.environ.get("KEY")
 
 ALG = os.environ.get("ALGORITHM")
 
-EXPIRE_MINUTES = os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES")
+EXPIRE_SECONDS = os.environ.get("ACCESS_TOKEN_EXPIRE_SECONDS")

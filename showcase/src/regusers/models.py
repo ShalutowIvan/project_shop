@@ -3,7 +3,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime
 from sqlalchemy.ext.declarative import declarative_base
 
-from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
+from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase, SQLAlchemyBaseUserTable
 from sqlalchemy.orm import Mapped, mapped_column
 
 # metadata = MetaData()
@@ -22,15 +22,12 @@ from ..database import Base
 #     Column("time_create_user", TIMESTAMP, default=datetime.utcnow),
 # )
 
-class User(SQLAlchemyBaseUserTableUUID, Base):
+class User(SQLAlchemyBaseUserTable[int], Base):
     __tablename__ = "user"
 
-    id = Column(Integer, primary_key=True, index=True)
-    # email = Column(String(40), unique=True, index=True)
-    name = Column(String(100))
-    # password = Column(String())
-    # is_active = Column(Boolean(), default=True)
-    time_create_user = Column(TIMESTAMP, default=datetime.utcnow)
+    id = mapped_column(Integer, primary_key=True, index=True)
+    name = mapped_column(String(100))
+    time_create_user = mapped_column(TIMESTAMP, default=datetime.utcnow)
     email: Mapped[str] = mapped_column(String(length=320), unique=True, index=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(length=1024), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
