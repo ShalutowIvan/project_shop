@@ -3,7 +3,7 @@ from typing import AsyncGenerator
 from fastapi import Depends
 
 from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
-from regusers.models import User
+# from regusers.models import User
 
 from sqlalchemy.pool import NullPool
 # from sqlalchemy.orm import DeclarativeBase
@@ -35,7 +35,7 @@ async_session_maker = sessionmaker(bind=engine, class_=AsyncSession, expire_on_c
 # , poolclass=NullPool
 
 
-
+# __all__ = ['Base']
 
 #остановился тут. Я скопировал это из базового класса SQLAlchemyBaseUserTable(Generic[ID]). Тут надо дальше все импортировать и тд
 #https://www.youtube.com/watch?v=nfueh3ei8HU&t=789s
@@ -67,8 +67,8 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
-async def get_user_db(session: AsyncSession = Depends(get_async_session)):
-    yield SQLAlchemyUserDatabase(session, User)
+# async def get_user_db(session: AsyncSession = Depends(get_async_session)):
+#     yield SQLAlchemyUserDatabase(session, User)
 
 
 

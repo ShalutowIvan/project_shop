@@ -21,7 +21,8 @@ HOST_USER = os.environ.get("HOST_USER")
 HOST_PASSWORD = os.environ.get("HOST_PASSWORD")
 DEFAULT_EMAIL = os.environ.get("DEFAULT_EMAIL")
 
-KEY = os.environ.get("KEY")
+KEY = os.environ.get("KEY")#для jwt токена при авторизации
+KEY2 = os.environ.get("KEY2")#для сброса пароля и для верификации
 
 ALG = os.environ.get("ALGORITHM")
 

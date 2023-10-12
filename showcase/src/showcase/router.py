@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .models import *
 from config import templates
 
-router = APIRouter(
+router_showcase = APIRouter(
     prefix="",
     tags=["Showcase"]
 )
@@ -81,7 +81,7 @@ router = APIRouter(
 ##################################################################################
 
 
-@router.get("/", response_class=HTMLResponse)
+@router_showcase.get("/", response_class=HTMLResponse)
 async def home(request: Request, session: AsyncSession = Depends(get_async_session)):    
     
     org = await session.execute(select(organization))
@@ -99,7 +99,7 @@ async def home(request: Request, session: AsyncSession = Depends(get_async_sessi
     return templates.TemplateResponse("showcase/start.html", context)
 
 
-@router.get("/basket", response_class=HTMLResponse)
+@router_showcase.get("/basket", response_class=HTMLResponse)
 async def basket_view(request: Request, session: AsyncSession = Depends(get_async_session)):
     
     basket = await session.execute(select(basket))
@@ -114,7 +114,7 @@ async def basket_view(request: Request, session: AsyncSession = Depends(get_asyn
 
 
 
-@router.get("/checkout_list", response_class=HTMLResponse)
+@router_showcase.get("/checkout_list", response_class=HTMLResponse)
 async def checkout_list(request: Request, session: AsyncSession = Depends(get_async_session)):
     order_list = await session.execute(select(order_list_bought))
     kont = await session.execute(select(contacts))

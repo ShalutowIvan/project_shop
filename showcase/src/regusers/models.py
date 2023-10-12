@@ -6,9 +6,11 @@ from sqlalchemy.ext.declarative import declarative_base
 from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase, SQLAlchemyBaseUserTable
 from sqlalchemy.orm import Mapped, mapped_column
 
+from .. import database
+# import database
+
 # metadata = MetaData()
 
-from ..database import Base
 
 
 # users = Table(
@@ -22,7 +24,7 @@ from ..database import Base
 #     Column("time_create_user", TIMESTAMP, default=datetime.utcnow),
 # )
 
-class User(SQLAlchemyBaseUserTable[int], Base):
+class User(SQLAlchemyBaseUserTable[int], database.Base):
     __tablename__ = "user"
 
     id = mapped_column(Integer, primary_key=True, index=True)

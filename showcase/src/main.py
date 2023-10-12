@@ -1,6 +1,9 @@
 from fastapi import FastAPI, status, Response, Path, Request, Depends
 
 from fastapi.staticfiles import StaticFiles
+# from models import User
+# from .manager import get_user_manager
+
 
 
 
@@ -9,10 +12,15 @@ from typing import List, Union
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, PlainTextResponse
 
 
-from regusers.router import router as router_regusers
-from showcase.router import router as router_showcase
+# from src.regusers.router import router as router_regusers
+from showcase.router import router_showcase
+from fastapi_users import FastAPIUsers#это иморт класса с роутерами для авторизации, регистрации и тд.
 
+from src.regusers.auth import auth_backend
+from src.regusers.manager import get_user_manager
+from src.regusers.models import User
 
+from src.regusers.schemas import UserRead, UserCreate
 
 # from fastapi import FastAPI, Request, status
 # from fastapi.encoders import jsonable_encoder
@@ -28,11 +36,26 @@ app = FastAPI(title="Склад интернет магазина", debug=True)#
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-
+fastapi_users = FastAPIUsers[User, int](
+    get_user_manager,
+    [auth_backend],
+)
 
 #тут подключается роутер
 app.include_router(router_showcase)
-app.include_router(router_regusers)
+# app.include_router(router_regusers)
+
+app.include_router(
+    fastapi_users.get_auth_router(auth_backend),
+    prefix="/auth/jwt",
+    tags=["auth"],
+)
+
+app.include_router(
+    fastapi_users.get_register_router(UserRead, UserCreate),
+    prefix="/auth",
+    tags=["auth"],
+)
 
 
 # КОМАНДА ЗАПУСКА ВЕБ СЕРВЕРА: uvicorn main:app --reload
