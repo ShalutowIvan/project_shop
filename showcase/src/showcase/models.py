@@ -3,9 +3,9 @@
 
 from sqlalchemy import Integer, String, TIMESTAMP, ForeignKey, Float, Boolean, Text, Table, Column, JSON
 from datetime import datetime
-from regusers.models import *
+# from ..regusers.models import User
 
-from ..database import Base
+from database import Base
 
 # metadata = MetaData()
 

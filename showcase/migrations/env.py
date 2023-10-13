@@ -1,5 +1,5 @@
-#этот файл для передачи паролей конфига в файл alembic.ini. Также тут передаются метаданные из базы данных через metadata
-
+import os
+import sys
 
 from logging.config import fileConfig
 
@@ -8,25 +8,15 @@ from sqlalchemy import pool
 
 from alembic import context
 
+from src import Base, DB_HOST, DB_PORT, DB_PASS, DB_USER, DB_NAME
 
-import os
-import sys
-sys.path.append(os.path.join(sys.path[0], 'src'))#это нужно для миграций, потому что файл env.py не видит папку src
-
-
-from config import DB_HOST, DB_PORT, DB_PASS, DB_USER, DB_NAME
-
-
-#тут подключили модели из разных файлов и папок и ниже укажем эти модели в виде списка в переменной target_metadata
-from src.regusers.models import metadata as metadata_regusers
-from src.showcase.models import metadata as metadata_showcase
-
-#также файл alembic.ini отредачил. Теперь psycopg2 не юзаем, а только asyncpg
-
+sys.path.append(os.path.join(sys.path[0], 'src'))
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
+# config.set_main_option("sqlalchemy.url", str(DATABASE_URL))
 
 section = config.config_ini_section#это для передачи в файл alembic.ini данных о пользователе БД
 config.set_section_option(section, "DB_HOST", DB_HOST)
@@ -34,7 +24,6 @@ config.set_section_option(section, "DB_PORT", DB_PORT)
 config.set_section_option(section, "DB_PASS", DB_PASS)
 config.set_section_option(section, "DB_USER", DB_USER)
 config.set_section_option(section, "DB_NAME", DB_NAME)
-
 
 
 # Interpret the config file for Python logging.
@@ -46,8 +35,9 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-# target_metadata = None
-target_metadata = [metadata_regusers, metadata_showcase]
+target_metadata = Base.metadata
+#алембик не видит метадату, хз почему
+
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

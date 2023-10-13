@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 from .models import *
-from config import templates
+from ..config import templates
 
 router_showcase = APIRouter(
     prefix="",
@@ -84,9 +84,9 @@ router_showcase = APIRouter(
 @router_showcase.get("/", response_class=HTMLResponse)
 async def home(request: Request, session: AsyncSession = Depends(get_async_session)):    
     
-    org = await session.execute(select(organization))
-    gr = await session.execute(select(group))
-    gd = await session.execute(select(goods))
+    org = await session.execute(select(Organization))
+    gr = await session.execute(select(Group))
+    gd = await session.execute(select(Goods))
 
     context = {
     "request": request,    
