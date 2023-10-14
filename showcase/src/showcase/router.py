@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 from .models import *
-from ..config import templates
+from config import templates
 
 router_showcase = APIRouter(
     prefix="",

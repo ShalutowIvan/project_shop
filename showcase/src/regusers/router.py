@@ -3,10 +3,8 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Plai
 
 from sqlalchemy import insert, select
 
-from src.database import get_async_session
+from database import get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
-
-
 
 
 from .models import *

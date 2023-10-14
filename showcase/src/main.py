@@ -1,13 +1,9 @@
 from fastapi import FastAPI, status, Response, Path, Request, Depends
 
 from fastapi.staticfiles import StaticFiles
-# from models import User
-# from .manager import get_user_manager
 
 
 
-
-# from models.models import *
 from typing import List, Union
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, PlainTextResponse
 
