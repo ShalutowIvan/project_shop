@@ -101,8 +101,8 @@ async def home(request: Request, session: AsyncSession = Depends(get_async_sessi
 
 @router_showcase.get("/basket", response_class=HTMLResponse)
 async def basket_view(request: Request, session: AsyncSession = Depends(get_async_session)):
-    
-    basket = await session.execute(select(basket))
+
+    basket = await session.execute(select(Basket))
 
     context = {
     "request": request,
@@ -116,8 +116,8 @@ async def basket_view(request: Request, session: AsyncSession = Depends(get_asyn
 
 @router_showcase.get("/checkout_list", response_class=HTMLResponse)
 async def checkout_list(request: Request, session: AsyncSession = Depends(get_async_session)):
-    order_list = await session.execute(select(order_list_bought))
-    kont = await session.execute(select(contacts))
+    order_list = await session.execute(select(Order_list))
+    kont = await session.execute(select(Contacts))
 
     context = {
     "request": request,

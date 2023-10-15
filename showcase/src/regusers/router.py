@@ -18,7 +18,7 @@ from pydantic import BaseModel
 
 
 #мой роутер
-router = APIRouter(
+router_reg = APIRouter(
     prefix="",
     tags=["Regusers"]
 )
@@ -340,16 +340,22 @@ router = APIRouter(
 
 
 
+async def get_user_db(session: AsyncSession = Depends(get_async_session)):
+    yield SQLAlchemyUserDatabase(session, User)
+
+
+
+
 
 
 ################################################################################
 #просто ссылки для перехода на страницу тестовой авторизации. Потом удалить.
-# @router.get("/registration")
-# async def url_reg(request: Request):
-#     return RedirectResponse("/registration", status_code=303)
-#
-#
-# @router.get("/auth")
-# async def url_auth(request: Request):
-#     return RedirectResponse("auth", status_code=303)
+@router_reg.get("/auth")
+async def url_reg(request: Request):
+    return RedirectResponse("/auth", status_code=303)
+
+
+@router_reg.get("/auth/jwt")
+async def url_auth(request: Request):
+    return RedirectResponse("auth/jwt", status_code=303)
 ################################################################################

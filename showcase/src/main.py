@@ -8,23 +8,19 @@ from typing import List, Union
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, PlainTextResponse
 
 
-# from src.regusers.router import router as router_regusers
+from regusers.router import router_reg
 from showcase.router import router_showcase
 from fastapi_users import FastAPIUsers#это иморт класса с роутерами для авторизации, регистрации и тд.
 
-from src.regusers.auth import auth_backend
-from src.regusers.manager import get_user_manager
-from src.regusers.models import User
+from regusers.auth import auth_backend
+from regusers.manager import get_user_manager
+from regusers.models import User
 
-from src.regusers.schemas import UserRead, UserCreate
+from regusers.schemas import UserRead, UserCreate
 
-# from fastapi import FastAPI, Request, status
+
 # from fastapi.encoders import jsonable_encoder
 # from fastapi.responses import JSONResponse
-
-# from config import Settings
-# setting = Settings()
-# openapi_url=setting.openapi_url,
 
 
 app = FastAPI(title="Склад интернет магазина", debug=True)#debug=True это для того чтобы в документации выводилсь ошибки как в консоли. 
@@ -39,7 +35,7 @@ fastapi_users = FastAPIUsers[User, int](
 
 #тут подключается роутер
 app.include_router(router_showcase)
-# app.include_router(router_regusers)
+app.include_router(router_reg)
 
 app.include_router(
     fastapi_users.get_auth_router(auth_backend),

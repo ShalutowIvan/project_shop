@@ -7,37 +7,14 @@ from datetime import datetime
 
 from database import Base
 
-# metadata = MetaData()
 
-
-# group = Table(
-#     "group",
-#     metadata,
-#     Column("id", Integer, primary_key=True),
-#     Column("name_group", String, nullable=False),
-#     Column("slug", String, nullable=False),
-# )
 
 class Group(Base):
     __tablename__ = "group"
-    id = Column(Integer, primary_key=True),
-    name_group = Column(String, nullable=False),
-    slug = Column(String, nullable=False),
+    id = Column(Integer, primary_key=True)
+    name_group = Column(String, nullable=False)
+    slug = Column(String, nullable=False)
 
-
-# goods = Table(
-#     "goods",
-#     metadata,
-#     Column("id", Integer, primary_key=True),
-#     Column("name_product", String, nullable=False),
-#     Column("vendor_code", String, nullable=False),
-#     Column("stock", Float, nullable=True),
-#     Column("slug", String, nullable=False),
-#     Column("photo", String, nullable=False),
-#     Column("availability", Boolean, nullable=False),
-#     Column("time_create", TIMESTAMP, default=datetime.utcnow),#utcnow для разных часовых поясов в случае расположения бд и пользователя в разных часовых поясах, это универсальный часовой пояс. При создании будет автоматом записываться текущее время создания поля.
-#     Column("name_group", Integer, ForeignKey("group.id")),#ссылаемся на таблицу group и на ее элемент id
-# )
 
 class Goods(Base):
     __tablename__ = "goods"
@@ -111,16 +88,6 @@ class Organization(Base):
 
 
 
-# order_list_bought = Table(
-#     "order_list",
-#     metadata,
-#     Column("id", Integer, primary_key=True),
-#     Column("name_product", Integer, ForeignKey("goods.id")),
-#     Column("quantity", Float, nullable=False),
-#     Column("order_number", Integer, nullable=False),
-#     Column("time_create", TIMESTAMP, default=datetime.utcnow),
-#     # Column("user", Integer, ForeignKey(".id")),
-# )
 
 class Order_list(Base):
     __tablename__ = "order_list"
@@ -146,17 +113,6 @@ class Payment(Base):
     pay = Column(String, nullable=False)
 
 
-
-# contacts = Table(
-#     "contacts",
-#     metadata,
-#     Column("id", Integer, primary_key=True),
-#     # Column("user", Integer, ForeignKey(".id")),
-#     Column("fio", String, nullable=False),
-#     Column("phone", Integer, default=0),
-#     Column("delivery_address", Text, default="_"),
-#     Column("pay", Integer, ForeignKey("payment.id")),
-# )
 
 class Contacts(Base):
     __tablename__ = "contacts"

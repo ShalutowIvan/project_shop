@@ -7,22 +7,7 @@ from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
 from sqlalchemy.orm import Mapped, mapped_column
 
 from database import Base
-# import database
 
-# metadata = MetaData()
-
-
-
-# users = Table(
-#     "users",
-#     metadata,
-#     Column("id", Integer, primary_key=True),
-#     Column("email", String(40), unique=True, index=True),
-#     Column("name", String(100)),
-#     Column("password", String()),
-#     Column("is_active", Boolean(), default=True),
-#     Column("time_create_user", TIMESTAMP, default=datetime.utcnow),
-# )
 
 class User(SQLAlchemyBaseUserTable[int], Base):
     __tablename__ = "user"

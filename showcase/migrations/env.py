@@ -11,6 +11,9 @@ from alembic import context
 from src.database import Base
 from src.config import DB_HOST, DB_PORT, DB_PASS, DB_USER, DB_NAME
 
+from src.regusers.models import *
+from src.showcase.models import *
+
 
 sys.path.append(os.path.join(sys.path[0], 'src'))
 
