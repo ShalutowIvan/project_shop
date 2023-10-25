@@ -10,13 +10,13 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Plai
 
 from regusers.router import router_reg
 from showcase.router import router_showcase
-from fastapi_users import FastAPIUsers#это иморт класса с роутерами для авторизации, регистрации и тд.
 
-from regusers.auth import auth_backend
-from regusers.manager import get_user_manager
-from regusers.models import User
-
-from regusers.schemas import UserRead, UserCreate
+#fastapi users - пока не юзаю
+# from fastapi_users import FastAPIUsers#это иморт класса с роутерами для авторизации, регистрации и тд.
+# from regusers.auth import auth_backend
+# from regusers.manager import get_user_manager
+# from regusers.models import User
+# from regusers.schemas import UserRead, UserCreate
 
 
 # from fastapi.encoders import jsonable_encoder
@@ -28,26 +28,32 @@ app = FastAPI(title="Склад интернет магазина", debug=True)#
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-fastapi_users = FastAPIUsers[User, int](
-    get_user_manager,
-    [auth_backend],
-)
 
 #тут подключается роутер
 app.include_router(router_showcase)
 app.include_router(router_reg)
 
-app.include_router(
-    fastapi_users.get_auth_router(auth_backend),
-    prefix="/auth/jwt",
-    tags=["auth"],
-)
 
-app.include_router(
-    fastapi_users.get_register_router(UserRead, UserCreate),
-    prefix="/auth",
-    tags=["auth"],
-)
+
+
+#fastapi users - пока не юзаю
+# fastapi_users = FastAPIUsers[User, int](
+#     get_user_manager,
+#     [auth_backend],
+# )
+
+#fastapi users - пока не юзаю
+# app.include_router(
+#     fastapi_users.get_auth_router(auth_backend),
+#     prefix="/auth/jwt",
+#     tags=["auth"],
+# )
+
+# app.include_router(
+#     fastapi_users.get_register_router(UserRead, UserCreate),
+#     prefix="/auth",
+#     tags=["auth"],
+# )
 
 
 # КОМАНДА ЗАПУСКА ВЕБ СЕРВЕРА: uvicorn main:app --reload
