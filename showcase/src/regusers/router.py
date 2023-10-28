@@ -53,13 +53,14 @@ async def registration_post(request: Request, session: AsyncSession = Depends(ge
 
     return RedirectResponse("/registration", status_code=303)
 
+# сделать перезапись пароля в захешированный пароль. То есть берем пароль из формы и юзера создаем, потом хешируем и перезаписываем пароль в базу захешированным. 
+#аннотейтед это такие аннотации со типом данных и значениями. В доке по фастапи есть инфа в питоне 3,8 как в метанит, а в питон 3,9 появились Annotated 
+
+
 
 
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
     yield SQLAlchemyUserDatabase(session, User)
-
-
-
 
 
 

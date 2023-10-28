@@ -1,2 +1,2 @@
-from .database import Base, get_async_session, DATABASE_URL, get_user_db
+from .database import Base, get_async_session, DATABASE_URL
 from .config import *

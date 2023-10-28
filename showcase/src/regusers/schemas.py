@@ -21,4 +21,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     is_active: Optional[bool] = True
+
+    class Config:
+        orm_mode = True
     

@@ -17,4 +17,23 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(length=1024), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     
+    tokens = relationship("Token", back_populates="user")
+
+
+class Token(Base):
+    __tablename__ = "token"
+
+    id = mapped_column(Integer, primary_key=True, index=True)
+    acces_token = mapped_column(String(length=320), unique=True, index=True, nullable=False)
+    #сделать связь с таблицей юзеров
+
+    user_id = mapped_column(Integer, ForeignKey("user.id"))#это как бы пользователь которому будет принадлежать токен
+    
+    user = relationship("User", back_populates="tokens")
+
+    
+
+
+
+
 
