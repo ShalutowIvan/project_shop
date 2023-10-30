@@ -5,7 +5,7 @@ from sqlalchemy import Integer, String, TIMESTAMP, ForeignKey, Float, Boolean, T
 from datetime import datetime
 # from ..regusers.models import User
 
-from database import Base
+from src.db import Base
 
 
 
@@ -100,12 +100,6 @@ class Order_list(Base):
 
 
 
-# payment = Table(
-#     "payment",
-#     metadata,
-#     Column("id", Integer, unique=True, primary_key=True),
-#     Column("pay", String, nullable=False),
-# )
 
 class Payment(Base):
     __tablename__ = "payment"

@@ -2,9 +2,9 @@ from sqlalchemy import Integer, String, TIMESTAMP, ForeignKey, Float, Boolean, T
 from sqlalchemy.dialects.postgresql import UUID
 
 from datetime import datetime
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from database import Base
+from src.db import Base
 
 
 class User(Base):
@@ -24,16 +24,26 @@ class Token(Base):
     __tablename__ = "token"
 
     id = mapped_column(Integer, primary_key=True, index=True)
-    acces_token = mapped_column(String(length=320), unique=True, index=True, nullable=False)
-    #сделать связь с таблицей юзеров
+    acces_token = mapped_column(String(length=320), unique=True, index=True, nullable=False)    
 
     user_id = mapped_column(Integer, ForeignKey("user.id"))#это как бы пользователь которому будет принадлежать токен
     
     user = relationship("User", back_populates="tokens")
 
+
+
+# class Item(Base):
+#     __tablename__ = "item"
+
+#     id = mapped_column(Integer, primary_key=True, index=True)
+#     atom = mapped_column(String(length=320), unique=True, index=True, nullable=False)        
+
+
+
+
     
 
-
+# ост 29 мин
 
 
 

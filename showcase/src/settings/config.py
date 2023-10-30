@@ -4,7 +4,7 @@ import os
 
 
 #папка с шаблонами
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="src/templates")
 
 load_dotenv()
 

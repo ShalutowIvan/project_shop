@@ -8,8 +8,8 @@ from typing import List, Union
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, PlainTextResponse
 
 
-from regusers.router import router_reg
-from showcase.router import router_showcase
+from src.regusers.router import router_reg
+from src.showcase.router import router_showcase
 
 #fastapi users - пока не юзаю
 # from fastapi_users import FastAPIUsers#это иморт класса с роутерами для авторизации, регистрации и тд.
@@ -18,7 +18,6 @@ from showcase.router import router_showcase
 # from regusers.models import User
 # from regusers.schemas import UserRead, UserCreate
 
-
 # from fastapi.encoders import jsonable_encoder
 # from fastapi.responses import JSONResponse
 
@@ -26,8 +25,9 @@ from showcase.router import router_showcase
 app = FastAPI(title="Склад интернет магазина", debug=True)#debug=True это для того чтобы в документации выводилсь ошибки как в консоли. 
 
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
+app.mount("/static", StaticFiles(directory="src/static"), name="static")
+#пояснения к статичным файлам
+# ("папка из фаст апи вшитая", StaticFiles(directory="путь к папке со статичными файлами"), name="имя")
 
 #тут подключается роутер
 app.include_router(router_showcase)

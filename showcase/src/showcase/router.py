@@ -5,12 +5,12 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Plai
 
 from sqlalchemy import insert, select
 
-from database import get_async_session
+from src.db import get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
 from .models import *
-from config import templates
+from src.settings import templates
 
 router_showcase = APIRouter(
     prefix="",

@@ -3,9 +3,9 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Plai
 
 from sqlalchemy import insert, select
 
-from database import get_async_session
+from src.db import get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from src.settings import templates
 
 from .models import *
 from typing import Annotated
@@ -15,6 +15,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, OA
 
 from .schemas import *
 
+from .secure import pwd_context
 
 
 #мой роутер
@@ -23,8 +24,8 @@ router_reg = APIRouter(
     tags=["Regusers"]
 )
 
-
-
+async def get_user_db(session: AsyncSession = Depends(get_async_session)):
+    yield SQLAlchemyUserDatabase(session, User)
 
 
 
@@ -39,28 +40,35 @@ async def registration_get(request: Request):
 
 #функция из видоса. 
 # def reg(user_data: schemas.UserCreate, session: AsyncSession = Depends(get_async_session)):
-# ост 22 мин.
 
 
-@router_reg.post("/registration", response_model=UserCreate, status_code=201)
+# , response_model=UserCreate
+@router_reg.post("/registration", status_code=201)#response_model это валидация для запроса
 async def registration_post(request: Request, session: AsyncSession = Depends(get_async_session), name: str = Form(), email: str = Form(), password: str = Form()):
     # stmt = await session.execute(select(users))
-    stmt = insert(users).values(email=email, name=name, password=password)
+
+    user = User(name=name, email=email, hashed_password=pwd_context.hash(password))
+
+    # stmt = insert(users).values(email=email, name=name, password=password)
     # user = stmt.users(email=email, name=name, password=password)
-    await session.execute(stmt)
+    
+    session.add(user)
     await session.commit()
 
 
-    return RedirectResponse("/registration", status_code=303)
+    return RedirectResponse("/auth", status_code=303)
 
 # сделать перезапись пароля в захешированный пароль. То есть берем пароль из формы и юзера создаем, потом хешируем и перезаписываем пароль в базу захешированным. 
-#аннотейтед это такие аннотации со типом данных и значениями. В доке по фастапи есть инфа в питоне 3,8 как в метанит, а в питон 3,9 появились Annotated 
+#аннотейтед это такие аннотации с типом данных и значениями. В доке по фастапи есть инфа в питоне 3,8 как в метанит, а в питон 3,9 появились Annotated 
+
+
+@router_reg.post("/auth")
+async def auth_user(request: Request, session):
+    pass
 
 
 
 
-async def get_user_db(session: AsyncSession = Depends(get_async_session)):
-    yield SQLAlchemyUserDatabase(session, User)
 
 
 

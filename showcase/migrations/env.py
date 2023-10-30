@@ -8,14 +8,16 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from src.database import Base
-from src.config import DB_HOST, DB_PORT, DB_PASS, DB_USER, DB_NAME
+#тут импорт с инитами
+from src.db import Base
+from src.settings import DB_HOST, DB_PORT, DB_PASS, DB_USER, DB_NAME
 
+#тут импорт без инитов
 from src.regusers.models import *
 from src.showcase.models import *
 
 
-sys.path.append(os.path.join(sys.path[0], 'src'))
+sys.path.append(os.path.join(sys.path[0], 'src/db/'))
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
