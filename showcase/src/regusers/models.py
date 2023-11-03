@@ -26,7 +26,7 @@ class Token(Base):
     id = mapped_column(Integer, primary_key=True, index=True)
     acces_token = mapped_column(String(length=320), unique=True, index=True, nullable=False)    
 
-    user_id = mapped_column(Integer, ForeignKey("user.id"))#это как бы пользователь которому будет принадлежать токен
+    user_id = mapped_column(Integer, ForeignKey("user.id"))#это id пользователь которому будет принадлежать токен
     
     user = relationship("User", back_populates="tokens")
 

@@ -1,6 +1,6 @@
 from fastapi import Form, APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, PlainTextResponse
-
+from starlette.status import HTTP_404_NOT_FOUND, HTTP_401_UNAUTHORIZED
 from sqlalchemy import insert, select
 
 from src.db import get_async_session
@@ -17,6 +17,7 @@ from .schemas import *
 
 from .secure import pwd_context
 
+import uuid
 
 #мой роутер
 router_reg = APIRouter(
@@ -62,9 +63,49 @@ async def registration_post(request: Request, session: AsyncSession = Depends(ge
 #аннотейтед это такие аннотации с типом данных и значениями. В доке по фастапи есть инфа в питоне 3,8 как в метанит, а в питон 3,9 появились Annotated 
 
 
+
+
+@router_reg.get("/auth")
+async def auth_get(request: Request):
+    return templates.TemplateResponse("regusers/test2.html", {"request": request})
+
+#пока сделал проверку пользователя по вводу логина и пароля и если все верно то создается токен в БД, в токене есть юзер ид пользователя
 @router_reg.post("/auth")
-async def auth_user(request: Request, session):
-    pass
+async def auth_user(request: Request, session: AsyncSession = Depends(get_async_session), email: str = Form(), password: str = Form()):
+    user: User = await session.scalar(select(User).where(User.email == email))#ищем пользователя по емейл
+    if not user:#если юзер не нашелся, то генерим исключение
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+
+    if not pwd_context.verify(password, user.hashed_password):#сверка пароля с БД
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    
+
+    token: Token = Token(user_id=user.id, acces_token=str(uuid.uuid4()))
+    session.add(token)
+    await session.commit()
+    # return {"acces_token": token.acces_token}
+    return RedirectResponse("/", status_code=303)
+
+
+
+###########################################################
+#функция поиска записи в таблице токенов по токену. Находится запись по токену, в ней есть инфа о пользователе которому принадлежит токен и возвращаем юзера владеющего токеном или иначе исключение. Обратиться в пользователю мы можем из-за того что есть relationship в модели, то есть ссылка на юзера, очень удобно. Скорее всего это надо сделать роутером или как то юзать в html-ках для првоерки авторизации. Также нужно сделать jwt токен вместо обычного uuid, и сделать ему время жизни
+def get_user_by_token(acces_token: str, session: AsyncSession = Depends(get_async_session)):
+    token = session.scalar(select(Token).where(Token.access_token == acces_token))
+    if token:
+        # return { "id": token.user.id, "email": token.user.email }
+        return True
+    else:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail="UNAUTHORIZED"
+        )
+############################################################
+
 
 
 
@@ -74,12 +115,14 @@ async def auth_user(request: Request, session):
 
 ################################################################################
 #просто ссылки для перехода на страницу тестовой авторизации. Потом удалить.
-@router_reg.get("/auth")
+@router_reg.get("/registration")
 async def url_reg(request: Request):
-    return RedirectResponse("/auth", status_code=303)
+    pass
+    # return RedirectResponse("/auth", status_code=303)
 
 
-@router_reg.get("/auth/jwt")
+@router_reg.get("/auth")
 async def url_auth(request: Request):
-    return RedirectResponse("auth/jwt", status_code=303)
+    pass
+    # return RedirectResponse("", status_code=303)
 ################################################################################
