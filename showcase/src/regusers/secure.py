@@ -8,16 +8,26 @@ from starlette.status import HTTP_400_BAD_REQUEST
 
 from .models import User, Token
 from .schemas import UserCreate
-# from secure import pwd_context
 
 
-from fastapi.security import APIKeyHeader
+
+from fastapi.security import APIKeyHeader, APIKeyCookie
 from passlib.context import CryptContext
+from jose import JWTError, jwt
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-apikey_scheme = APIKeyHeader(name="Authorization")
+# apikey_scheme = APIKeyHeader(name="Authorization")
 #пока через хедер сделаю, потом переделать на куки. Хедер даже не юзаю пока
+
+apikey_scheme = APIKeyCookie(name="Authorization")
+
+
+def encode_jwt():
+	pass
+
+
+
 
 
 # #функция для проверки существования пользователя и присвоением пароля
@@ -54,8 +64,6 @@ apikey_scheme = APIKeyHeader(name="Authorization")
 #     db.add(token)
 #     db.commit()
 #     return {"acces_token": token.acces_token}
-
-
 
 
 
