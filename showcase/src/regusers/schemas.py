@@ -7,6 +7,7 @@ from datetime import datetime
 
 
 class UserRead(BaseModel):
+    # id: UUID4
     id: int
     name: str
     # time_create_user: datetime

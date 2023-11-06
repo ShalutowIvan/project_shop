@@ -9,8 +9,8 @@ from src.db import Base
 
 class User(Base):
     __tablename__ = "user"
-
-    id = mapped_column(Integer, primary_key=True, index=True)
+    # id = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = mapped_column(Integer, primary_key=True, index=True)#пока так, если что потом заменить на uuid
     name = mapped_column(String(100))
     time_create_user = mapped_column(TIMESTAMP, default=datetime.utcnow)
     email: Mapped[str] = mapped_column(String(length=320), unique=True, index=True, nullable=False)

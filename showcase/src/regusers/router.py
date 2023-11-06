@@ -94,6 +94,7 @@ async def auth_user(request: Request, session: AsyncSession = Depends(get_async_
     
     
     us_token: Token = await session.scalar(select(Token).where(Token.user_id == user.id))
+    # print(not us_token)
     if not us_token:
         uid = str(uuid.uuid4())
         token: Token = Token(user_id=user.id, acces_token=uid)
@@ -106,23 +107,35 @@ async def auth_user(request: Request, session: AsyncSession = Depends(get_async_
     
     response = JSONResponse(content={"message": "куки установлены"})
     response.set_cookie(key="Authorization", value=us_token.acces_token)
+    #response надо возвращать чтобы куки сохранились
+    return response
+    # return RedirectResponse("/", status_code=303)
     
-    # return response
-    return RedirectResponse("/", status_code=303)
-    
-    
-# async def exit(response: Response,):
+
+
+
+
+
 @router_reg.get("/logout")
-async def exit(request: Request):
+async def logout_user(response: Response):
     
-    response = JSONResponse(content={"message": "куки установлены"})
+    # response = JSONResponse(content={"message": "вы вышли"})
     # print(response.__dict__)
-    # response.set_cookie(key="Authorization", value="")
-    response.delete_cookie(key="Authorization")
+    response.set_cookie(key="Authorization", value="")
+    # response.delete_cookie(key="Authorization")
     # print(response)
     # return {"message": "Hello METANIT.COM"}
-    # return RedirectResponse("/")
-    return RedirectResponse("/auth", status_code=303)
+    return response
+    # return RedirectResponse("/auth", status_code=303)
+
+
+
+
+# @router_reg.get("/logout")
+# async def logout(request: Request):
+#     pass
+
+
 
 # def root(secret_code: str | None = Header(default=None)):
 #     return {"Secret-Code": secret_code}

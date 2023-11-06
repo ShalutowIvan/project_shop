@@ -27,9 +27,9 @@ from src.settings import DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER
 DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 #асинхронный движок create_async_engine
-engine = create_async_engine(DATABASE_URL, poolclass=NullPool)
+engine = create_async_engine(DATABASE_URL, poolclass=NullPool, echo=True)
 # , poolclass=NullPool
-
+# , future=True
 
 
 Base = declarative_base()
