@@ -88,7 +88,7 @@ async def auth_user(request: Request, session: AsyncSession = Depends(get_async_
             detail="User not found"
         )
 
-
+    # response: Response,
     if not pwd_context.verify(password, user.hashed_password):#сверка пароля с БД
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     
@@ -116,18 +116,21 @@ async def auth_user(request: Request, session: AsyncSession = Depends(get_async_
 
 
 
-@router_reg.get("/logout")
-async def logout_user(response: Response):
+@router_reg.get("/")
+async def logout_user(request: Request):
+# async def logout_user(response: Response):
     
     # response = JSONResponse(content={"message": "вы вышли"})
     # print(response.__dict__)
-    response.set_cookie(key="Authorization", value="")
+    # response = JSONResponse(content={"message2": "куки установлены2"})
+    # response.set_cookie(key="Auth", value="asd")
     # response.delete_cookie(key="Authorization")
+    request.cookies()
     # print(response)
     # return {"message": "Hello METANIT.COM"}
     return response
     # return RedirectResponse("/auth", status_code=303)
-
+#сделать что то с request
 
 
 
