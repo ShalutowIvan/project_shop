@@ -80,55 +80,59 @@ async def auth_get(request: Request):
 
 #пока сделал проверку пользователя по вводу логина и пароля и если все верно то создается токен в БД, в токене есть юзер ид пользователя
 @router_reg.post("/auth", response_model=None)
-async def auth_user(request: Request, session: AsyncSession = Depends(get_async_session), email: str = Form(), password: str = Form()):
+async def auth_user(response: Response, request: Request, session: AsyncSession = Depends(get_async_session), email: str = Form(), password: str = Form()):
     user: User = await session.scalar(select(User).where(User.email == email))#ищем пользователя по емейл
-    if not user:#если юзер не нашелся, то генерим исключение
+    if not user:
         raise HTTPException(
             status_code=HTTP_404_NOT_FOUND,
             detail="User not found"
         )
-
 
     if not pwd_context.verify(password, user.hashed_password):#сверка пароля с БД
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     
     
     us_token: Token = await session.scalar(select(Token).where(Token.user_id == user.id))
-    # print(not us_token)
+    
     if not us_token:
         uid = str(uuid.uuid4())
         token: Token = Token(user_id=user.id, acces_token=uid)
         session.add(token)        
         await session.commit()
-        # response = JSONResponse(content={"message": "куки установлены"})
+    response = JSONResponse(content={"message": "куки установлены"})
+    response.set_cookie(key="Authorization", value=us_token.acces_token)
+   
+    return response
+    
+
+ # response = JSONResponse(content={"message": "куки установлены"})
         # response.set_cookie(key="Authorization", value=us_token.acces_token)
         # # return RedirectResponse("/", status_code=303)
         # return response
     
-    response = JSONResponse(content={"message": "куки установлены"})
-    response.set_cookie(key="Authorization", value=us_token.acces_token)
-    #response надо возвращать чтобы куки сохранились
-    return response
-    # return RedirectResponse("/", status_code=303)
-    
+    # response = JSONResponse(content={"message": "куки установлены"})
 
 
 
-
-
-@router_reg.get("/logout")
-async def logout_user(response: Response):
+@router_reg.get("/logout123")
+async def logout_user(request: Request, response: Response):
     
     # response = JSONResponse(content={"message": "вы вышли"})
     # print(response.__dict__)
-    response.set_cookie(key="Authorization", value="")
-    # response.delete_cookie(key="Authorization")
+    
+    response = templates.TemplateResponse("regusers/test2.html", {"request": request})
+    # response = auth_get(request)
+    # response = templates.TemplateResponse("login.html", {"request": request, "title": "Login", "current_user": AnonymousUser()})
+    response.set_cookie(key="Authorization",
+        value="",
+        )
+    # response.delete_cookie("Authorization")
     # print(response)
     # return {"message": "Hello METANIT.COM"}
     return response
     # return RedirectResponse("/auth", status_code=303)
-
-
+    # return {"Authorization": "1", "token_type": "bearer"}
+ 
 
 
 # @router_reg.get("/logout")
