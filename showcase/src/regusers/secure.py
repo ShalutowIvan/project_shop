@@ -1,6 +1,7 @@
 import uuid
+from typing import Annotated
 
-from fastapi import HTTPException
+from fastapi import HTTPException, status, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from starlette.status import HTTP_404_NOT_FOUND
@@ -11,7 +12,7 @@ from .schemas import UserCreate
 
 
 
-from fastapi.security import APIKeyHeader, APIKeyCookie
+from fastapi.security import APIKeyHeader, APIKeyCookie, OAuth2PasswordBearer
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from src.settings import KEY, KEY2, ALG, EXPIRE_TIME
@@ -24,8 +25,12 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 apikey_scheme = APIKeyCookie(name="Authorization")
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")#это проверка токена на валидность
 
 
+
+#статья про jwt на хабре
+# https://habr.com/ru/articles/340146/
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     if expires_delta:#если задано время истекания токена, то к текущему времени мы добавляем время истекания
@@ -36,6 +41,28 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode.update({"exp": expire})#тут мы добавили элемент в словарь который скопировали выше элемент с ключом "exp" и значением времени, которое сделали строкой выше. 
     encoded_jwt = jwt.encode(to_encode, KEY, algorithm=ALG)#тут мы кодируем наш токен.
     return encoded_jwt
+
+
+
+# async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+#     credentials_exception = HTTPException(
+#         status_code=status.HTTP_401_UNAUTHORIZED,
+#         detail="Could not validate credentials",
+#         headers={"WWW-Authenticate": "Bearer"},
+#     )
+#     try:
+#         payload = jwt.decode(token, KEY, algorithms=[ALG])
+#         username: str = payload.get("sub")
+#         if username is None:
+#             raise credentials_exception
+#         token_data = TokenData(username=username)
+#     except JWTError:
+#         raise credentials_exception
+#     user = get_user(fake_users_db, username=token_data.username)
+#     if user is None:
+#         raise credentials_exception
+#     return user
+
 
 
 

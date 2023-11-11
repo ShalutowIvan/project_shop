@@ -5,7 +5,7 @@ from sqlalchemy import insert, select
 
 from src.db import get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.settings import templates
+from src.settings import templates, EXPIRE_TIME
 
 from .models import *
 from typing import Annotated
@@ -22,7 +22,7 @@ import uuid
 # from jose import JWTError, jwt
 
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 
@@ -96,26 +96,28 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
     
     
     us_token: Token = await session.scalar(select(Token).where(Token.user_id == user.id))
-    
+    access_token_expires = timedelta(minutes=int(EXPIRE_TIME))
+    access_token_jwt = create_access_token(data={"sub": user.email, "iss": "showcase"},
+                                           expires_delta=access_token_expires)
+
     if not us_token:
-        uid = str(uuid.uuid4())
-        token: Token = Token(user_id=user.id, acces_token=uid)
+        # uid = str(uuid.uuid4())
+        token: Token = Token(user_id=user.id, acces_token=access_token_jwt)
         session.add(token)        
         await session.commit()
-    
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-# лучанос по доке все делает
-    access_token_jwt = create_access_token(data={"sub": user.emeil})
-    # ост тут!!!
-    # https://www.youtube.com/watch?v=Ws-J7HbQ4nY&list=PLlKID9PnOE5jiWTTsshCXdz5qvg8JWezX&index=5&ab_channel=luchanos
-    # 38 мин
+        await session.refresh(token)
+
+
+
+
+
     
     response = templates.TemplateResponse("regusers/test2.html", {"request": request})
     # response = JSONResponse(content={"message": "куки установлены"})
     response.set_cookie(key="Authorization", value=us_token.acces_token)
    
-    # return response
-    return {"access_token": access_token_jwt, "token_type": "bearer"}
+    return response
+    # return {"access_token": access_token_jwt, "token_type": "bearer"}#возвращаем токен, и тип токена. Так нужно, чтобы можно было обращаться к токену
 
 
  # response = JSONResponse(content={"message": "куки установлены"})
