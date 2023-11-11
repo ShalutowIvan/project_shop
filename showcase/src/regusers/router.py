@@ -15,9 +15,12 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, OA
 
 from .schemas import *
 
-from .secure import pwd_context, encode_jwt, apikey_scheme
+from .secure import pwd_context, create_access_token, apikey_scheme
 
 import uuid
+
+# from jose import JWTError, jwt
+
 
 from datetime import datetime
 
@@ -69,17 +72,17 @@ async def registration_post(request: Request, session: AsyncSession = Depends(ge
 
 
 
+# https://www.youtube.com/watch?v=RHWqTpNvJQw&list=PL2nrINOQYLiX6U8ArGi6Kvs_iItdWCYUi&index=1&ab_channel=%D0%93%D0%BB%D0%B5%D0%B1%D0%A2%D1%83%D0%BC%D0%B0%D0%BD%D0%BE%D0%B2
 
 
 
 
-
-@router_reg.get("/auth", response_model=None)
+@router_reg.get("/auth", response_model=None, response_class=HTMLResponse)
 async def auth_get(request: Request):
     return templates.TemplateResponse("regusers/test2.html", {"request": request})
 
 #пока сделал проверку пользователя по вводу логина и пароля и если все верно то создается токен в БД, в токене есть юзер ид пользователя
-@router_reg.post("/auth", response_model=None)
+@router_reg.post("/auth", response_model=None, response_class=HTMLResponse)
 async def auth_user(response: Response, request: Request, session: AsyncSession = Depends(get_async_session), email: str = Form(), password: str = Form()):
     user: User = await session.scalar(select(User).where(User.email == email))#ищем пользователя по емейл
     if not user:
@@ -99,11 +102,21 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
         token: Token = Token(user_id=user.id, acces_token=uid)
         session.add(token)        
         await session.commit()
-    response = JSONResponse(content={"message": "куки установлены"})
+    
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+# лучанос по доке все делает
+    access_token_jwt = create_access_token(data={"sub": user.emeil})
+    # ост тут!!!
+    # https://www.youtube.com/watch?v=Ws-J7HbQ4nY&list=PLlKID9PnOE5jiWTTsshCXdz5qvg8JWezX&index=5&ab_channel=luchanos
+    # 38 мин
+    
+    response = templates.TemplateResponse("regusers/test2.html", {"request": request})
+    # response = JSONResponse(content={"message": "куки установлены"})
     response.set_cookie(key="Authorization", value=us_token.acces_token)
    
-    return response
-    
+    # return response
+    return {"access_token": access_token_jwt, "token_type": "bearer"}
+
 
  # response = JSONResponse(content={"message": "куки установлены"})
         # response.set_cookie(key="Authorization", value=us_token.acces_token)

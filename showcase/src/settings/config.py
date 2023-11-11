@@ -26,4 +26,4 @@ KEY2 = os.environ.get("KEY2")#для сброса пароля и для вер�
 
 ALG = os.environ.get("ALGORITHM")
 
-EXPIRE_SECONDS = os.environ.get("ACCESS_TOKEN_EXPIRE_SECONDS")
+EXPIRE_TIME = os.environ.get("ACCESS_TOKEN_EXPIRE_TIME")

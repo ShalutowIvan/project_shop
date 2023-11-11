@@ -14,6 +14,8 @@ from .schemas import UserCreate
 from fastapi.security import APIKeyHeader, APIKeyCookie
 from passlib.context import CryptContext
 from jose import JWTError, jwt
+from src.settings import KEY, KEY2, ALG, EXPIRE_TIME
+from datetime import datetime, timedelta
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -23,10 +25,17 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 apikey_scheme = APIKeyCookie(name="Authorization")
 
 
-def encode_jwt():
-	pass
 
-
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    to_encode = data.copy()
+    if expires_delta:#если задано время истекания токена, то к текущему времени мы добавляем время истекания
+        expire = datetime.utcnow() + expires_delta
+    #expires_delta это если делать какую-то
+    else:#иначе задаем время истекания 15 мин
+        expire = datetime.utcnow() + timedelta(minutes=EXPIRE_TIME)
+    to_encode.update({"exp": expire})#тут мы добавили элемент в словарь который скопировали выше элемент с ключом "exp" и значением времени, которое сделали строкой выше. 
+    encoded_jwt = jwt.encode(to_encode, KEY, algorithm=ALG)#тут мы кодируем наш токен.
+    return encoded_jwt
 
 
 
