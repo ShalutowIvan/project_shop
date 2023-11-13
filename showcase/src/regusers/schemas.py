@@ -6,13 +6,14 @@ from datetime import datetime
 
 
 
-class UserRead(BaseModel):
+class UserAuth(BaseModel):
     # id: UUID4
-    id: int
-    name: str
+    # id: int
+    # name: str
     # time_create_user: datetime
     email: EmailStr
-    is_active: bool = True
+    password: str
+    # is_active: bool = True
     
 
 class UserCreate(BaseModel):

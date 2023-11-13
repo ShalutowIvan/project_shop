@@ -2,10 +2,11 @@ from fastapi import Form, APIRouter, Depends, HTTPException, Request, Response, 
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, PlainTextResponse
 from starlette.status import HTTP_404_NOT_FOUND, HTTP_401_UNAUTHORIZED
 from sqlalchemy import insert, select
+from pydantic import BaseModel, Field, EmailStr, validator, UUID4
 
 from src.db import get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.settings import templates, EXPIRE_TIME
+from src.settings import templates, EXPIRE_TIME, KEY, KEY2, ALG
 
 from .models import *
 from typing import Annotated
@@ -19,8 +20,7 @@ from .secure import pwd_context, create_access_token, apikey_scheme
 
 import uuid
 
-# from jose import JWTError, jwt
-
+from jose import JWTError, jwt
 
 from datetime import datetime, timedelta
 
@@ -83,7 +83,8 @@ async def auth_get(request: Request):
 
 #пока сделал проверку пользователя по вводу логина и пароля и если все верно то создается токен в БД, в токене есть юзер ид пользователя
 @router_reg.post("/auth", response_model=None, response_class=HTMLResponse)
-async def auth_user(response: Response, request: Request, session: AsyncSession = Depends(get_async_session), email: str = Form(), password: str = Form()):
+async def auth_user(response: Response, request: Request, session: AsyncSession = Depends(get_async_session), email: EmailStr = Form(), password: str = Form()):
+
     user: User = await session.scalar(select(User).where(User.email == email))#ищем пользователя по емейл
     if not user:
         raise HTTPException(
@@ -106,10 +107,11 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
         session.add(token)        
         await session.commit()
         await session.refresh(token)
+        us_token: Token = await session.scalar(select(Token).where(Token.user_id == user.id))
 
 
 
-
+    #в видосе он токен возвращает
 
     
     response = templates.TemplateResponse("regusers/test2.html", {"request": request})
@@ -129,7 +131,7 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
 
 
 
-@router_reg.get("/logout123")
+@router_reg.get("/logout")
 async def logout_user(request: Request, response: Response):
     
     # response = JSONResponse(content={"message": "вы вышли"})
@@ -138,95 +140,98 @@ async def logout_user(request: Request, response: Response):
     response = templates.TemplateResponse("regusers/test2.html", {"request": request})
     # response = auth_get(request)
     # response = templates.TemplateResponse("login.html", {"request": request, "title": "Login", "current_user": AnonymousUser()})
-    response.set_cookie(key="Authorization",
-        value="",
-        )
-    # response.delete_cookie("Authorization")
+    # response.set_cookie(key="Authorization",
+    #     value="",
+    #     )
+    response.delete_cookie("Authorization")
     # print(response)
     # return {"message": "Hello METANIT.COM"}
     return response
-    # return RedirectResponse("/auth", status_code=303)
+    # return RedirectResponse("", status_code=303)
     # return {"Authorization": "1", "token_type": "bearer"}
  
 
 
-# @router_reg.get("/logout")
-# async def logout(request: Request):
-#     pass
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", scheme_name=apikey_scheme)
+
+
+#функция проверки токена. Проверить эту функцию до конца, првоерить сессию...
+# async def get_current_user_from_token(token: Annotated[str, Depends(oauth2_scheme)], session: AsyncSession = Depends(get_async_session)):
+
+async def get_current_user_from_token(acces_token, db):
+    
+    
+    credentials_exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",         
+        )#записали исключение в переменную. 
+
+    try:
+        payload = jwt.decode(acces_token, KEY, algorithms=[ALG])#в acces_token передается просто строка
+        email: str = payload.get("sub")#у меня тут почта, а не юзернейм      
+        if email is None:
+            raise credentials_exception
+        # token_data = TokenData(username=username)
+        print("Имя : ", email)
+        print("пейлоад : ", payload)
+    # except JWTError:
+    except Exception as ex:        
+        raise credentials_exception
+    user: User = await db.scalar(select(User).where(User.email == email))#тут поиск пользователя по его почте - логину
+    if user is None:
+        print("нет пользака")
+        raise credentials_exception
+    return {"user": user}
+
+
+#сделал, работает и время само по себе валидируется, если срок истекает, то пишет ошибку. !!!!!!!!!!!!!
+#нужно еще сделать обновление токена в базе. А то он там не удаляется и постоянно висит если уже один раз вошли. И получается jwt не обновляется. Нужно чтобы обновлялся токен в базе. 
+
+
+# @router_reg.get("/test")
+# async def test_token(current_user: User = Depends(get_current_user_from_token), ):
+#     return {"current user": current_user}
 
 
 
-# def root(secret_code: str | None = Header(default=None)):
-#     return {"Secret-Code": secret_code}
 
 
-# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-# async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
-#     user = fake_decode_token(token)
-#     if not user:
+
+
+# ###########################################################
+# #функция поиска записи юзера в таблице токенов по токену. Находится запись по токену, в ней есть инфа о пользователе которому принадлежит токен и возвращаем юзера владеющего токеном или иначе исключение. Обратиться в пользователю мы можем из-за того что есть relationship в модели, то есть ссылка на юзера, очень удобно. Скорее всего это надо сделать роутером или как то юзать в html-ках для првоерки авторизации. Также нужно сделать jwt токен вместо обычного uuid, и сделать ему время жизни
+# async def get_user_by_token(acces_token: str, session: AsyncSession = Depends(get_async_session)):
+#     token = await session.scalar(select(Token).where(Token.acces_token == acces_token))
+#     if token:
+#         return { "id": token.user.id, "email": token.user.email }
+#         # return True
+#     else:
 #         raise HTTPException(
-#             status_code=status.HTTP_401_UNAUTHORIZED,
-#             detail="Invalid authentication credentials",
-#             headers={"WWW-Authenticate": "Bearer"},
+#             status_code=HTTP_401_UNAUTHORIZED,
+#             detail="UNAUTHORIZED"
 #         )
-#     return user
-
-# async def get_current_active_user(
-#     current_user: Annotated[User, Depends(get_current_user)]
-# ):
-#     if current_user.disabled:
-#         raise HTTPException(status_code=400, detail="Inactive user")
-#     return current_user
-
-
-# @router.get("/logout")
-# async def logout(request: Request, response: Response, current_user: User = Depends(get_current_active_user)):
-#     # Also tried following two comment lines
-#     # response.set_cookie(key="access_token", value="", max_age=1)
-#     # response.delete_cookie("access_token", domain="localhost")
-#     response = templates.TemplateResponse("login.html", {"request": request, "title": "Login", "current_user": AnonymousUser()})
-#     response.delete_cookie("access_token")
-#     return response
-
-
-# @router_reg.get("/auth/cookie/")
-# async def set_cookie(response: Response, user):
-#     key = await session.scalar(select(Token).where(User.id == user.id))
-#     response.set_cookie(key="Authorization", value=now)
-
-#     # session.coc = "847597ad-ddad-4172-b15a-b62e4fbc3135"
-#     return {"message": "куки установлены"}
+# ############################################################
 
 
 
 
 
-###########################################################
-#функция поиска записи юзера в таблице токенов по токену. Находится запись по токену, в ней есть инфа о пользователе которому принадлежит токен и возвращаем юзера владеющего токеном или иначе исключение. Обратиться в пользователю мы можем из-за того что есть relationship в модели, то есть ссылка на юзера, очень удобно. Скорее всего это надо сделать роутером или как то юзать в html-ках для првоерки авторизации. Также нужно сделать jwt токен вместо обычного uuid, и сделать ему время жизни
-async def get_user_by_token(acces_token: str, session: AsyncSession = Depends(get_async_session)):
-    token = await session.scalar(select(Token).where(Token.acces_token == acces_token))
-    if token:
-        return { "id": token.user.id, "email": token.user.email }
-        # return True
-    else:
-        raise HTTPException(
-            status_code=HTTP_401_UNAUTHORIZED,
-            detail="UNAUTHORIZED"
-        )
-############################################################
-
-
-#функция проверки токена из кук. Пока роуты без схем, нужно сделать со схемами пайдентика
+# #функция проверки токена из кук. Пока роуты без схем, нужно сделать со схемами пайдентика
 @router_reg.get("/self", response_model=None)
-async def get_user_by_id(acces_token: Annotated[str, Depends(apikey_scheme)], session: AsyncSession = Depends(get_async_session)):
-    return await get_user_by_token(acces_token=acces_token, session=session)
+async def test_token(Authorization: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
+    # return {"Authorization": Authorization}
+    return await get_current_user_from_token(acces_token=Authorization, db=session)
 
 
 
 
+# @router_reg.get("/self", response_model=None)
+# async def test_token(Authorization = Cookie()):
+#     return  Authorization
 
-
+# str | None = Cookie(default=None)
 
 
 
