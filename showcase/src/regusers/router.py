@@ -97,22 +97,23 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
     
     
     us_token: Token = await session.scalar(select(Token).where(Token.user_id == user.id))
-    access_token_expires = timedelta(minutes=int(EXPIRE_TIME))
-    access_token_jwt = create_access_token(data={"sub": user.email, "iss": "showcase"},
-                                           expires_delta=access_token_expires)
+    
 
     if not us_token:
-        # uid = str(uuid.uuid4())
+        access_token_expires = timedelta(minutes=int(EXPIRE_TIME))
+        access_token_jwt = create_access_token(data={"sub": user.email, "iss": "showcase"},
+                                           expires_delta=access_token_expires)
+        
         token: Token = Token(user_id=user.id, acces_token=access_token_jwt)
         session.add(token)        
         await session.commit()
         await session.refresh(token)
         us_token: Token = await session.scalar(select(Token).where(Token.user_id == user.id))
-
+    # elif 
 
 
     #в видосе он токен возвращает
-
+    #тут где то наверно сделать рефреш токена
     
     response = templates.TemplateResponse("regusers/test2.html", {"request": request})
     # response = JSONResponse(content={"message": "куки установлены"})
@@ -122,28 +123,27 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
     # return {"access_token": access_token_jwt, "token_type": "bearer"}#возвращаем токен, и тип токена. Так нужно, чтобы можно было обращаться к токену
 
 
- # response = JSONResponse(content={"message": "куки установлены"})
-        # response.set_cookie(key="Authorization", value=us_token.acces_token)
-        # # return RedirectResponse("/", status_code=303)
-        # return response
-    
-    # response = JSONResponse(content={"message": "куки установлены"})
-
-
 
 @router_reg.get("/logout")
-async def logout_user(request: Request, response: Response):
+async def logout_user(request: Request, response: Response, Authorization: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
     
-    # response = JSONResponse(content={"message": "вы вышли"})
-    # print(response.__dict__)
+    
+    
     
     response = templates.TemplateResponse("regusers/test2.html", {"request": request})
-    # response = auth_get(request)
+    
+    if Authorization != None:
+        us_token: Token = await session.scalar(select(Token).where(Token.acces_token == Authorization))
+        await session.delete(us_token)
+        await session.commit()
+
     # response = templates.TemplateResponse("login.html", {"request": request, "title": "Login", "current_user": AnonymousUser()})
     # response.set_cookie(key="Authorization",
     #     value="",
     #     )
     response.delete_cookie("Authorization")
+
+
     # print(response)
     # return {"message": "Hello METANIT.COM"}
     return response
@@ -153,7 +153,7 @@ async def logout_user(request: Request, response: Response):
 
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", scheme_name=apikey_scheme)
+# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", scheme_name=apikey_scheme)
 
 
 #функция проверки токена. Проверить эту функцию до конца, првоерить сессию...
@@ -185,18 +185,12 @@ async def get_current_user_from_token(acces_token, db):
     return {"user": user}
 
 
+# https://habr.com/ru/companies/doubletapp/articles/764424/
+
+
+
 #сделал, работает и время само по себе валидируется, если срок истекает, то пишет ошибку. !!!!!!!!!!!!!
 #нужно еще сделать обновление токена в базе. А то он там не удаляется и постоянно висит если уже один раз вошли. И получается jwt не обновляется. Нужно чтобы обновлялся токен в базе. 
-
-
-# @router_reg.get("/test")
-# async def test_token(current_user: User = Depends(get_current_user_from_token), ):
-#     return {"current user": current_user}
-
-
-
-
-
 
 
 
@@ -222,6 +216,7 @@ async def get_current_user_from_token(acces_token, db):
 @router_reg.get("/self", response_model=None)
 async def test_token(Authorization: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
     # return {"Authorization": Authorization}
+
     return await get_current_user_from_token(acces_token=Authorization, db=session)
 
 
