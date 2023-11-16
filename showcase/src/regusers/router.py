@@ -24,6 +24,7 @@ from jose import JWTError, jwt
 
 from datetime import datetime, timedelta
 
+from jose.exceptions import ExpiredSignatureError
 
 
 #мой роутер
@@ -169,26 +170,34 @@ async def get_current_user_from_token(acces_token, db):
 
     try:
         payload = jwt.decode(acces_token, KEY, algorithms=[ALG])#в acces_token передается просто строка
+        
         email: str = payload.get("sub")#у меня тут почта, а не юзернейм      
         if email is None:
+            print("нет такой почты")
             raise credentials_exception
         # token_data = TokenData(username=username)
-        print("Имя : ", email)
-        print("пейлоад : ", payload)
+        # print("Имя : ", email)
+        # print("пейлоад : ", payload)
+        # print(payload.get("exp"))
     # except JWTError:
-    except Exception as ex:        
+    except Exception as ex:
+        
+        # print(type(ex))
+        if type(ex) == ExpiredSignatureError:#если время действия токена истекло, то вывод принта. Можно тут написать логику что будет если токен истекает
+            print("ОШИБКА")
         raise credentials_exception
     user: User = await db.scalar(select(User).where(User.email == email))#тут поиск пользователя по его почте - логину
     if user is None:
         print("нет пользака")
         raise credentials_exception
+
     return {"user": user}
 
 
 # https://habr.com/ru/companies/doubletapp/articles/764424/
 
-
-
+# 1700173385
+# 1700173754
 #сделал, работает и время само по себе валидируется, если срок истекает, то пишет ошибку. !!!!!!!!!!!!!
 #нужно еще сделать обновление токена в базе. А то он там не удаляется и постоянно висит если уже один раз вошли. И получается jwt не обновляется. Нужно чтобы обновлялся токен в базе. 
 

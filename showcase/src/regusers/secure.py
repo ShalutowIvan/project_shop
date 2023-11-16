@@ -43,7 +43,8 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
-
+def update_access_token():
+	pass
 
 
 
