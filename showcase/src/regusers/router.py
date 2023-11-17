@@ -26,6 +26,8 @@ from datetime import datetime, timedelta
 
 from jose.exceptions import ExpiredSignatureError
 
+from pydantic import EmailStr
+
 
 #мой роутер
 router_reg = APIRouter(
@@ -102,9 +104,9 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
 
     if not us_token:
         access_token_expires = timedelta(minutes=int(EXPIRE_TIME))
-        access_token_jwt = create_access_token(data={"sub": user.email, "iss": "showcase"},
-                                           expires_delta=access_token_expires)
-        
+        access_token_jwt = create_access_token(data={"sub": user.email, "iss": "showcase"}, expires_delta=access_token_expires)
+
+
         token: Token = Token(user_id=user.id, acces_token=access_token_jwt)
         session.add(token)        
         await session.commit()
@@ -127,10 +129,6 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
 
 @router_reg.get("/logout")
 async def logout_user(request: Request, response: Response, Authorization: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
-    
-    
-    
-    
     response = templates.TemplateResponse("regusers/test2.html", {"request": request})
     
     if Authorization != None:
@@ -163,41 +161,38 @@ async def logout_user(request: Request, response: Response, Authorization: str |
 async def get_current_user_from_token(acces_token, db):
     
     
-    credentials_exception = HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",         
-        )#записали исключение в переменную. 
+    # credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,  detail="Invalid authentication credentials",)#записали исключение в переменную.
 
     try:
         payload = jwt.decode(acces_token, KEY, algorithms=[ALG])#в acces_token передается просто строка
         
-        email: str = payload.get("sub")#у меня тут почта, а не юзернейм      
+        email: EmailStr = payload.get("sub")#у меня тут почта, а не юзернейм
         if email is None:
-            print("нет такой почты")
-            raise credentials_exception
-        # token_data = TokenData(username=username)
-        # print("Имя : ", email)
-        # print("пейлоад : ", payload)
-        # print(payload.get("exp"))
+            # print("нет такой почты")
+            return False
+            # raise credentials_exception
     # except JWTError:
     except Exception as ex:
-        
-        # print(type(ex))
+        # us_token: Token = await db.scalar(select(Token).where(Token.acces_token == acces_token))
+        print(ex)
         if type(ex) == ExpiredSignatureError:#если время действия токена истекло, то вывод принта. Можно тут написать логику что будет если токен истекает
-            print("ОШИБКА")
-        raise credentials_exception
-    user: User = await db.scalar(select(User).where(User.email == email))#тут поиск пользователя по его почте - логину
+            us_token: Token = await db.scalar(select(Token).where(Token.acces_token == acces_token))
+            if us_token:
+                await db.delete(us_token)
+                await db.commit()
+        return False
+        # raise credentials_exception
+    user: User = await db.scalar(select(User).where(User.email == email))#тут поиск пользователя по его почте - логину. Проверка что в токене не левая почта.
     if user is None:
-        print("нет пользака")
-        raise credentials_exception
+        # print("нет пользака")
+        return False
+        # raise credentials_exception
 
-    return {"user": user}
+    return True
 
 
 # https://habr.com/ru/companies/doubletapp/articles/764424/
 
-# 1700173385
-# 1700173754
 #сделал, работает и время само по себе валидируется, если срок истекает, то пишет ошибку. !!!!!!!!!!!!!
 #нужно еще сделать обновление токена в базе. А то он там не удаляется и постоянно висит если уже один раз вошли. И получается jwt не обновляется. Нужно чтобы обновлялся токен в базе. 
 
@@ -222,13 +217,11 @@ async def get_current_user_from_token(acces_token, db):
 
 
 # #функция проверки токена из кук. Пока роуты без схем, нужно сделать со схемами пайдентика
-@router_reg.get("/self", response_model=None)
-async def test_token(Authorization: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
-    # return {"Authorization": Authorization}
-
+@router_reg.get("/self", response_model=None, response_class=HTMLResponse)
+async def test_token(request: Request, Authorization: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
     return await get_current_user_from_token(acces_token=Authorization, db=session)
 
-
+#сделать функцию для проверки токена в шаблоне html
 
 
 # @router_reg.get("/self", response_model=None)
