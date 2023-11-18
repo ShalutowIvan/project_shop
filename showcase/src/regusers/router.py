@@ -160,6 +160,7 @@ async def logout_user(request: Request, response: Response, Authorization: str |
 
 async def get_current_user_from_token(acces_token, db):
     
+
     
     # credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,  detail="Invalid authentication credentials",)#записали исключение в переменную.
 
@@ -217,11 +218,14 @@ async def get_current_user_from_token(acces_token, db):
 
 
 # #функция проверки токена из кук. Пока роуты без схем, нужно сделать со схемами пайдентика
-@router_reg.get("/self", response_model=None, response_class=HTMLResponse)
-async def test_token(request: Request, Authorization: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
-    return await get_current_user_from_token(acces_token=Authorization, db=session)
+@router_reg.get("/self", response_model=None)
+async def test_token(Authorization: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
+    check = await get_current_user_from_token(acces_token=Authorization, db=session)
+    return check
+    
 
-#сделать функцию для проверки токена в шаблоне html
+
+#Нужно юзать в шаблоне функцию не test_token, а get_current_user_from_token, и прокидывать результат этой функции в контекст.
 
 
 # @router_reg.get("/self", response_model=None)
@@ -231,7 +235,7 @@ async def test_token(request: Request, Authorization: str | None = Cookie(defaul
 # str | None = Cookie(default=None)
 
 
-
+# пользак у меня уже регается, и записывается в базу. Потом когда авторизуется, ему я кидаю токен в куки и записываю в базу этот же токен. Есть кнопка "выйти", она уда
 
 
 

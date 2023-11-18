@@ -27,13 +27,17 @@
 <div class="cap">
 
 	Тут должно быть имя пользователя
-	<br>
-{{ test_token }}
+
 	<br>
 
+
+	<br>
+
+{% if check %}
 
 	<a href="{{ url_for('logout_user') }}" >Выйти</a>
 
+{% endif %}
 
 	<br><br>
 	<a href="{{ url_for('basket_view') }}">Корзина</a>

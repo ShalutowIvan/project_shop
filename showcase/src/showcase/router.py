@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, Cookie
 
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, PlainTextResponse
 
@@ -11,6 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .models import *
 from src.settings import templates
+from src.regusers.router import get_current_user_from_token
+
 
 router_showcase = APIRouter(
     prefix="",
@@ -82,18 +84,18 @@ router_showcase = APIRouter(
 
 
 @router_showcase.get("/", response_class=HTMLResponse)
-async def home(request: Request, session: AsyncSession = Depends(get_async_session)):    
+async def home(request: Request, Authorization: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):    
     
     org = await session.execute(select(Organization))
     gr = await session.execute(select(Group))
     gd = await session.execute(select(Goods))
-
+    check = await get_current_user_from_token(acces_token=Authorization, db=session)
     context = {
     "request": request,    
     "org": org.all()[0] if org.all() != [] else [],
     "group": gr.all(),
     "gd": gd.all(),
-
+    "check": check
     }
 
     return templates.TemplateResponse("showcase/start.html", context)
