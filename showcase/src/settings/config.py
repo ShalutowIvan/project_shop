@@ -21,9 +21,10 @@ HOST_USER = os.environ.get("HOST_USER")
 HOST_PASSWORD = os.environ.get("HOST_PASSWORD")
 DEFAULT_EMAIL = os.environ.get("DEFAULT_EMAIL")
 
-KEY = os.environ.get("KEY")#для jwt токена при авторизации
-KEY2 = os.environ.get("KEY2")#для сброса пароля и для верификации
+KEY = os.environ.get("KEY")#для jwt access токена при авторизации
+KEY2 = os.environ.get("KEY2")#для рефреш токена
 
 ALG = os.environ.get("ALGORITHM")
 
 EXPIRE_TIME = os.environ.get("ACCESS_TOKEN_EXPIRE_TIME")
+EXPIRE_TIME_REFRESH = os.environ.get("REFRESH_TOKEN_EXPIRE_TIME")

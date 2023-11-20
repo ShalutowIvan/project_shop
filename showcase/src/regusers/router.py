@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field, EmailStr, validator, UUID4
 
 from src.db import get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.settings import templates, EXPIRE_TIME, KEY, KEY2, ALG
+from src.settings import templates, EXPIRE_TIME, KEY, KEY2, ALG, EXPIRE_TIME_REFRESH
 
 from .models import *
 from typing import Annotated
@@ -99,28 +99,40 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     
     
-    us_token: Token = await session.scalar(select(Token).where(Token.user_id == user.id))
+    refresh_token: Token = await session.scalar(select(Token).where(Token.user_id == user.id))
     
 
-    if not us_token:
+    if not refresh_token:
+        #рефреш токен
+        refresh_token_expires = timedelta(minutes=int(EXPIRE_TIME_REFRESH))
+        # user_str = str(user.id)
+        refresh_token_jwt = create_refresh_token(data={"sub": user.email, "iss": "showcase"}, expires_delta=refresh_token_expires)
+
+        #аксес токен
         access_token_expires = timedelta(minutes=int(EXPIRE_TIME))
+        # user_str = str(user.id)
         access_token_jwt = create_access_token(data={"sub": user.email, "iss": "showcase"}, expires_delta=access_token_expires)
 
+        #тут нужно прокинуть хедер Sec-Ch-Ua: в нем инфа о браузере через который зашли
 
-        token: Token = Token(user_id=user.id, acces_token=access_token_jwt)
+        # access_token_expires = timedelta(minutes=int(EXPIRE_TIME))
+        # access_token_jwt = create_access_token(data={"sub": user.email, "iss": "showcase"}, expires_delta=access_token_expires)
+
+        token: Token = Token(user_id=user.id, refresh_token=refresh_token_jwt)
         session.add(token)        
         await session.commit()
         await session.refresh(token)
-        us_token: Token = await session.scalar(select(Token).where(Token.user_id == user.id))
+        refresh_token: Token = await session.scalar(select(Token).where(Token.user_id == user.id))
     # elif 
 
-
-    #в видосе он токен возвращает
+    
+    
     #тут где то наверно сделать рефреш токена
     
     response = templates.TemplateResponse("regusers/test2.html", {"request": request})
     # response = JSONResponse(content={"message": "куки установлены"})
-    response.set_cookie(key="Authorization", value=us_token.acces_token)
+    response.set_cookie(key="RT", value=refresh_token.refresh_token)
+    response.set_cookie(key="Authorization", value=access_token_jwt)
    
     return response
     # return {"access_token": access_token_jwt, "token_type": "bearer"}#возвращаем токен, и тип токена. Так нужно, чтобы можно было обращаться к токену
@@ -132,7 +144,7 @@ async def logout_user(request: Request, response: Response, Authorization: str |
     response = templates.TemplateResponse("regusers/test2.html", {"request": request})
     
     if Authorization != None:
-        us_token: Token = await session.scalar(select(Token).where(Token.acces_token == Authorization))
+        us_token: Token = await session.scalar(select(Token).where(Token.refresh_token == Authorization))
         await session.delete(us_token)
         await session.commit()
 
@@ -158,38 +170,47 @@ async def logout_user(request: Request, response: Response, Authorization: str |
 #функция проверки токена. Проверить эту функцию до конца, првоерить сессию...
 # async def get_current_user_from_token(token: Annotated[str, Depends(oauth2_scheme)], session: AsyncSession = Depends(get_async_session)):
 
-async def get_current_user_from_token(acces_token, db):
-    
-
-    
+async def get_current_user_from_token(acces_token, db):    
     # credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,  detail="Invalid authentication credentials",)#записали исключение в переменную.
+    # if acces_token is None:
+    #     acces_token = await db.scalar(select(Token).where(Token.user_id == int(user_id)))
+
+
 
     try:
         payload = jwt.decode(acces_token, KEY, algorithms=[ALG])#в acces_token передается просто строка
         
-        email: EmailStr = payload.get("sub")#у меня тут почта, а не юзернейм
-        if email is None:
-            # print("нет такой почты")
+        email = payload.get("sub")#у меня тут почта, а не юзернейм
+        if user_id is None:
+            print("нет такого ИД")
             return False
             # raise credentials_exception
     # except JWTError:
     except Exception as ex:
         # us_token: Token = await db.scalar(select(Token).where(Token.acces_token == acces_token))
+        print("ОШИБКА ТУТ")
         print(ex)
         if type(ex) == ExpiredSignatureError:#если время действия токена истекло, то вывод принта. Можно тут написать логику что будет если токен истекает
-            us_token: Token = await db.scalar(select(Token).where(Token.acces_token == acces_token))
+            us_token: Token = await db.scalar(select(Token).where(Token.refresh_token == acces_token))
             if us_token:
                 await db.delete(us_token)
-                await db.commit()
+                await db.commit()#удаляем из ДБ чтобы при создании нового не было дублей токенов
         return False
         # raise credentials_exception
-    user: User = await db.scalar(select(User).where(User.email == email))#тут поиск пользователя по его почте - логину. Проверка что в токене не левая почта.
-    if user is None:
-        # print("нет пользака")
+    token: Token = await db.scalar(select(Token).where(Token.email == email))#тут поиск пользователя по его почте - логину. Проверка что в токене не левая почта. тут нуэна другая проверка, на какой нибудь хедер
+    if token is None:
+        print("нет пользака")
         return False
         # raise credentials_exception
 
     return True
+
+
+
+
+
+
+
 
 
 # https://habr.com/ru/companies/doubletapp/articles/764424/
