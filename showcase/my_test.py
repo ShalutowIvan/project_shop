@@ -1,3 +1,5 @@
-from datetime import datetime
+from jose.exceptions import ExpiredSignatureError
 
-print(datetime.utcnow()+3)
+
+if ExpiredSignatureError:
+	print(1)

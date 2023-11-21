@@ -16,7 +16,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, OA
 
 from .schemas import *
 
-from .secure import pwd_context, create_access_token, apikey_scheme
+from .secure import pwd_context, create_access_token, apikey_scheme, create_refresh_token, update_tokens
 
 import uuid
 
@@ -106,7 +106,7 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
         #рефреш токен
         refresh_token_expires = timedelta(minutes=int(EXPIRE_TIME_REFRESH))
         # user_str = str(user.id)
-        refresh_token_jwt = create_refresh_token(data={"sub": user.email, "iss": "showcase"}, expires_delta=refresh_token_expires)
+        refresh_token_jwt = create_refresh_token(data={"sub": [user.id, user.email], "iss": "showcase"}, expires_delta=refresh_token_expires)
 
         #аксес токен
         access_token_expires = timedelta(minutes=int(EXPIRE_TIME))
@@ -119,7 +119,7 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
         # access_token_jwt = create_access_token(data={"sub": user.email, "iss": "showcase"}, expires_delta=access_token_expires)
 
         token: Token = Token(user_id=user.id, refresh_token=refresh_token_jwt)
-        session.add(token)        
+        session.add(token)       
         await session.commit()
         await session.refresh(token)
         refresh_token: Token = await session.scalar(select(Token).where(Token.user_id == user.id))
@@ -170,38 +170,42 @@ async def logout_user(request: Request, response: Response, Authorization: str |
 #функция проверки токена. Проверить эту функцию до конца, првоерить сессию...
 # async def get_current_user_from_token(token: Annotated[str, Depends(oauth2_scheme)], session: AsyncSession = Depends(get_async_session)):
 
-async def get_current_user_from_token(acces_token, db):    
-    # credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,  detail="Invalid authentication credentials",)#записали исключение в переменную.
-    # if acces_token is None:
-    #     acces_token = await db.scalar(select(Token).where(Token.user_id == int(user_id)))
-
-
-
+async def get_current_user_from_token(acces_token):#проверка аксес токена из куки  
+    
     try:
         payload = jwt.decode(acces_token, KEY, algorithms=[ALG])#в acces_token передается просто строка
         
         email = payload.get("sub")#у меня тут почта, а не юзернейм
-        if user_id is None:
-            print("нет такого ИД")
+        if email is None:
+            print("нет такого email")
             return False
             # raise credentials_exception
     # except JWTError:
     except Exception as ex:
         # us_token: Token = await db.scalar(select(Token).where(Token.acces_token == acces_token))
-        print("ОШИБКА ТУТ")
-        print(ex)
-        if type(ex) == ExpiredSignatureError:#если время действия токена истекло, то вывод принта. Можно тут написать логику что будет если токен истекает
-            us_token: Token = await db.scalar(select(Token).where(Token.refresh_token == acces_token))
-            if us_token:
-                await db.delete(us_token)
-                await db.commit()#удаляем из ДБ чтобы при создании нового не было дублей токенов
+        
+        if type(ex) == ExpiredSignatureError:#если время действия токена истекло, то вывод принта. Можно тут написать логику что будет если аксес токен истекает
+            # us_token: Token = await db.scalar(select(Token).where(Token.refresh_token == acces_token))
+            # if us_token:
+            #     await db.delete(us_token)
+            #     await db.commit()#удаляем из ДБ чтобы при создании нового не было дублей токенов
+            # return
+            # tokens = update_tokens(RT=RT, db=db)#тут возвращается кортеж из двух токенов
+            print("ОШИБКА ТУТ")
+            print(ex)
+            return ex
+
+        # тут нужно сделать обновление, юзнуть нашу функцию 
+
+
+
         return False
         # raise credentials_exception
-    token: Token = await db.scalar(select(Token).where(Token.email == email))#тут поиск пользователя по его почте - логину. Проверка что в токене не левая почта. тут нуэна другая проверка, на какой нибудь хедер
-    if token is None:
-        print("нет пользака")
-        return False
-        # raise credentials_exception
+    # token: Token = await db.scalar(select(Token).where(Token.email == email))#тут поиск пользователя по его почте - логину. Проверка что в токене не левая почта. тут нуэна другая проверка, на какой нибудь хедер
+    # if token is None:
+    #     print("нет пользака")
+    #     return False
+    #     # raise credentials_exception
 
     return True
 
@@ -240,9 +244,11 @@ async def get_current_user_from_token(acces_token, db):
 
 # #функция проверки токена из кук. Пока роуты без схем, нужно сделать со схемами пайдентика
 @router_reg.get("/self", response_model=None)
-async def test_token(Authorization: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
-    check = await get_current_user_from_token(acces_token=Authorization, db=session)
-    return check
+async def test_token(RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
+    
+    # Authorization: str | None = Cookie(default=None), 
+    # check = await get_current_user_from_token(acces_token=Authorization, db=session)
+    return RT
     
 
 

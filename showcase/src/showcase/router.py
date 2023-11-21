@@ -12,6 +12,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .models import *
 from src.settings import templates
 from src.regusers.router import get_current_user_from_token
+from src.regusers.secure import update_tokens
+from jose.exceptions import ExpiredSignatureError
+
+
+
 
 
 router_showcase = APIRouter(
@@ -84,12 +89,13 @@ router_showcase = APIRouter(
 
 
 @router_showcase.get("/", response_class=HTMLResponse)
-async def home(request: Request, Authorization: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):    
+async def home(request: Request, Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):    
     
     org = await session.execute(select(Organization))
     gr = await session.execute(select(Group))
     gd = await session.execute(select(Goods))
-    check = await get_current_user_from_token(acces_token=Authorization, db=session)
+    check = await get_current_user_from_token(acces_token=Authorization)
+
     context = {
     "request": request,    
     "org": org.all()[0] if org.all() != [] else [],
@@ -97,8 +103,14 @@ async def home(request: Request, Authorization: str | None = Cookie(default=None
     "gd": gd.all(),
     "check": check
     }
+    response = templates.TemplateResponse("showcase/start.html", context)
+    if type(check) == ExpiredSignatureError:
+        tokens = await update_tokens(RT=RT, db=session)
+        response.set_cookie(key="RT", value=tokens[0])
+        response.set_cookie(key="Authorization", value=tokens[1])
 
-    return templates.TemplateResponse("showcase/start.html", context)
+
+    return response
 
 
 @router_showcase.get("/basket", response_class=HTMLResponse)

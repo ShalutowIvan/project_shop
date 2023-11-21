@@ -17,7 +17,7 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(length=1024), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     
-    tokens = relationship("Token", back_populates="user")
+    tokens = relationship("Token", back_populates="user")#тут пишем имя класса из таблицы с которой связываем и имя поля из таблицы с которой связываем
 
 
 class Token(Base):
@@ -28,7 +28,7 @@ class Token(Base):
 
     user_id = mapped_column(Integer, ForeignKey("user.id"))#это id пользователь которому будет принадлежать токен
     
-    user = relationship("User", back_populates="token")
+    user = relationship("User", back_populates="tokens")
 
 
 
