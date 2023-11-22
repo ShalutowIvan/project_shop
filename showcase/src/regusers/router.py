@@ -106,7 +106,7 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
         #рефреш токен
         refresh_token_expires = timedelta(minutes=int(EXPIRE_TIME_REFRESH))
         # user_str = str(user.id)
-        refresh_token_jwt = create_refresh_token(data={"sub": [user.id, user.email], "iss": "showcase"}, expires_delta=refresh_token_expires)
+        refresh_token_jwt = create_refresh_token(data={"sub": str(user.id), "iss": user.email}, expires_delta=refresh_token_expires)
 
         #аксес токен
         access_token_expires = timedelta(minutes=int(EXPIRE_TIME))
@@ -123,11 +123,10 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
         await session.commit()
         await session.refresh(token)
         refresh_token: Token = await session.scalar(select(Token).where(Token.user_id == user.id))
-    # elif 
+    else:
+        access_token_expires = timedelta(minutes=int(EXPIRE_TIME))
+        access_token_jwt = create_access_token(data={"sub": user.email, "iss": "showcase"}, expires_delta=access_token_expires)
 
-    
-    
-    #тут где то наверно сделать рефреш токена
     
     response = templates.TemplateResponse("regusers/test2.html", {"request": request})
     # response = JSONResponse(content={"message": "куки установлены"})
@@ -140,26 +139,19 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
 
 
 @router_reg.get("/logout")
-async def logout_user(request: Request, response: Response, Authorization: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
+async def logout_user(request: Request, response: Response, Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
+    
     response = templates.TemplateResponse("regusers/test2.html", {"request": request})
     
-    if Authorization != None:
-        us_token: Token = await session.scalar(select(Token).where(Token.refresh_token == Authorization))
+    if RT != None:
+        us_token: Token = await session.scalar(select(Token).where(Token.refresh_token == RT))
         await session.delete(us_token)
         await session.commit()
+        response.delete_cookie("RT")
+        response.delete_cookie("Authorization")
 
-    # response = templates.TemplateResponse("login.html", {"request": request, "title": "Login", "current_user": AnonymousUser()})
-    # response.set_cookie(key="Authorization",
-    #     value="",
-    #     )
-    response.delete_cookie("Authorization")
-
-
-    # print(response)
-    # return {"message": "Hello METANIT.COM"}
     return response
-    # return RedirectResponse("", status_code=303)
-    # return {"Authorization": "1", "token_type": "bearer"}
+    
  
 
 
@@ -191,14 +183,11 @@ async def get_current_user_from_token(acces_token):#проверка аксес 
             #     await db.commit()#удаляем из ДБ чтобы при создании нового не было дублей токенов
             # return
             # tokens = update_tokens(RT=RT, db=db)#тут возвращается кортеж из двух токенов
-            print("ОШИБКА ТУТ")
+            print("ОШИБКА АКСЕС ТУТ")
             print(ex)
             return ex
 
-        # тут нужно сделать обновление, юзнуть нашу функцию 
-
-
-
+       
         return False
         # raise credentials_exception
     # token: Token = await db.scalar(select(Token).where(Token.email == email))#тут поиск пользователя по его почте - логину. Проверка что в токене не левая почта. тут нуэна другая проверка, на какой нибудь хедер

@@ -1,5 +1,5 @@
-from jose.exceptions import ExpiredSignatureError
+a = {"sub": [1, 2], "iss": "asd"}
+pl = a.get("sub")
+print(pl[0])
 
 
-if ExpiredSignatureError:
-	print(1)

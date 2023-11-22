@@ -104,10 +104,12 @@ async def home(request: Request, Authorization: str | None = Cookie(default=None
     "check": check
     }
     response = templates.TemplateResponse("showcase/start.html", context)
-    if type(check) == ExpiredSignatureError:
+    if type(check) == ExpiredSignatureError:        
         tokens = await update_tokens(RT=RT, db=session)
-        response.set_cookie(key="RT", value=tokens[0])
-        response.set_cookie(key="Authorization", value=tokens[1])
+        refresh = tokens[0]
+        access = tokens[1]
+        response.set_cookie(key="RT", value=refresh)
+        response.set_cookie(key="Authorization", value=access)
 
 
     return response
