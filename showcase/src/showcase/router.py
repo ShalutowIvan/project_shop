@@ -91,18 +91,20 @@ router_showcase = APIRouter(
 @router_showcase.get("/", response_class=HTMLResponse)
 async def home(request: Request, Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):    
     
-    org = await session.execute(select(Organization))
+    org = await session.execute(select(Organization))    
     gr = await session.execute(select(Group))
     gd = await session.execute(select(Goods))
-    check = await get_current_user_from_token(acces_token=Authorization)
 
+    check = await get_current_user_from_token(acces_token=Authorization)
+ 
     context = {
     "request": request,    
-    "org": org.all()[0] if org.all() != [] else [],
-    "group": gr.all(),
-    "gd": gd.all(),
+    "org": org.scalars().first(),
+    "group": gr.scalars(),
+    "gd": gd.scalars(),
     "check": check
     }
+
     response = templates.TemplateResponse("showcase/start.html", context)
     if type(check) == ExpiredSignatureError:        
         tokens = await update_tokens(RT=RT, db=session)
@@ -113,6 +115,46 @@ async def home(request: Request, Authorization: str | None = Cookie(default=None
 
 
     return response
+
+
+
+@router_showcase.get("/{slug}")
+async def show_group(request: Request, slug, session: AsyncSession = Depends(get_async_session)):
+    # параметр должен подтянуться из базы групп из поля слаг. В теле функции нужно по слагу фильтровать товары через запрос из бд и выводить их html в отдельный шаблон с контекстом. 
+    sl = await session.scalar(select(Group).where(Group.slug == slug))
+
+    # good_gr = await session.execute(select(Goods))
+    good_gr = await session.scalars(select(Goods).where(Goods.name_group == sl.id))
+    org = await session.execute(select(Organization))    
+
+
+    context = {
+    "request": request,
+    "good_gr": good_gr,
+    "org": org.scalars().first(),
+
+    }
+
+    response = templates.TemplateResponse("showcase/good.html", context)
+
+    return response
+
+#кнопка для добавления товара в корзину. Пока убрал
+# <a href="{% url 'add_in_basket' g.id %}"><button>Добавить в корзину</button></a>
+
+#это форма для поиска товаров
+# <form action="{% url 'start' %}" method="get">
+
+#     <input type="search" type="text" name='q' placeholder="Введите название товара">
+
+#     <button type="submit">Найти</button>
+# </form>
+
+# {% if g.photo %}
+# <p><img class="product-img" src="{{g.photo.url}}"></p>
+# {% endif %}
+
+
 
 
 @router_showcase.get("/basket", response_class=HTMLResponse)

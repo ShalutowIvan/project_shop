@@ -49,17 +49,11 @@ color: darkorange;
 
 
 aside{
-	/*text-align: center;*/
-
 	float: left;
-	/*background-color: burlywood;*/
 	width: 20%;
 	padding: 2.5%;
-	/*min-height: 100vh;*/
-	/*height: 100vh;*/
 	color: black;
-	/*border-right: 5px solid slategrey;*/
-}
+	}
 
 
 
@@ -71,12 +65,13 @@ aside{
 	left: 10px;
 }*/
 
-aside h3 {
+/*aside h3 {
 	margin-top: 50px;
 	font-size: 28px;
 }
+*/
 
-
+/*
 aside ul {list-style: initial;}
 
 aside ul li {
@@ -91,7 +86,7 @@ aside ul li:hover, aside ul a:hover{
 	text-decoration: none;
 	transform: scale(1.05);
 }
-
+*/
 main{
 	text-align: center;	
 	/*background-color: seagreen;*/
@@ -209,14 +204,14 @@ color: black;
 
 .list-pages ul {
 	margin: 20px 0 0 0;
-	padding: 0;
-	/*list-style: none;*/
+	padding: 0;	
 }
 
 .list-pages ul li {
 	display: inline-block;
 	margin: 0 20px 0 0;
 }
+
 
 .list-pages a {
 	color: greenyellow;

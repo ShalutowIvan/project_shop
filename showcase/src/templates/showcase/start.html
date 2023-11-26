@@ -18,11 +18,7 @@
 <header>
 	<img src="{{ url_for('static', path='images/i.jpg') }}" alt="Лого">
 	<h1>{{ org.name_org }}</h1>
-	<a href="{{ url_for('url_reg') }}"><h1>РЕГА</h1></a>
-	<br>	
-	<a href="{{ url_for('url_auth') }}"><h1>АУТХ</h1></a>
-	<br>
-	<a href="{{ url_for('test_token') }}"><h1>Проверка токена</h1></a>
+	
 	
 <div class="cap">
 
@@ -60,21 +56,17 @@
 	<aside>
 
 		<!--<span class="logo">Товары</span>-->
-		<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-		<a href="{{ url_for('home') }}"><h3>Группы товаров</h3></a>
+		<br><br><br><br><br><br><br><br><br><br>
+		<a href="{{ url_for('home') }}"><h1>Группы товаров</h1></a>
 		<br>
-		{% for gr in group %}
+		{% for i in group %}
 
 		<li>
-			<a href="{{ gr.slug }}">{{ gr.name_group }}</a>
+			<a href="{{ i.slug }}">{{ i.name_group }}</a>
+
 		</li>
 		<br>
 		{% endfor %}
-
-
-
-
-
 
 	</aside>
 

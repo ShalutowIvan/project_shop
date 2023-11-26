@@ -20,6 +20,7 @@ class Goods(Base):
     __tablename__ = "goods"
     id = Column(Integer, primary_key=True)
     name_product = Column(String, nullable=False)
+    price = Column(Integer, default=0)
     vendor_code = Column(String, nullable=False)
     stock = Column(Float, nullable=True)
     slug = Column(String, nullable=False)

@@ -84,6 +84,7 @@ async def registration_post(request: Request, session: AsyncSession = Depends(ge
 async def auth_get(request: Request):
     return templates.TemplateResponse("regusers/test2.html", {"request": request})
 
+
 #пока сделал проверку пользователя по вводу логина и пароля и если все верно то создается токен в БД, в токене есть юзер ид пользователя
 @router_reg.post("/auth", response_model=None, response_class=HTMLResponse)
 async def auth_user(response: Response, request: Request, session: AsyncSession = Depends(get_async_session), email: EmailStr = Form(), password: str = Form()):
@@ -101,22 +102,28 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
     
     refresh_token: Token = await session.scalar(select(Token).where(Token.user_id == user.id))
     
+    #тут проверка истек ли рефреш токен
+    try:
+        payload = jwt.decode(refresh_token.refresh_token, KEY2, algorithms=[ALG])        
+
+    except Exception as ex:#если истек рефреш то его просто удаляем, и нужно заново логиниться
+        print("РЕФРЕШ ТОКЕН ИСТЕК")
+        print(ex)
+        if type(ex) == ExpiredSignatureError:            
+            await session.delete(refresh_token)
+            await session.commit()
+            refresh_token = None
+
 
     if not refresh_token:
         #рефреш токен
-        refresh_token_expires = timedelta(minutes=int(EXPIRE_TIME_REFRESH))
-        # user_str = str(user.id)
+        refresh_token_expires = timedelta(minutes=int(EXPIRE_TIME_REFRESH))        
         refresh_token_jwt = create_refresh_token(data={"sub": str(user.id), "iss": user.email}, expires_delta=refresh_token_expires)
 
         #аксес токен
-        access_token_expires = timedelta(minutes=int(EXPIRE_TIME))
-        # user_str = str(user.id)
+        access_token_expires = timedelta(minutes=int(EXPIRE_TIME))        
         access_token_jwt = create_access_token(data={"sub": user.email, "iss": "showcase"}, expires_delta=access_token_expires)
-
-        #тут нужно прокинуть хедер Sec-Ch-Ua: в нем инфа о браузере через который зашли
-
-        # access_token_expires = timedelta(minutes=int(EXPIRE_TIME))
-        # access_token_jwt = create_access_token(data={"sub": user.email, "iss": "showcase"}, expires_delta=access_token_expires)
+        
 
         token: Token = Token(user_id=user.id, refresh_token=refresh_token_jwt)
         session.add(token)       
@@ -128,14 +135,12 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
         access_token_jwt = create_access_token(data={"sub": user.email, "iss": "showcase"}, expires_delta=access_token_expires)
 
     
-    response = templates.TemplateResponse("regusers/test2.html", {"request": request})
-    # response = JSONResponse(content={"message": "куки установлены"})
+    response = templates.TemplateResponse("regusers/test2.html", {"request": request})    
     response.set_cookie(key="RT", value=refresh_token.refresh_token)
     response.set_cookie(key="Authorization", value=access_token_jwt)
    
     return response
-    # return {"access_token": access_token_jwt, "token_type": "bearer"}#возвращаем токен, и тип токена. Так нужно, чтобы можно было обращаться к токену
-
+    
 
 
 @router_reg.get("/logout")
@@ -145,23 +150,16 @@ async def logout_user(request: Request, response: Response, Authorization: str |
     
     if RT != None:
         us_token: Token = await session.scalar(select(Token).where(Token.refresh_token == RT))
-        await session.delete(us_token)
-        await session.commit()
+        if us_token:
+            await session.delete(us_token)
+            await session.commit()
         response.delete_cookie("RT")
         response.delete_cookie("Authorization")
 
     return response
     
- 
 
-
-
-# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", scheme_name=apikey_scheme)
-
-
-#функция проверки токена. Проверить эту функцию до конца, првоерить сессию...
-# async def get_current_user_from_token(token: Annotated[str, Depends(oauth2_scheme)], session: AsyncSession = Depends(get_async_session)):
-
+#функция проверки токена.
 async def get_current_user_from_token(acces_token):#проверка аксес токена из куки  
     
     try:
@@ -171,107 +169,58 @@ async def get_current_user_from_token(acces_token):#проверка аксес 
         if email is None:
             print("нет такого email")
             return False
-            # raise credentials_exception
-    # except JWTError:
+            
+    
     except Exception as ex:
-        # us_token: Token = await db.scalar(select(Token).where(Token.acces_token == acces_token))
-        
+                
         if type(ex) == ExpiredSignatureError:#если время действия токена истекло, то вывод принта. Можно тут написать логику что будет если аксес токен истекает
-            # us_token: Token = await db.scalar(select(Token).where(Token.refresh_token == acces_token))
-            # if us_token:
-            #     await db.delete(us_token)
-            #     await db.commit()#удаляем из ДБ чтобы при создании нового не было дублей токенов
-            # return
-            # tokens = update_tokens(RT=RT, db=db)#тут возвращается кортеж из двух токенов
+            
             print("ОШИБКА АКСЕС ТУТ")
             print(ex)
             return ex
 
        
         return False
-        # raise credentials_exception
-    # token: Token = await db.scalar(select(Token).where(Token.email == email))#тут поиск пользователя по его почте - логину. Проверка что в токене не левая почта. тут нуэна другая проверка, на какой нибудь хедер
-    # if token is None:
-    #     print("нет пользака")
-    #     return False
-    #     # raise credentials_exception
+        
 
     return True
 
 
 
-
-
-
-
-
-
-# https://habr.com/ru/companies/doubletapp/articles/764424/
-
-#сделал, работает и время само по себе валидируется, если срок истекает, то пишет ошибку. !!!!!!!!!!!!!
-#нужно еще сделать обновление токена в базе. А то он там не удаляется и постоянно висит если уже один раз вошли. И получается jwt не обновляется. Нужно чтобы обновлялся токен в базе. 
-
-
-
-# ###########################################################
-# #функция поиска записи юзера в таблице токенов по токену. Находится запись по токену, в ней есть инфа о пользователе которому принадлежит токен и возвращаем юзера владеющего токеном или иначе исключение. Обратиться в пользователю мы можем из-за того что есть relationship в модели, то есть ссылка на юзера, очень удобно. Скорее всего это надо сделать роутером или как то юзать в html-ках для првоерки авторизации. Также нужно сделать jwt токен вместо обычного uuid, и сделать ему время жизни
-# async def get_user_by_token(acces_token: str, session: AsyncSession = Depends(get_async_session)):
-#     token = await session.scalar(select(Token).where(Token.acces_token == acces_token))
-#     if token:
-#         return { "id": token.user.id, "email": token.user.email }
-#         # return True
-#     else:
-#         raise HTTPException(
-#             status_code=HTTP_401_UNAUTHORIZED,
-#             detail="UNAUTHORIZED"
-#         )
-# ############################################################
-
-
-
-
-
 # #функция проверки токена из кук. Пока роуты без схем, нужно сделать со схемами пайдентика
 @router_reg.get("/self", response_model=None)
-async def test_token(RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
+async def test_token(request: Request,RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
     
-    # Authorization: str | None = Cookie(default=None), 
-    # check = await get_current_user_from_token(acces_token=Authorization, db=session)
-    return RT
+    response = templates.TemplateResponse("regusers/test2.html", {"request": request})
+    
+    return response
     
 
-
-#Нужно юзать в шаблоне функцию не test_token, а get_current_user_from_token, и прокидывать результат этой функции в контекст.
-
-
-# @router_reg.get("/self", response_model=None)
-# async def test_token(Authorization = Cookie()):
-#     return  Authorization
-
-# str | None = Cookie(default=None)
-
-
-# пользак у меня уже регается, и записывается в базу. Потом когда авторизуется, ему я кидаю токен в куки и записываю в базу этот же токен. Есть кнопка "выйти", она уда
-
-
-
-
-
-
+    
+    
 
 
 
 
 ################################################################################
 #просто ссылки для перехода на страницу тестовой авторизации. Потом удалить.
-@router_reg.get("/registration")
-async def url_reg(request: Request):
-    pass
-    # return RedirectResponse("/auth", status_code=303)
+# @router_reg.get("/registration")
+# async def url_reg(request: Request):
+#     pass
+#     # return RedirectResponse("/auth", status_code=303)
 
 
-@router_reg.get("/auth")
-async def url_auth(request: Request):
-    pass
+# @router_reg.get("/auth")
+# async def url_auth(request: Request):
+#     pass
     # return RedirectResponse("", status_code=303)
 ################################################################################
+
+
+# <a href="{{ url_for('url_reg') }}"><h1>РЕГА</h1></a>
+#     <br>    
+#     <a href="{{ url_for('url_auth') }}"><h1>АУТХ</h1></a>
+#     <br>
+#     <a href="{{ url_for('test_token') }}"><h1>Проверка токена</h1></a>
+
+
