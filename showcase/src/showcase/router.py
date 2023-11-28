@@ -104,6 +104,9 @@ async def home(request: Request, Authorization: str | None = Cookie(default=None
     "gd": gd.scalars(),
     "check": check
     }
+    ggg = gd.scalars()
+    print(ggg[0])
+    #нужно переделать модель чтобы через поле группы в таблице товаров можно было обращаться к названию группы, а не только к ИД группы. Иначе лишние sql запросы будут
 
     response = templates.TemplateResponse("showcase/start.html", context)
     if type(check) == ExpiredSignatureError:        

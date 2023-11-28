@@ -2,6 +2,7 @@
 # from typing import List, Optional
 
 from sqlalchemy import Integer, String, TIMESTAMP, ForeignKey, Float, Boolean, Text, Table, Column, JSON
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 # from ..regusers.models import User
 
@@ -27,20 +28,9 @@ class Goods(Base):
     photo = Column(String, nullable=False)
     availability = Column(Boolean, nullable=False)
     time_create = Column(TIMESTAMP, default=datetime.utcnow)#utcnow для разных часовых поясов в случае расположения бд и пользователя в разных часовых поясах, это универсальный часовой пояс. При создании будет автоматом записываться текущее время создания поля.
-    name_group = Column(Integer, ForeignKey("group.id"))#ссылаемся на таблицу group и на ее элемент id
+    name_group = Column(Integer, ForeignKey("group.id"))#ссылаемся на таблицу group на ее элемент id
+    group: Mapped["Group"] = relationship(back_populates="groups")#тут деалем связь с таблицей групп, чтобы можно было обратиться к объекту группы. Дописать...
 
-
-
-
-# basket = Table(
-#     "basket",
-#     metadata,
-#     Column("id", Integer, primary_key=True),
-#     # Column("user", Integer, ForeignKey(".id")),
-#     Column("product", Integer, ForeignKey("goods.id")),
-#     Column("quantity", Integer, default=0),
-#     Column("created_timestamp", TIMESTAMP, default=datetime.utcnow),
-# )
 
 class Basket(Base):
     __tablename__ = "basket"
@@ -50,26 +40,6 @@ class Basket(Base):
     quantity = Column(Integer, default=0)
     created_timestamp = Column(TIMESTAMP, default=datetime.utcnow)
 
-
-
-
-
-# organization = Table(
-#     "organization",
-#     metadata,
-#     Column("id", Integer, primary_key=True),
-#     Column("name_org", String, nullable=False),
-#     Column("inn", Integer, default=0),
-#     Column("kpp", Integer, default=0),
-#     Column("ogrn", Integer, default=0),
-#     Column("working_mode", String, default="_"),
-#     Column("about", Text, default="_"),
-#     Column("adres", String, default="_"),
-#     Column("phone", Integer, default=0),
-#     Column("email_name", String, nullable=False),
-#     Column("telegram", String, default="_"),
-#     Column("whatsApp", String, default="_"),
-# )
 
 class Organization(Base):
     __tablename__ = "organization"
