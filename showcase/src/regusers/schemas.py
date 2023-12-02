@@ -27,3 +27,9 @@ class UserCreate(BaseModel):
     class Config:
         orm_mode = True
     
+
+
+class MailBody(BaseModel):
+    to: List[str]
+    subject: str
+    body: str

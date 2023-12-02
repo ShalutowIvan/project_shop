@@ -6,13 +6,16 @@
 # i6 = [7, 9]
 # i7 = [3, 7]
 
-N, M = map(int, input().split())
+# N, M = map(int, input().split())
 
-# massiv = list(map(int, input().split()))
-massiv = []
-for i in range(N):
-	massiv.append(int(input()))
+# # massiv = list(map(int, input().split()))
+# massiv = []
+# for i in range(N):
+# 	massiv.append(int(input()))
+
+# print(massiv)
 
 
+a= "asd"
+z = a.dict()
 
-print(massiv)

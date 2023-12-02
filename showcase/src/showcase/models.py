@@ -29,7 +29,7 @@ class Goods(Base):
     availability = Column(Boolean, nullable=False)
     time_create = Column(TIMESTAMP, default=datetime.utcnow)#utcnow для разных часовых поясов в случае расположения бд и пользователя в разных часовых поясах, это универсальный часовой пояс. При создании будет автоматом записываться текущее время создания поля.
     name_group = Column(Integer, ForeignKey("group.id"))#ссылаемся на таблицу group на ее элемент id
-    group: Mapped["Group"] = relationship(back_populates="groups")#тут деалем связь с таблицей групп, чтобы можно было обратиться к объекту группы. Дописать...
+    group: Mapped["Group"] = relationship(back_populates="groups")#тут деалем связь с таблицей групп, чтобы можно было обратиться к объекту группы. То есть чтобы у нас появилась такая связь, чтобы у нас name_group была объектом класса Group, то есть строкой таблицы group, нам нужно прописать relationship(back_populates="groups") и обязательно также указать Column(Integer, ForeignKey("group.id")), то есть нужен вторичный ключ ForeignKey и relationship с названием таблицы для связи. 
 
 
 class Basket(Base):
