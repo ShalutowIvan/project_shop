@@ -74,6 +74,81 @@
 #при реализации связей многие ко многим тут потребуется таблица ассоциаций, без нее нельзя. То есть это второстепенная таблица такая для связи многие ко многим. 
 #связь такая:
 # первая таблица --> связь один ко многим --> второстепенная таблица --> связь один ко многим --> вторая таблица
+# При нормализированной форме таблиц организовать связь многие ко многим нельзя. нужноа будет второстепенная таблица.
+#связь пользователя и емейл например это связь one to one - один к одному.
+# пример связи один к одному:
+#
+# class Payment(Base):
+#     __tablename__ = "payment"
+#     id: Mapped[int] = mapped_column(unique=True, primary_key=True)
+#     pay: Mapped[Pay] = mapped_column(nullable=False)#тут будет выбор нал или безнал из класса Pay, там указаны перечисления
+#     pay_for_contact: Mapped["Contacts"] = relationship(back_populates="pay", uselist=False)#важно прописать uselist=False в relationship
+#
+# class Contacts(Base):
+#     __tablename__ = "contacts"
+#     id: Mapped[int] = mapped_column(primary_key=True)
+#     # user = Column(Integer, ForeignKey(".id"))
+#     fio: Mapped[str] = mapped_column(nullable=False)
+#     phone: Mapped[int] = mapped_column(default=0)
+#     delivery_address: Mapped[str] = mapped_column(default="_")
+#     pay_id: Mapped[int] = mapped_column(ForeignKey("payment.id"))
+#     pay: Mapped["Payment"] = relationship(back_populates="pay_for_contact", uselist=False)
+
+# oplata = Payment(id=1, pay="нал")
+# contakt = Contacts(id=1, fio="Сидоров", phone="123", delivery_address="сюда")
+# #Создали 2 объекта для записи в базу. При такой связи можно обратиться и присвоить значение так:
+# contakt.pay = oplata
+
+#обратиться можно тут к объекту оплаты можно через объект контакта. Но тогда будет юзаться 2 sql запроса, то есть таблица контактов запросится, потом оплаты
+
+#Пример связи 1 ко многим
+
+# class Payment(Base):
+#     __tablename__ = "payment"
+#     id: Mapped[int] = mapped_column(unique=True, primary_key=True)
+#     pay: Mapped[Pay] = mapped_column(nullable=False)#тут будет выбор нал или безнал из класса Pay, там указаны перечисления
+#     pay_for_contact: Mapped["Contacts"] = relationship(back_populates="pay", uselist=False)#важно прописать uselist=False в relationship
+#
+# class Contacts(Base):
+#     __tablename__ = "contacts"
+#     id: Mapped[int] = mapped_column(primary_key=True)
+#     # user = Column(Integer, ForeignKey(".id"))
+#     fio: Mapped[str] = mapped_column(nullable=False)
+#     phone: Mapped[int] = mapped_column(default=0)
+#     delivery_address: Mapped[str] = mapped_column(default="_")
+#     pay_id: Mapped[int] = mapped_column(ForeignKey("payment.id"))
+#     pay: Mapped[list["Payment"]] = relationship(back_populates="pay_for_contact", uselist=True)#то тут поставили тру, как будто у каждого контакта может быть список оплат. Также прописали аннтацию Mapped[list["Payment"]]
+
+
+# пример связи многие ко многим
+
+# class Payment(Base):
+#     __tablename__ = "payment"
+#     id: Mapped[int] = mapped_column(unique=True, primary_key=True)
+#     pay: Mapped[Pay] = mapped_column(nullable=False)#тут будет выбор нал или безнал из класса Pay, там указаны перечисления
+#     pay_for_contact: Mapped[list["Contacts"]] = relationship(back_populates="pay", uselist=True, secondary="contacts_payment")#и в первой и второй таблице прописали True, то есть и там и там будет список значений. Также указали secondary, это второстепенная таблица
+#
+# class Contacts(Base):
+#     __tablename__ = "contacts"
+#     id: Mapped[int] = mapped_column(primary_key=True)
+#     # user = Column(Integer, ForeignKey(".id"))
+#     fio: Mapped[str] = mapped_column(nullable=False)
+#     phone: Mapped[int] = mapped_column(default=0)
+#     delivery_address: Mapped[str] = mapped_column(default="_")
+#     #pay_id: Mapped[int] = mapped_column(ForeignKey("payment.id"))# получается тут уже не юзается форинкей, а создается отдельная таблица то есть класс
+#     pay: Mapped[list["Payment"]] = relationship(back_populates="pay_for_contact", uselist=True, secondary="contacts_payment")
+
+# class ContactsPayment(Base):
+#     __tablename__ = "contacts_payment"
+#     pay_fk: Mapped[int] = mapped_column(ForeignKey("payment.id"))#для таблицы контактов
+#     contact_fk: Mapped[int] = mapped_column(ForeignKey("contacts.id"))#для таблицы оплаты
+
+#есть стратегии загрузки их нужно писать в параметре lazy в relationship, "selectin" и "joined". В случае с joined выдается присоединенная таблица в случае если настроили связь, если selectin то присоединеная таблица выводится отдельно.
+
+#core в алхимии это запросы без ОРМ, работают на много быстрее чем ОРМ запросы. УТочнить потом что такое core
+#если объектов не очень много лучше юзать joined, если объектов очень много то лучше юзать subquery как параметр для lazy. Вобщем в основном joined юзать.
+#посмотреть шумейко, может еще что-то скажет и пересмотреть текущее видео массона
+
 
 
 
