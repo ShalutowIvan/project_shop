@@ -40,6 +40,12 @@ class Goods(Base):
     stock: Mapped[float] = mapped_column(nullable=True)
     slug: Mapped[str] = mapped_column(String, nullable=False)
     photo: Mapped[str] = mapped_column(String, nullable=False)
+    a = Column(Photo(root="/path/to/photos/", formats={
+        "big": "800x600",
+        "small": "400x300",
+        "thumbnail": "100x75"
+    }))
+
     availability: Mapped[bool] = mapped_column(Boolean, nullable=False)
     time_create: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))#utcnow для разных часовых поясов в случае расположения бд и пользователя в разных часовых поясах, это универсальный часовой пояс. При создании будет автоматом записываться текущее время создания поля.
     # time_create: Mapped[datetime] = mapped_column(default=datetime.utcnow)#это по сути тоже самое, но тут юзается питоновская функция. Что лучше пока не понятно, вроде лучше не юзать питоновскую функцию
@@ -89,9 +95,9 @@ class Organization(Base):
 class Order_list(Base):
     __tablename__ = "order_list"
     id: Mapped[int] = mapped_column(primary_key=True)
-    product_id: Mapped[int] = mapped_column(ForeignKey("goods.id", ondelete="CASCADE"))
+    product_id: Mapped[int] = mapped_column(ForeignKey("goods.id", ondelete="SET NULL"), nullable=True)
     product: Mapped["Goods"] = relationship(back_populates="order_list")
-
+    product_name: Mapped[str] = mapped_column(nullable=False)
     quantity: Mapped[float] = mapped_column(nullable=False)
     order_number: Mapped[int] = mapped_column(nullable=False)
     time_create: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))
