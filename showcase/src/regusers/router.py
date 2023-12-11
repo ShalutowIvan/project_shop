@@ -26,7 +26,7 @@ from datetime import datetime, timedelta
 
 from jose.exceptions import ExpiredSignatureError
 
-from pydantic import EmailStr
+
 
 
 #мой роутер

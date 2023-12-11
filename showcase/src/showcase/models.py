@@ -17,6 +17,10 @@ from src.db import Base
 #         onupdate=datetime.datetime.utcnow,
 #     )]
 
+# ondelete="RESTRICT", параметр прописывается в форинкей. Я это прописал в таблице товаров. То есть нельзя удалить группу если на нее ссылается товар
+# ondelete="CASCADE" - если так прописать, то можно удалять группу и тогда удалятся все товары которые есть в этой группе
+# если удалить товар, то этот товар должен удалиться и из корзины, но не должен удаляться из таблицы в истории заказов. 
+
 
 
 class Group(Base):
@@ -24,7 +28,7 @@ class Group(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name_group: Mapped[str] = mapped_column(nullable=False)
     slug: Mapped[str] = mapped_column(nullable=False)
-    good: Mapped["Goods"] = relationship(back_populates="group")
+    goods: Mapped["Goods"] = relationship(back_populates="group")
 
 
 class Goods(Base):
@@ -39,51 +43,62 @@ class Goods(Base):
     availability: Mapped[bool] = mapped_column(Boolean, nullable=False)
     time_create: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))#utcnow для разных часовых поясов в случае расположения бд и пользователя в разных часовых поясах, это универсальный часовой пояс. При создании будет автоматом записываться текущее время создания поля.
     # time_create: Mapped[datetime] = mapped_column(default=datetime.utcnow)#это по сути тоже самое, но тут юзается питоновская функция. Что лучше пока не понятно, вроде лучше не юзать питоновскую функцию
-    name_group: Mapped[int] = mapped_column(ForeignKey("group.id"))#ссылаемся на таблицу group на ее элемент id
-    group: Mapped["Group"] = relationship(back_populates="good")#тут деалем связь с таблицей групп, чтобы можно было через поле name_group обратиться к объекту группы. То есть чтобы у нас появилась такая связь, чтобы у нас name_group была объектом класса Group, то есть строкой таблицы group, нам нужно прописать relationship(back_populates="groups"), groups это название параметра из таблицы групп, Mapped["Group"] тут Group это класс таблицы группы.
+    group_id: Mapped[int] = mapped_column(ForeignKey("group.id", ondelete="RESTRICT"))#ссылаемся на таблицу group на ее элемент id
+    group: Mapped["Group"] = relationship(back_populates="goods")#тут деалем связь с таблицей групп, чтобы можно было через поле name_group обратиться к объекту группы. То есть чтобы у нас появилась такая связь, чтобы у нас name_group была объектом класса Group, то есть строкой таблицы group, нам нужно прописать relationship(back_populates="groups"), groups это название параметра из таблицы групп, Mapped["Group"] тут Group это класс таблицы группы.
     # и обязательно также указать Column(Integer, ForeignKey("group.id")), то есть нужен вторичный ключ ForeignKey с названием первичного ключа из таблицы групп, в енашем случае это id.
     basket: Mapped["Basket"] = relationship(back_populates="product")
+    order_list: Mapped["Order_list"] = relationship(back_populates="product")
 
 
 class Basket(Base):
     __tablename__ = "basket"
     id: Mapped[int] = mapped_column(primary_key=True)
-    #user = Column("user", Integer, ForeignKey(".id"))
-    product_id: Mapped[str] = mapped_column(ForeignKey("goods.id"))
+    
+    product_id: Mapped[str] = mapped_column(ForeignKey("goods.id", ondelete="CASCADE"))
     product: Mapped["Goods"] = relationship(back_populates="basket")
 
-    quantity: Mapped[float] = mapped_column(default=0)
+    quantity: Mapped[float] = mapped_column(default=1, server_default="1")
     created_timestamp: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
+    user: Mapped["User"] = relationship(back_populates="basket")
+
+
+
+
+# lazy="joined" не прописывать в relationship, в самих запросах прописывать их надо , joinedload прописывать нужно
 
 
 class Organization(Base):
     __tablename__ = "organization"
     id: Mapped[int] = mapped_column(primary_key=True)
-    name_org: Mapped[str] = mapped_column(ullable=False)
+    name_org: Mapped[str] = mapped_column(nullable=False)
     inn: Mapped[int] = mapped_column(default=0)
     kpp: Mapped[int] = mapped_column(default=0)
     ogrn: Mapped[int] = mapped_column(default=0)
-    working_mode: Mapped[str] = mapped_column(efault="_")
-    about: Mapped[str] = mapped_column(ault="_")
-    adres: Mapped[str] = mapped_column(efault="_")
+    working_mode: Mapped[str] = mapped_column(default="_")
+    about: Mapped[str] = mapped_column(default="_")
+    adres: Mapped[str] = mapped_column(default="_")
     phone: Mapped[int] = mapped_column(default=0)
-    email_name: Mapped[str] = mapped_column(ullable=False)
-    telegram: Mapped[str] = mapped_column(efault="_")
-    whatsApp: Mapped[str] = mapped_column(efault="_")
-
-
+    email_name: Mapped[str] = mapped_column(nullable=False)
+    telegram: Mapped[str] = mapped_column(default="_")
+    whatsApp: Mapped[str] = mapped_column(default="_")
 
 
 
 class Order_list(Base):
     __tablename__ = "order_list"
     id: Mapped[int] = mapped_column(primary_key=True)
-    name_product: Mapped[int] = mapped_column(ForeignKey("goods.id"))
+    product_id: Mapped[int] = mapped_column(ForeignKey("goods.id", ondelete="CASCADE"))
+    product: Mapped["Goods"] = relationship(back_populates="order_list")
 
-    quantity: Mapped[float] = mapped_column(neullable=False)
+    quantity: Mapped[float] = mapped_column(nullable=False)
     order_number: Mapped[int] = mapped_column(nullable=False)
     time_create: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))
-    # user: Mapped[] = mapped_column(ForeignKey(".id"))
+    
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
+    user: Mapped["User"] = relationship(back_populates="order_list")
+    
 
 
 
@@ -92,26 +107,29 @@ class Pay(enum.Enum):
     non_cash = "Безналичные"
 
 
-
+#способ оплаты
 class Payment(Base):
     __tablename__ = "payment"
     id: Mapped[int] = mapped_column(unique=True, primary_key=True)
     pay: Mapped[Pay] = mapped_column(nullable=False)#тут будет выбор нал или безнал из класса Pay, там указаны перечисления
-    pay_for_contact: Mapped["Contacts"] = relationship(back_populates="pay")
+    contacts: Mapped["Contacts"] = relationship(back_populates="pay")
 
 
 class Contacts(Base):
     __tablename__ = "contacts"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    # user = Column(Integer, ForeignKey(".id"))
+    id: Mapped[int] = mapped_column(primary_key=True)    
     fio: Mapped[str] = mapped_column(nullable=False)
     phone: Mapped[int] = mapped_column(default=0)
     delivery_address: Mapped[str] = mapped_column(default="_")
-    pay_id: Mapped[int] = mapped_column(ForeignKey("payment.id"))
-    pay: Mapped["Payment"] = relationship(back_populates="pay_for_contact")
+
+    pay_id: Mapped[int] = mapped_column(ForeignKey("payment.id", ondelete="CASCADE"))
+    pay: Mapped["Payment"] = relationship(back_populates="contacts")
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
+    user: Mapped["User"] = relationship(back_populates="contacts")
 
 
-#досмотреть видос массона. Ост 6 мин. Сделать все связи и с юзерами и обычные связи. С таблицей товаров слишком связей получается, странно...
+# С таблицей товаров слишком связей получается, странно...
 #дома миграции не делал
 
 
