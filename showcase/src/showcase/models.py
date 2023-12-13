@@ -117,8 +117,10 @@ class Pay(enum.Enum):
 class Payment(Base):
     __tablename__ = "payment"
     id: Mapped[int] = mapped_column(unique=True, primary_key=True)
-    pay: Mapped[Pay] = mapped_column(nullable=False)#тут будет выбор нал или безнал из класса Pay, там указаны перечисления
-    contacts: Mapped["Contacts"] = relationship(back_populates="pay")
+    payment_method: Mapped[str] = mapped_column(nullable=False)#тут будет выбор нал или безнал из класса Pay, там указаны перечисления. Пока убрал перечисления, так как выдается ошибка при миграции... (тип "pay" уже существует
+# [SQL: CREATE TYPE pay AS ENUM ('cash', 'non_cash')])
+    
+    contacts: Mapped["Contacts"] = relationship(back_populates="paym")
 
 
 class Contacts(Base):
@@ -129,7 +131,7 @@ class Contacts(Base):
     delivery_address: Mapped[str] = mapped_column(default="_")
 
     pay_id: Mapped[int] = mapped_column(ForeignKey("payment.id", ondelete="CASCADE"))
-    pay: Mapped["Payment"] = relationship(back_populates="contacts")
+    paym: Mapped["Payment"] = relationship(back_populates="contacts")
 
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
     user: Mapped["User"] = relationship(back_populates="contacts")

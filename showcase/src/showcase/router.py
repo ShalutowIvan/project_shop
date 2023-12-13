@@ -97,7 +97,7 @@ async def home(request: Request, Authorization: str | None = Cookie(default=None
     gd = await session.execute(select(Goods))
 
     check = await get_current_user_from_token(acces_token=Authorization)
- 
+    
     context = {
     "request": request,    
     "org": org.scalars().first(),
@@ -130,8 +130,10 @@ async def show_group(request: Request, slug: str, session: AsyncSession = Depend
     # .options(joinedload(Goods.group)).group_by(Goods.group.slug == slug)
     # good_gr = await session.execute(query.filter_by(Goods.group.slug == slug))
 
+    # пример запроса из роутера авторизации
+    # await session.scalar(select(User).where(User.email == email))
 
-
+    
     good_gr = await session.scalars(query)
 
     good_gr = filter(lambda x: x.group.slug == slug, good_gr)
