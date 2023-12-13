@@ -4,6 +4,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Plai
 
 
 from sqlalchemy import insert, select
+from sqlalchemy.orm import joinedload
 
 from src.db import get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -104,8 +105,8 @@ async def home(request: Request, Authorization: str | None = Cookie(default=None
     "gd": gd.scalars(),
     "check": check
     }
-    ggg = gd.scalars()
-    print(ggg[0])
+
+
     #нужно переделать модель чтобы через поле группы в таблице товаров можно было обращаться к названию группы, а не только к ИД группы. Иначе лишние sql запросы будут
 
     response = templates.TemplateResponse("showcase/start.html", context)
@@ -122,13 +123,30 @@ async def home(request: Request, Authorization: str | None = Cookie(default=None
 
 
 @router_showcase.get("/{slug}")
-async def show_group(request: Request, slug, session: AsyncSession = Depends(get_async_session)):
+async def show_group(request: Request, slug: str, session: AsyncSession = Depends(get_async_session)):
     # параметр должен подтянуться из базы групп из поля слаг. В теле функции нужно по слагу фильтровать товары через запрос из бд и выводить их html в отдельный шаблон с контекстом. 
-    sl = await session.scalar(select(Group).where(Group.slug == slug))
+
+    query = select(Goods).options(joinedload(Goods.group))
+    # .options(joinedload(Goods.group)).group_by(Goods.group.slug == slug)
+    # good_gr = await session.execute(query.filter_by(Goods.group.slug == slug))
+
+
+
+    good_gr = await session.scalars(query)
+
+    good_gr = filter(lambda x: x.group.slug == slug, good_gr)
+
+    #.where(Goods.group.slug == slug)
+    # .where()
+    # print("мы тут --------------------")
+    # for i in good_gr:
+    #     print(i.group.slug)
+
+    # sl = await session.scalar(select(Group).where(Group.slug == slug))
 
     # good_gr = await session.execute(select(Goods))
-    good_gr = await session.scalars(select(Goods).where(Goods.name_group == sl.id))
-    org = await session.execute(select(Organization))    
+    # good_gr = await session.scalars(select(Goods).where(Goods.group_id == sl.id))
+    org = await session.execute(select(Organization))
 
 
     context = {

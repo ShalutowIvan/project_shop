@@ -30,6 +30,6 @@ class UserCreate(BaseModel):
 
 
 class MailBody(BaseModel):
-    to: List[str]
+    to: list[str]
     subject: str
     body: str

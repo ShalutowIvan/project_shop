@@ -15,7 +15,10 @@
 
 # print(massiv)
 
+a = [1, 2, 3]
 
-a= "asd"
-z = a.dict()
+q = list(filter(lambda x: x == 1, a))
+print(q)
+
+
 

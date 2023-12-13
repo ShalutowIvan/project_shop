@@ -16,7 +16,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, OA
 
 from .schemas import *
 
-from .secure import pwd_context, create_access_token, apikey_scheme, create_refresh_token, update_tokens
+from .secure import pwd_context, create_access_token, create_refresh_token, update_tokens
 
 import uuid
 

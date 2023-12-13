@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 from jose.exceptions import ExpiredSignatureError
 
 #импорты для отправки почты
-from src.settings PORT, HOST, HOST_USER, HOST_PASSWORD, DEFAULT_EMAIL
+from src.settings import PORT, HOST, HOST_USER, HOST_PASSWORD, DEFAULT_EMAIL
 from ssl import create_default_context
 from email.mime.text import MIMEText
 from smtplib import SMTP
@@ -110,42 +110,42 @@ async def update_tokens(RT, db):#передаем сюда рефреш токе
 
 
 #функция из джанго. Скорее всего нужно стандартную функцию юзать для почты smtplib. Возможно отправку почты сделать через селери, это как бы фоновая задача, отдельный процесс от фастапи, как бы второе приложение. И есть фловер, это еще один процесс.
-async def send_email_verify(data: dict|None=None, use_https=False):
-	msg = MailBody(**data)
-    message = MIMEText(msg.body, "html")
-    message["From"] = USERNAME
-    message["To"] = ",".join(msg.to)
-    message["Subject"] = msg.subject
-
-    ctx = create_default_context()
-
-    try:
-        with SMTP(HOST, PORT) as server:
-            server.ehlo()
-            server.starttls(context=ctx)
-            server.ehlo()
-            server.login(USERNAME, PASSWORD)
-            server.send_message(message)
-            server.quit()
-        return {"status": 200, "errors": None}
-    except Exception as e:
-        return {"status": 500, "errors": e}
-
-#понять где писать функцию отправки почты и что в нее передавать контекст html и тд
-# background_tasks - фоновая задача, сам объект фоновой задачи принимает в себя функцию и параметры для нее. Выполняется в фоне
-
-
-    current_site = get_current_site(request)
-    context = {
-    'user': user,
-    'domain': current_site.domain,
-    "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-    "token": token_generator.make_token(user),
-    'protocol': 'https' if use_https else 'http',    
-    }
-
-    html_body = render_to_string('regusers/user_active.html', context=context,)
-    msg = EmailMultiAlternatives(subject='Активация', to=[user.email,],)
-    msg.attach_alternative(html_body, "text/html")
-    msg.send()
+# async def send_email_verify(data: dict|None=None, use_https=False):
+# 	msg = MailBody(**data)
+#     message = MIMEText(msg.body, "html")
+#     message["From"] = USERNAME
+#     message["To"] = ",".join(msg.to)
+#     message["Subject"] = msg.subject
+#
+#     ctx = create_default_context()
+#
+#     try:
+#         with SMTP(HOST, PORT) as server:
+#             server.ehlo()
+#             server.starttls(context=ctx)
+#             server.ehlo()
+#             server.login(USERNAME, PASSWORD)
+#             server.send_message(message)
+#             server.quit()
+#         return {"status": 200, "errors": None}
+#     except Exception as e:
+#         return {"status": 500, "errors": e}
+#
+# #понять где писать функцию отправки почты и что в нее передавать контекст html и тд
+# # background_tasks - фоновая задача, сам объект фоновой задачи принимает в себя функцию и параметры для нее. Выполняется в фоне
+#
+#
+#     current_site = get_current_site(request)
+#     context = {
+#     'user': user,
+#     'domain': current_site.domain,
+#     "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+#     "token": token_generator.make_token(user),
+#     'protocol': 'https' if use_https else 'http',
+#     }
+#
+#     html_body = render_to_string('regusers/user_active.html', context=context,)
+#     msg = EmailMultiAlternatives(subject='Активация', to=[user.email,],)
+#     msg.attach_alternative(html_body, "text/html")
+#     msg.send()
 

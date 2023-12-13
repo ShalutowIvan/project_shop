@@ -39,12 +39,12 @@ class Goods(Base):
     vendor_code: Mapped[str] = mapped_column(nullable=False)
     stock: Mapped[float] = mapped_column(nullable=True)
     slug: Mapped[str] = mapped_column(String, nullable=False)
-    photo: Mapped[str] = mapped_column(String, nullable=False)
-    a = Column(Photo(root="/path/to/photos/", formats={
-        "big": "800x600",
-        "small": "400x300",
-        "thumbnail": "100x75"
-    }))
+    photo: Mapped[str] = mapped_column(String, nullable=False)#фото доделать, в джанго там путь к фото прописывается в этом поле. Как тут сделать неизвестно
+    # a = Column(Photo(root="/path/to/photos/", formats={
+    #     "big": "800x600",
+    #     "small": "400x300",
+    #     "thumbnail": "100x75"
+    # }))#это нагуглил, так во фласке делают, но в фастапи возможно подругому
 
     availability: Mapped[bool] = mapped_column(Boolean, nullable=False)
     time_create: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))#utcnow для разных часовых поясов в случае расположения бд и пользователя в разных часовых поясах, это универсальный часовой пояс. При создании будет автоматом записываться текущее время создания поля.
