@@ -135,9 +135,12 @@ async def show_group(request: Request, slug: str, session: AsyncSession = Depend
 
     
     good_gr = await session.scalars(query)
+    # good_gr = good_gr.where(Goods.group.slug == slug)
+    good_gr = list(filter(lambda x: x.group.slug == slug, good_gr))
 
-    good_gr = filter(lambda x: x.group.slug == slug, good_gr)
+    gr = await session.execute(select(Group))
 
+    # print(good_gr)
     #.where(Goods.group.slug == slug)
     # .where()
     # print("мы тут --------------------")
@@ -155,7 +158,7 @@ async def show_group(request: Request, slug: str, session: AsyncSession = Depend
     "request": request,
     "good_gr": good_gr,
     "org": org.scalars().first(),
-
+    "gr": gr.scalars(),
     }
 
     response = templates.TemplateResponse("showcase/good.html", context)

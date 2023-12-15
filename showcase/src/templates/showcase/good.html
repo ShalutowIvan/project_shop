@@ -6,7 +6,7 @@
 
 
 
-{% if good_gr %}
+{% if good_gr != [] %}
 
 
 {% for g in good_gr %}
@@ -21,9 +21,9 @@
 
 
 {% else %}
-<br><br><br><br><br><br><br><br>
 
-<h3>Товаров нет</h3>
+
+<h1>Товаров нет</h1>
 
 
 {% endif %}
