@@ -351,21 +351,36 @@
 
 
 
+# Запросы CRUD в sqlalchemy!!!!!!!!!!!!!!!!
+# https://www.youtube.com/watch?v=KWu_RyTKh1s&t=3269s&ab_channel=%D0%A1%D1%83%D1%80%D0%B5%D0%BD%D0%A5%D0%BE%D1%80%D0%B5%D0%BD%D1%8F%D0%BD
+
+# async def get_products(session: AsyncSession) -> list[Product]:
+# делаем выражение statement для запроса всех товаров с сортировкой по id. 
+# stmt = select(Product).order_by(Product.id)#select выделяем таблицу Product, order_by - сортировка по id модели Product. select возвращает tuple из одного элемента, но в скобках select можно написать и еще другое поле из этой таблицы, например id, тогда будет возвращен tuple из 2 объектов. 
+# теперь это выражение выполняем
+# result: Result = await session.execute(stmt)  #Result - это результат движка алхимии engine. execute - означает выполнить выражение, выражение у нас stmt. Сессия будет передана через зависимость Depends.
+# products = result.scalars().all()#результат мы получаем через scalars().all(). scalars означает получить скалярные значения. Если в select будет tuple из двух объектов, тогда scalars нельзя юзать и можно писать только функцию all(), но в нашем случае можно юзать scalars. scalars превращает tuple в объекты Product так как нам нужны именно объекты модели Product, а функция all() превратит генератор в список из объектов модели. Также можно типы самому подгонять как хотим. 
+
+# Теперь функция для запроса товара по его id
+async def prod_query(session, product_id):
+	return await session.get(Product, product_id)#возвращается из сессии товар по его id
+
+
+# создание нового объекта - продукта
+async def create_product(session, product_in: ProductCreate):#ProductCreate - это схема пайдентика для валидации, если что-то не так будет выдаваться исключение
+	product = Product(**product_in.model_dump())#тут создали объект Product то есть товара, параметры для объекта мы берем из словаря product_in и распаковываем для нужных полей. Можно создавать его и просто по полям без распаковок словарей. 
+	session.add()#добавили объект в сессию. 
+	await session.commit()#сохранили объект в базу, закоммитили
+	await session.refresh()#лучше обновлять данные из базы, так как они могут переиспользоваться и могут быть не актуальны.
+	return product#тут возвращаем продукт, но можно возвращать то что нужно по ситуации
+
+
+# пайдентик хорошо превращает данные в json словари. То есть крутой конвертатор
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-# тут деалем связь с таблицей групп, чтобы можно было обратиться к объекту группы. То есть чтобы у нас появилась такая связь, чтобы у нас name_group была объектом класса Group, то есть строкой таблицы group, нам нужно прописать relationship(back_populates="groups") и обязательно также указать Column(Integer, ForeignKey("group.id")), то есть нужен вторичный ключ ForeignKey и relationship с названием таблицы для связи. 
 
 
 

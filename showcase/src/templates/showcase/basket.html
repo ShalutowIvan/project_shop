@@ -7,25 +7,17 @@
 <h1>Корзина</h1>
 <p>Покупки</p>
 
-<p>Итоговое количество= {{ basket.total_quantity }}</p>
-<h4>Итоговая сумма= {{ basket.total_sum }}</h4>
 
-<a href="{% url 'contacts' %}"><h1>Оформить заказ</h1></a>
+
 
 {% for i in basket %}
 
-<h1> Название товара: {{i.product}}</h1>
+<h1> Название товара: {{i.product.name_product}}</h1>
 <input name="basketID" type="number" value="{{ i.quantity }}" min="0">
 
 <p>Цена: {{ i.product.price }}</p>
-<p>Сумма цена * количество: {{ i.sum }}</p>
+<p>Сумма цена * количество: {{ i.product.price }}</p>
 
-
-<a href="{% url 'clear_basket' i.id %}"><p>Удалить</p></a>
-
-{% if not i.photo %}
-<p><img class="product-img" src="{{i.photo.url}}"></p>
-{% endif %}
 
 
 

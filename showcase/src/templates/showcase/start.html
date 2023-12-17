@@ -91,6 +91,8 @@
 	<h1> {{j.name_product}}</h1>
 <p> Цена {{j.price}}</p>
 <p> Доступна для продажи {{j.availability}}</p>
+<a href="{{ url_for('add_in_basket', good_id=j.id) }}"><button>Добавить в корзину</button></a>
+
 
 
 </div>
@@ -100,8 +102,6 @@
 </div>	
 
 	{% endblock %}
-
-
 
 
 
