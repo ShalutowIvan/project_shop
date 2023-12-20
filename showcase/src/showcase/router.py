@@ -210,6 +210,12 @@ async def add_in_basket(request: Request, good_id: int, session: AsyncSession = 
 @router_showcase.get("/goods/basket", response_class=HTMLResponse)
 async def basket_view(request: Request, session: AsyncSession = Depends(get_async_session)):
 
+
+    query = select(Basket).options(joinedload(Basket.product))
+
+    # попробовать что-то с джоинед лоад..., может быть прогрузится в html jinja
+
+
     basket = await session.execute(select(Basket))
     org = await session.execute(select(Organization))    
     gr = await session.execute(select(Group))
@@ -218,7 +224,7 @@ async def basket_view(request: Request, session: AsyncSession = Depends(get_asyn
 
     context = {
     "request": request,
-    "basket": basket.scalars().all(),
+    "basket": basket.scalars(),
     "org": org.scalars().first(),
     "group": gr.scalars().all(),
 
@@ -236,6 +242,11 @@ async def basket_view(request: Request, session: AsyncSession = Depends(get_asyn
 # <a href="{% url 'clear_basket' i.id %}"><p>Удалить</p></a>
 # <a href="{{ url_for('contacts') }}"><h1>Оформить заказ</h1></a>
 
+# <input name="basketID" type="number" value="{{ i.quantity }}" min="0">
+
+# <h1> Название товара: {{i.product.name_product}}</h1>
+# <p>Цена: {{ i.product.price }}</p>
+# <p>Сумма цена * количество: {{ i.product.price }}</p>
 
 
 

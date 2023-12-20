@@ -13,10 +13,10 @@
 {% for i in basket %}
 
 <h1> Название товара: {{i.product.name_product}}</h1>
-<input name="basketID" type="number" value="{{ i.quantity }}" min="0">
 
-<p>Цена: {{ i.product.price }}</p>
-<p>Сумма цена * количество: {{ i.product.price }}</p>
+
+<p>Цена: {{ i.quantity }}</p>
+
 
 
 
