@@ -25,6 +25,12 @@ router_showcase = APIRouter(
     tags=["Showcase"]
 )
 
+router_showgroup = APIRouter(
+    prefix="",
+    tags=["Showgroup"]
+)
+
+
 
 
 ##################################################################################
@@ -110,6 +116,7 @@ async def home(request: Request, Authorization: str | None = Cookie(default=None
     #нужно переделать модель чтобы через поле группы в таблице товаров можно было обращаться к названию группы, а не только к ИД группы. Иначе лишние sql запросы будут
 
     response = templates.TemplateResponse("showcase/start.html", context)
+
     if type(check) == ExpiredSignatureError:        
         tokens = await update_tokens(RT=RT, db=session)
         refresh = tokens[0]
@@ -122,17 +129,15 @@ async def home(request: Request, Authorization: str | None = Cookie(default=None
 
 
 
-@router_showcase.get("/{slug}")
+@router_showgroup.get("/{slug}", response_class=HTMLResponse)
 async def show_group(request: Request, slug: str, session: AsyncSession = Depends(get_async_session)):
     # параметр должен подтянуться из базы групп из поля слаг. В теле функции нужно по слагу фильтровать товары через запрос из бд и выводить их html в отдельный шаблон с контекстом. 
-
-    query = select(Goods).options(joinedload(Goods.group))
+    
     # .options(joinedload(Goods.group)).group_by(Goods.group.slug == slug)
     # good_gr = await session.execute(query.filter_by(Goods.group.slug == slug))
 
-        
-    good_gr = await session.scalars(query)
-    # good_gr = good_gr.where(Goods.group.slug == slug)
+    query = select(Goods).options(joinedload(Goods.group))
+    good_gr = await session.scalars(query)    
     good_gr = list(filter(lambda x: x.group.slug == slug, good_gr))
 
     gr = await session.execute(select(Group))
@@ -161,6 +166,10 @@ async def show_group(request: Request, slug: str, session: AsyncSession = Depend
     response = templates.TemplateResponse("showcase/good.html", context)
 
     return response
+    # return RedirectResponse(f"/{slug}")    
+
+# <a href="{{ i.slug }}">{{ i.name_group }}</a>
+
 
 #кнопка для добавления товара в корзину. Пока убрал
 # <a href="{% url 'add_in_basket' g.id %}"><button>Добавить в корзину</button></a>
@@ -177,6 +186,8 @@ async def show_group(request: Request, slug: str, session: AsyncSession = Depend
 # <p><img class="product-img" src="{{g.photo.url}}"></p>
 # {% endif %}
 # , response_class=HTMLResponse
+
+
 @router_showcase.get("/basket/{good_id}")
 async def add_in_basket(request: Request, good_id: int, session: AsyncSession = Depends(get_async_session)):
     
@@ -186,51 +197,52 @@ async def add_in_basket(request: Request, good_id: int, session: AsyncSession = 
     if basket == []:#если в корзине нет такого товара, то добавляет товар в корзину
         product = Basket(product_id=good_id, quantity=1, user_id=1)#пользователю нужно подтянуть из БД или из запроса как то или из токена
         session.add(product)
-        await session.commit()
-        # await session.refresh()
+        await session.commit()        
     else:
         basket[0].quantity += 1
         await session.commit()
-        # await session.refresh()
-
-    # response = templates.TemplateResponse("showcase/start.html", context)
-    print("ТУТ КОРЗИНААААААААААААААААААААААААА")
-    # print(basket.scalars())
+        
+    
     http_referer = request.headers.get('referer')
     return RedirectResponse(http_referer)
-    # return RedirectResponse(f"/basket/{good_id}", status_code=303)
+    
    
 
 
-# пример запроса из роутера авторизации
-    # await session.scalar(select(User).where(User.email == email))
-
-
-
-@router_showcase.get("/goods/basket", response_class=HTMLResponse)
+@router_showcase.get("/basket/goods/", response_class=HTMLResponse)
 async def basket_view(request: Request, session: AsyncSession = Depends(get_async_session)):
 
 
     query = select(Basket).options(joinedload(Basket.product))
-
-    # попробовать что-то с джоинед лоад..., может быть прогрузится в html jinja
-
-
-    basket = await session.execute(select(Basket))
+    
+    # basket = await session.execute(select(Basket))
+    basket = await session.scalars(query)
     org = await session.execute(select(Organization))    
     gr = await session.execute(select(Group))
 
-
-
     context = {
     "request": request,
-    "basket": basket.scalars(),
+    "basket": basket,
     "org": org.scalars().first(),
     "group": gr.scalars().all(),
 
     }
 
     return templates.TemplateResponse("showcase/basket.html", context)
+
+
+@router_showcase.get("/basket/goods/{basket_id}")
+async def delete_in_basket(request: Request, basket_id: int, session: AsyncSession = Depends(get_async_session)):    
+    
+    basket = await session.get(Basket, basket_id)
+    
+    await session.delete(basket)
+    await session.commit()    
+    
+    return RedirectResponse("/basket/goods/")
+    
+
+
 
 # <p>Итоговое количество= {{ basket.total_quantity }}</p>
 # <h4>Итоговая сумма= {{ basket.total_sum }}</h4>
@@ -249,6 +261,39 @@ async def basket_view(request: Request, session: AsyncSession = Depends(get_asyn
 # <p>Сумма цена * количество: {{ i.product.price }}</p>
 
 
+@router_showcase.get("/checkout_list", response_class=HTMLResponse)
+async def contacts(request: Request, session: AsyncSession = Depends(get_async_session)):
+    pass
+
+
+@router_showcase.get("/contacts")
+async def registration_get(request: Request):
+    return templates.TemplateResponse("showcase/contacts.html", {"request": request})
+
+# username: str = Form(...), password: str = Form(...)
+
+#функция из видоса. 
+# def reg(user_data: schemas.UserCreate, session: AsyncSession = Depends(get_async_session)):
+
+
+#заготовка для формы запроса контактов из формы регистрации, переделать под запрос контактов
+# @router_reg.post("/registration", response_model=None, status_code=201)#response_model это валидация для запроса
+# async def registration_post(request: Request, session: AsyncSession = Depends(get_async_session), name: str = Form(), email: str = Form(), password: str = Form()):
+#     # stmt = await session.execute(select(users))
+
+#     user = User(name=name, email=email, hashed_password=pwd_context.hash(password))
+
+#     # stmt = insert(users).values(email=email, name=name, password=password)
+#     # user = stmt.users(email=email, name=name, password=password)
+    
+#     session.add(user)
+#     await session.commit()
+
+
+#     return RedirectResponse("/auth", status_code=303)
+
+
+
 
 @router_showcase.get("/checkout_list", response_class=HTMLResponse)
 async def checkout_list(request: Request, session: AsyncSession = Depends(get_async_session)):
@@ -265,9 +310,6 @@ async def checkout_list(request: Request, session: AsyncSession = Depends(get_as
 
 
 
-# @router_showcase.get("/checkout_list", response_class=HTMLResponse)
-# async def contacts(request: Request, session: AsyncSession = Depends(get_async_session)):
-#     pass
 
 
 # <!-- пагинация начало -->

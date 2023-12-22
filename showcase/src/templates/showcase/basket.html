@@ -8,17 +8,16 @@
 <p>Покупки</p>
 
 
+<a href="{% url 'contacts' %}"><h1>Оформить заказ</h1></a>
 
 
 {% for i in basket %}
 
 <h1> Название товара: {{i.product.name_product}}</h1>
+<p>Количество: {{ i.quantity }}</p>
+<p> Цена: {{i.product.price}}</p>
 
-
-<p>Цена: {{ i.quantity }}</p>
-
-
-
+<a href="{{ url_for('delete_in_basket', basket_id=i.id) }}"><button>Удалить из корзины</button></a>
 
 
 {% endfor %}

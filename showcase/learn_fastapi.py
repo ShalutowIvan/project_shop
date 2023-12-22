@@ -376,6 +376,7 @@ async def create_product(session, product_in: ProductCreate):#ProductCreate - э
 
 
 # пайдентик хорошо превращает данные в json словари. То есть крутой конвертатор
+#если кидаем строку в виде ссылки то нужна валидация в str. Бывает ошибки выдаются
 
 
 

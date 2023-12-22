@@ -62,7 +62,7 @@
 		{% for i in group %}
 
 		<li>
-			<a href="{{ i.slug }}">{{ i.name_group }}</a>
+			<a href="{{ url_for('show_group', slug=i.slug) }}">{{ i.name_group }}</a>
 
 		</li>
 		<br>
