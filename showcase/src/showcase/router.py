@@ -261,13 +261,13 @@ async def delete_in_basket(request: Request, basket_id: int, session: AsyncSessi
 # <p>Сумма цена * количество: {{ i.product.price }}</p>
 
 
-@router_showcase.get("/checkout_list", response_class=HTMLResponse)
-async def contacts(request: Request, session: AsyncSession = Depends(get_async_session)):
-    pass
+# @router_showcase.get("/checkout_list", response_class=HTMLResponse)
+# async def contacts(request: Request, session: AsyncSession = Depends(get_async_session)):
+#     pass
 
 
 @router_showcase.get("/contacts")
-async def registration_get(request: Request):
+async def contacts(request: Request):
     return templates.TemplateResponse("showcase/contacts.html", {"request": request})
 
 # username: str = Form(...), password: str = Form(...)
@@ -277,20 +277,20 @@ async def registration_get(request: Request):
 
 
 #заготовка для формы запроса контактов из формы регистрации, переделать под запрос контактов
-# @router_reg.post("/registration", response_model=None, status_code=201)#response_model это валидация для запроса
-# async def registration_post(request: Request, session: AsyncSession = Depends(get_async_session), name: str = Form(), email: str = Form(), password: str = Form()):
-#     # stmt = await session.execute(select(users))
+@router_showcase.post("/contacts", response_model=None, status_code=201)#response_model это валидация для запроса
+async def contacts_form(request: Request, session: AsyncSession = Depends(get_async_session), fio: str = Form(), phone: int = Form(), delivery_address: str = Form(), pay: str = Form()):
+    # stmt = await session.execute(select(users))
 
-#     user = User(name=name, email=email, hashed_password=pwd_context.hash(password))
+    # user = User(name=name, email=email, hashed_password=pwd_context.hash(password))
 
-#     # stmt = insert(users).values(email=email, name=name, password=password)
-#     # user = stmt.users(email=email, name=name, password=password)
+    # stmt = insert(users).values(email=email, name=name, password=password)
+    # user = stmt.users(email=email, name=name, password=password)
     
-#     session.add(user)
-#     await session.commit()
+    session.add()
+    await session.commit()
 
 
-#     return RedirectResponse("/auth", status_code=303)
+    return RedirectResponse("", status_code=303)
 
 
 
