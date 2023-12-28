@@ -8,13 +8,16 @@
 
 <form action="{{ url_for('contacts_form') }}" method="post">
   
-    <input name="fio" placeholder="введите имя">
-    <input name="phone" placeholder="Телефон">
-    <input name="delivery_address" placeholder="адрес доставки">
-    <input name="pay" placeholder="Способ оплаты">
-
+    <p><input name="fio" placeholder="введите имя"></p>
+    
+    <p><input name="phone" placeholder="Телефон"></p>
+    <br>
+    <p><input name="delivery_address" placeholder="адрес доставки"></p>
+    <br>
+    <p><input name="pay" placeholder="Способ оплаты"></p>
+    <br>
   
-  <input type="submit" value="Send" />
+  <input type="submit" value="Оформить заказ" />
 
 </form>
 

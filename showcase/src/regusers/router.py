@@ -69,7 +69,7 @@ async def registration_post(request: Request, session: AsyncSession = Depends(ge
 
     return RedirectResponse("/auth", status_code=303)
 
-# сделать перезапись пароля в захешированный пароль. То есть берем пароль из формы и юзера создаем, потом хешируем и перезаписываем пароль в базу захешированным. 
+
 #аннотейтед это такие аннотации с типом данных и значениями. В доке по фастапи есть инфа в питоне 3,8 как в метанит, а в питон 3,9 появились Annotated 
 
 
@@ -122,7 +122,7 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
 
         #аксес токен
         access_token_expires = timedelta(minutes=int(EXPIRE_TIME))        
-        access_token_jwt = create_access_token(data={"sub": user.email, "iss": "showcase"}, expires_delta=access_token_expires)
+        access_token_jwt = create_access_token(data={"sub": str(user.id), "iss": "showcase"}, expires_delta=access_token_expires)
         
 
         token: Token = Token(user_id=user.id, refresh_token=refresh_token_jwt)
@@ -132,7 +132,7 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
         refresh_token: Token = await session.scalar(select(Token).where(Token.user_id == user.id))
     else:
         access_token_expires = timedelta(minutes=int(EXPIRE_TIME))
-        access_token_jwt = create_access_token(data={"sub": user.email, "iss": "showcase"}, expires_delta=access_token_expires)
+        access_token_jwt = create_access_token(data={"sub": str(user.id), "iss": "showcase"}, expires_delta=access_token_expires)
 
     
     response = templates.TemplateResponse("regusers/test2.html", {"request": request})    
@@ -165,9 +165,9 @@ async def get_current_user_from_token(acces_token):#проверка аксес 
     try:
         payload = jwt.decode(acces_token, KEY, algorithms=[ALG])#в acces_token передается просто строка
         
-        email = payload.get("sub")#у меня тут почта, а не юзернейм
-        if email is None:
-            print("нет такого email")
+        user_id = payload.get("sub")#у меня тут user_id, а не юзернейм
+        if user_id is None:
+            print("нет такого user_id")
             return False
             
     
@@ -189,7 +189,7 @@ async def get_current_user_from_token(acces_token):#проверка аксес 
 
 # #функция проверки токена из кук. Пока роуты без схем, нужно сделать со схемами пайдентика
 @router_reg.get("/self", response_model=None)
-async def test_token(request: Request,RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
+async def test_token(request: Request, RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
     
     response = templates.TemplateResponse("regusers/test2.html", {"request": request})
     

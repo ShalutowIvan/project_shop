@@ -59,7 +59,7 @@ def create_refresh_token(data: dict, expires_delta: timedelta | None = None):
 
 
 async def update_tokens(RT, db):#передаем сюда рефреш токен и сессию с ДБ
-	
+	#расшифровка рефреш токена
 	try:
 		payload = jwt.decode(RT, KEY2, algorithms=[ALG])
 		pl_id = payload.get("sub")
@@ -94,7 +94,7 @@ async def update_tokens(RT, db):#передаем сюда рефреш токе
 
 	#аксес токен
 	access_token_expires = timedelta(minutes=int(EXPIRE_TIME))
-	access_token_jwt = create_access_token(data={"sub": pl_email, "iss": "showcase"}, expires_delta=access_token_expires)
+	access_token_jwt = create_access_token(data={"sub": pl_id, "iss": "showcase"}, expires_delta=access_token_expires)
 
 	#обновляем рефреш в базе	
 	new_RT: Token = Token(user_id=int(pl_id), refresh_token=refresh_token_jwt)#для создания объекта нужен Ид пользака

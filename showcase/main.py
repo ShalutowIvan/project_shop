@@ -9,7 +9,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Plai
 
 
 from src.regusers.router import router_reg
-from src.showcase.router import router_showcase, router_showgroup
+from src.showcase.router import router_showcase
 
 #fastapi users - пока не юзаю
 # from fastapi_users import FastAPIUsers#это иморт класса с роутерами для авторизации, регистрации и тд.
@@ -31,7 +31,7 @@ app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
 #тут подключается роутер
 app.include_router(router_showcase)
-app.include_router(router_showgroup)
+# app.include_router(router_showgroup)
 app.include_router(router_reg)
 
 

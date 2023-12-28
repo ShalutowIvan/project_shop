@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, Cookie
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, Cookie, Form
 
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, PlainTextResponse
 
@@ -25,10 +25,10 @@ router_showcase = APIRouter(
     tags=["Showcase"]
 )
 
-router_showgroup = APIRouter(
-    prefix="",
-    tags=["Showgroup"]
-)
+# router_showgroup = APIRouter(
+#     prefix="",
+#     tags=["Showgroup"]
+# )
 
 
 
@@ -129,12 +129,13 @@ async def home(request: Request, Authorization: str | None = Cookie(default=None
 
 
 
-@router_showgroup.get("/{slug}", response_class=HTMLResponse)
+@router_showcase.get("/{slug}", response_class=HTMLResponse)
 async def show_group(request: Request, slug: str, session: AsyncSession = Depends(get_async_session)):
     # параметр должен подтянуться из базы групп из поля слаг. В теле функции нужно по слагу фильтровать товары через запрос из бд и выводить их html в отдельный шаблон с контекстом. 
+
+    #нужно сделать валидацию для параметра slug, а то он тянет любое значение лиш бы было str
+
     
-    # .options(joinedload(Goods.group)).group_by(Goods.group.slug == slug)
-    # good_gr = await session.execute(query.filter_by(Goods.group.slug == slug))
 
     query = select(Goods).options(joinedload(Goods.group))
     good_gr = await session.scalars(query)    
@@ -266,9 +267,18 @@ async def delete_in_basket(request: Request, basket_id: int, session: AsyncSessi
 #     pass
 
 
-@router_showcase.get("/contacts")
-async def contacts(request: Request):
-    return templates.TemplateResponse("showcase/contacts.html", {"request": request})
+@router_showcase.get("/basket/contacts/")
+async def contacts(request: Request, session: AsyncSession = Depends(get_async_session)):
+    org = await session.execute(select(Organization))    
+    gr = await session.execute(select(Group))
+
+    context = {
+    "request": request,
+    "org": org.scalars().first(),
+    "group": gr.scalars().all(),
+    }
+
+    return templates.TemplateResponse("showcase/contacts.html", context)
 
 # username: str = Form(...), password: str = Form(...)
 
@@ -277,8 +287,14 @@ async def contacts(request: Request):
 
 
 #заготовка для формы запроса контактов из формы регистрации, переделать под запрос контактов
-@router_showcase.post("/contacts", response_model=None, status_code=201)#response_model это валидация для запроса
+@router_showcase.post("/basket/contacts/", response_model=None, status_code=201)#response_model это валидация для запроса
 async def contacts_form(request: Request, session: AsyncSession = Depends(get_async_session), fio: str = Form(), phone: int = Form(), delivery_address: str = Form(), pay: str = Form()):
+
+    kontakt = Contacts(fio=fio, phone=phone, delivery_address=delivery_address, pay_id=pay, user_id=1)
+    
+    # по куки Authorization найти ид пользака
+    
+
     # stmt = await session.execute(select(users))
 
     # user = User(name=name, email=email, hashed_password=pwd_context.hash(password))
@@ -286,7 +302,7 @@ async def contacts_form(request: Request, session: AsyncSession = Depends(get_as
     # stmt = insert(users).values(email=email, name=name, password=password)
     # user = stmt.users(email=email, name=name, password=password)
     
-    session.add()
+    session.add(kontakt)
     await session.commit()
 
 

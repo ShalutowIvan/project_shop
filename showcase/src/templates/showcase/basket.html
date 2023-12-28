@@ -8,7 +8,7 @@
 <p>Покупки</p>
 
 
-<a href="{% url 'contacts' %}"><h1>Оформить заказ</h1></a>
+<a href="{{ url_for('contacts') }}"><h1>Оформить заказ</h1></a>
 
 
 {% for i in basket %}
