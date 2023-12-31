@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .models import *
 from src.settings import templates
-from src.regusers.router import get_current_user_from_token
+from src.regusers.router import access_token_verify
 from src.regusers.secure import update_tokens
 from jose.exceptions import ExpiredSignatureError
 
@@ -102,14 +102,14 @@ async def home(request: Request, Authorization: str | None = Cookie(default=None
     gr = await session.execute(select(Group))
     gd = await session.execute(select(Goods))
 
-    check = await get_current_user_from_token(acces_token=Authorization)
+    check = await access_token_verify(acces_token=Authorization)
     
     context = {
     "request": request,    
     "org": org.scalars().first(),
     "group": gr.scalars(),
     "gd": gd.scalars(),
-    "check": check
+    "check": check[0]
     }
 
 
@@ -117,7 +117,7 @@ async def home(request: Request, Authorization: str | None = Cookie(default=None
 
     response = templates.TemplateResponse("showcase/start.html", context)
 
-    if type(check) == ExpiredSignatureError:        
+    if type(check[0]) == ExpiredSignatureError:    
         tokens = await update_tokens(RT=RT, db=session)
         refresh = tokens[0]
         access = tokens[1]
@@ -134,23 +134,11 @@ async def show_group(request: Request, slug: str, session: AsyncSession = Depend
     # параметр должен подтянуться из базы групп из поля слаг. В теле функции нужно по слагу фильтровать товары через запрос из бд и выводить их html в отдельный шаблон с контекстом. 
 
     #нужно сделать валидацию для параметра slug, а то он тянет любое значение лиш бы было str
-
-    
-
     query = select(Goods).options(joinedload(Goods.group))
     good_gr = await session.scalars(query)    
     good_gr = list(filter(lambda x: x.group.slug == slug, good_gr))
 
     gr = await session.execute(select(Group))
-
-    # print(good_gr)
-    #.where(Goods.group.slug == slug)
-    # .where()
-    # print("мы тут --------------------")
-    # for i in good_gr:
-    #     print(i.group.slug)
-
-    # sl = await session.scalar(select(Group).where(Group.slug == slug))
 
     # good_gr = await session.execute(select(Goods))
     # good_gr = await session.scalars(select(Goods).where(Goods.group_id == sl.id))
@@ -288,13 +276,11 @@ async def contacts(request: Request, session: AsyncSession = Depends(get_async_s
 
 #заготовка для формы запроса контактов из формы регистрации, переделать под запрос контактов
 @router_showcase.post("/basket/contacts/", response_model=None, status_code=201)#response_model это валидация для запроса
-async def contacts_form(request: Request, session: AsyncSession = Depends(get_async_session), fio: str = Form(), phone: int = Form(), delivery_address: str = Form(), pay: str = Form()):
-
-    kontakt = Contacts(fio=fio, phone=phone, delivery_address=delivery_address, pay_id=pay, user_id=1)
-    
+async def contacts_form(request: Request, session: AsyncSession = Depends(get_async_session), fio: str = Form(), phone: int = Form(), delivery_address: str = Form(), pay: str = Form(), Authorization: str | None = Cookie(default=None)):
     # по куки Authorization найти ид пользака
+    check_id = await access_token_verify(acces_token=Authorization)
+    kontakt = Contacts(fio=fio, phone=phone, delivery_address=delivery_address, pay_id=pay, user_id=check_id[1])
     
-
     # stmt = await session.execute(select(users))
 
     # user = User(name=name, email=email, hashed_password=pwd_context.hash(password))
@@ -306,9 +292,27 @@ async def contacts_form(request: Request, session: AsyncSession = Depends(get_as
     await session.commit()
 
 
-    return RedirectResponse("", status_code=303)
+    return RedirectResponse("checkout", status_code=303)
 
 
+
+@router_showcase.get("/basket/contacts/checkout/", response_class=HTMLResponse)
+async def checkout(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None)):
+    
+    check_id = await access_token_verify(acces_token=Authorization)
+    #фильтруем корзину по юзеру
+    pay_goods = await session.scalars(select(Basket).where(Basket.user_id == check_id[1]))
+    contacts = await session.scalars(select(Contacts).where(Contacts.user_id == check_id[1]))
+    id_contact = contacts[-1].id
+    print(contacts)
+
+    return {"contacts": contacts}
+
+
+
+
+ # взять из модели корзины все товары по юзеру
+    # взять контакт по юзеру
 
 
 @router_showcase.get("/checkout_list", response_class=HTMLResponse)

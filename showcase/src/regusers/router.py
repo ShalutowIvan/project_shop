@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.settings import templates, EXPIRE_TIME, KEY, KEY2, ALG, EXPIRE_TIME_REFRESH
 
 from .models import *
+from src.showcase.models import *
 from typing import Annotated
 
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, OAuth2PasswordRequestFormStrict
@@ -31,12 +32,9 @@ from jose.exceptions import ExpiredSignatureError
 
 #мой роутер
 router_reg = APIRouter(
-    prefix="",
+    prefix="/regusers",
     tags=["Regusers"]
 )
-
-async def get_user_db(session: AsyncSession = Depends(get_async_session)):
-    yield SQLAlchemyUserDatabase(session, User)
 
 
 
@@ -44,8 +42,19 @@ async def get_user_db(session: AsyncSession = Depends(get_async_session)):
 
 
 @router_reg.get("/registration")
-async def registration_get(request: Request):
-    return templates.TemplateResponse("regusers/test.html", {"request": request})
+async def registration_get(request: Request, session: AsyncSession = Depends(get_async_session)):
+
+    org = await session.execute(select(Organization))    
+    gr = await session.execute(select(Group))
+
+    context = {
+    "request": request,
+    "org": org.scalars().first(),
+    "group": gr.scalars().all(),
+    }
+
+    response = templates.TemplateResponse("regusers/register.html", context)
+    return response
 
 # username: str = Form(...), password: str = Form(...)
 
@@ -67,7 +76,7 @@ async def registration_post(request: Request, session: AsyncSession = Depends(ge
     await session.commit()
 
 
-    return RedirectResponse("/auth", status_code=303)
+    return RedirectResponse("/regusers/auth", status_code=303)
 
 
 #аннотейтед это такие аннотации с типом данных и значениями. В доке по фастапи есть инфа в питоне 3,8 как в метанит, а в питон 3,9 появились Annotated 
@@ -81,9 +90,18 @@ async def registration_post(request: Request, session: AsyncSession = Depends(ge
 
 
 @router_reg.get("/auth", response_model=None, response_class=HTMLResponse)
-async def auth_get(request: Request):
-    return templates.TemplateResponse("regusers/test2.html", {"request": request})
+async def auth_get(request: Request, session: AsyncSession = Depends(get_async_session)):
+    org = await session.execute(select(Organization))    
+    gr = await session.execute(select(Group))
 
+    context = {
+    "request": request,
+    "org": org.scalars().first(),
+    "group": gr.scalars().all(),
+    }
+
+    response = templates.TemplateResponse("regusers/login.html", context)
+    return response
 
 #пока сделал проверку пользователя по вводу логина и пароля и если все верно то создается токен в БД, в токене есть юзер ид пользователя
 @router_reg.post("/auth", response_model=None, response_class=HTMLResponse)
@@ -134,8 +152,17 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
         access_token_expires = timedelta(minutes=int(EXPIRE_TIME))
         access_token_jwt = create_access_token(data={"sub": str(user.id), "iss": "showcase"}, expires_delta=access_token_expires)
 
+
+    org = await session.execute(select(Organization))    
+    gr = await session.execute(select(Group))
+
+    context = {
+    "request": request,
+    "org": org.scalars().first(),
+    "group": gr.scalars().all(),
+    }
     
-    response = templates.TemplateResponse("regusers/test2.html", {"request": request})    
+    response = templates.TemplateResponse("regusers/login.html", context)    
     response.set_cookie(key="RT", value=refresh_token.refresh_token)
     response.set_cookie(key="Authorization", value=access_token_jwt)
    
@@ -146,7 +173,16 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
 @router_reg.get("/logout")
 async def logout_user(request: Request, response: Response, Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
     
-    response = templates.TemplateResponse("regusers/test2.html", {"request": request})
+    org = await session.execute(select(Organization))    
+    gr = await session.execute(select(Group))
+
+    context = {
+    "request": request,
+    "org": org.scalars().first(),
+    "group": gr.scalars().all(),
+    }
+
+    response = templates.TemplateResponse("regusers/login.html", context)
     
     if RT != None:
         us_token: Token = await session.scalar(select(Token).where(Token.refresh_token == RT))
@@ -160,7 +196,7 @@ async def logout_user(request: Request, response: Response, Authorization: str |
     
 
 #функция проверки токена.
-async def get_current_user_from_token(acces_token):#проверка аксес токена из куки  
+async def access_token_verify(acces_token):#проверка аксес токена из куки  
     
     try:
         payload = jwt.decode(acces_token, KEY, algorithms=[ALG])#в acces_token передается просто строка
@@ -168,7 +204,7 @@ async def get_current_user_from_token(acces_token):#проверка аксес 
         user_id = payload.get("sub")#у меня тут user_id, а не юзернейм
         if user_id is None:
             print("нет такого user_id")
-            return False
+            return False, None
             
     
     except Exception as ex:
@@ -177,13 +213,13 @@ async def get_current_user_from_token(acces_token):#проверка аксес 
             
             print("ОШИБКА АКСЕС ТУТ")
             print(ex)
-            return ex
+            return ex, None
 
        
-        return False
+        return False, None
         
 
-    return True
+    return (True, user_id)
 
 
 

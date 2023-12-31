@@ -1,22 +1,22 @@
 {% extends 'showcase/start.html' %}
  
 {% block content %}
-<h1>{{title}}</h1>
 
-<!-- атрибут action не стали прописывать, так как перенаправление будем делать на ту же самую форму в случае если пользователь введет что то не так  -->
-<form action="{% url 'regusers:register' %}" method="post">
-    {% csrf_token %}
-    
-<!-- перебираем вручную поля формы. Скорее всего берется просто привязанная форма из класса в файле views.py -->
-{% for f in form %}
-
-<p><label class="form-label" for="{{ f.id_for_label }}">{{f.label}}: </label>{{ f }}</p>
-
-<div class="form-error">{{ f.errors }}</div>
-{% endfor %}
+<h1>Регистрация</h1>
 
 
-    <button type="submit">Регистрация</button>
+<form action="{{ url_for('registration_post') }}" method="post">
+  
+    <p><input name="name" placeholder="введите имя"></p>
+    <p><input type="email" name="email" placeholder="e-mail"></p>
+    <p><input type="password" name="password" placeholder="Пароль"></p>
+  
+  <input type="submit" value="Зарегистрироваться" />
+
 </form>
- 
+
+
+
+
+
 {% endblock %}
