@@ -223,6 +223,8 @@ async def access_token_verify(acces_token):#проверка аксес токе
 
 
 
+
+
 # #функция проверки токена из кук. Пока роуты без схем, нужно сделать со схемами пайдентика
 @router_reg.get("/self", response_model=None)
 async def test_token(request: Request, RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):

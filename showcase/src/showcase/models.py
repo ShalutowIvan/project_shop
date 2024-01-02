@@ -91,23 +91,6 @@ class Organization(Base):
     whatsApp: Mapped[str] = mapped_column(default="_")
 
 
-
-class Order_list(Base):
-    __tablename__ = "order_list"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    product_id: Mapped[int] = mapped_column(ForeignKey("goods.id", ondelete="SET NULL"), nullable=True)
-    product: Mapped["Goods"] = relationship(back_populates="order_list")
-    product_name: Mapped[str] = mapped_column(nullable=False)
-    quantity: Mapped[float] = mapped_column(nullable=False)
-    order_number: Mapped[int] = mapped_column(nullable=False)
-    time_create: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))
-    
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
-    user: Mapped["User"] = relationship(back_populates="order_list")
-    
-
-
-
 class Pay(enum.Enum):
     cash = "Наличные"
     non_cash = "Безналичные"
@@ -137,8 +120,24 @@ class Contacts(Base):
     user: Mapped["User"] = relationship(back_populates="contacts")
 
 
-# С таблицей товаров слишком связей получается, странно...
-#дома миграции не делал
+
+class Order_list(Base):
+    __tablename__ = "order_list"
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    product_id: Mapped[int] = mapped_column(ForeignKey("goods.id", ondelete="SET NULL"), nullable=True)
+    product: Mapped["Goods"] = relationship(back_populates="order_list")
+
+    
+    quantity: Mapped[float] = mapped_column(nullable=False)
+    order_number: Mapped[int] = mapped_column(nullable=False)
+    time_create: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))
+    
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
+    user: Mapped["User"] = relationship(back_populates="order_list")
+    
+
+
 
 
 

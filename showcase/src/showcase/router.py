@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 from .models import *
+from src.regusers.models import User
 from src.settings import templates
 from src.regusers.router import access_token_verify
 from src.regusers.secure import update_tokens
@@ -104,12 +105,22 @@ async def home(request: Request, Authorization: str | None = Cookie(default=None
 
     check = await access_token_verify(acces_token=Authorization)
     
+    if check[1] != None:
+        query = select(User).where(User.id == int(check[1]))    
+        user = await session.scalars(query)
+        user_name = user.all()[0].name
+    else:
+        user_name = ""
+
+
+
     context = {
     "request": request,    
     "org": org.scalars().first(),
     "group": gr.scalars(),
     "gd": gd.scalars(),
-    "check": check[0]
+    "check": check[0],
+    "user_name": user_name,
     }
 
 
@@ -178,15 +189,21 @@ async def show_group(request: Request, slug: str, session: AsyncSession = Depend
 
 
 @router_showcase.get("/basket/{good_id}")
-async def add_in_basket(request: Request, good_id: int, session: AsyncSession = Depends(get_async_session)):
+async def add_in_basket(request: Request, good_id: int, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None)):
+    #подтянул ид пользака из токена
+    check_id = await access_token_verify(acces_token=Authorization)
     
-    # product = await session.get(Goods, good_id)
-    basket = await session.execute(select(Basket).where(Basket.product_id == good_id))
-    basket = basket.scalars().all()
+    query = select(Basket).where(Basket.product_id == good_id, Basket.user_id == int(check_id[1]))
+
+    basket = await session.scalars(query)
+    basket = basket.all()
+    
+
     if basket == []:#если в корзине нет такого товара, то добавляет товар в корзину
-        product = Basket(product_id=good_id, quantity=1, user_id=1)#пользователю нужно подтянуть из БД или из запроса как то или из токена
+        check_id = await access_token_verify(acces_token=Authorization)
+        product = Basket(product_id=good_id, quantity=1, user_id=int(check_id[1]))
         session.add(product)
-        await session.commit()        
+        await session.commit()
     else:
         basket[0].quantity += 1
         await session.commit()
@@ -199,13 +216,20 @@ async def add_in_basket(request: Request, good_id: int, session: AsyncSession = 
 
 
 @router_showcase.get("/basket/goods/", response_class=HTMLResponse)
-async def basket_view(request: Request, session: AsyncSession = Depends(get_async_session)):
+async def basket_view(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None)):
 
-
-    query = select(Basket).options(joinedload(Basket.product))
+    check_id = await access_token_verify(acces_token=Authorization)
     
-    # basket = await session.execute(select(Basket))
+    query = select(Basket).options(joinedload(Basket.product)).where(Basket.user_id == int(check_id[1]))    
     basket = await session.scalars(query)
+    # basket = basket.all()
+    # basket = list(filter(lambda x: x.user_id == check_id[1], basket))
+
+    # basket = basket.filter(Basket.user_id == check_id[1])
+    # разобраться с фильтрами
+    # print("КОРЗИНАААААААААААААААА")
+    # print(basket)
+    # print(check_id[1])
     org = await session.execute(select(Organization))    
     gr = await session.execute(select(Group))
 
@@ -220,6 +244,17 @@ async def basket_view(request: Request, session: AsyncSession = Depends(get_asyn
     return templates.TemplateResponse("showcase/basket.html", context)
 
 
+#тестовый переход на функцию basket_view (не маршрут, а именно функцию). Пока ничего не получилось, делаю переход по маршруту
+# @router_showcase.get("/")
+# async def redir(request: Request):
+#     return basket_view
+
+
+
+
+
+
+#удаление товара по коду товара то есть id
 @router_showcase.get("/basket/goods/{basket_id}")
 async def delete_in_basket(request: Request, basket_id: int, session: AsyncSession = Depends(get_async_session)):    
     
@@ -254,7 +289,7 @@ async def delete_in_basket(request: Request, basket_id: int, session: AsyncSessi
 # async def contacts(request: Request, session: AsyncSession = Depends(get_async_session)):
 #     pass
 
-
+#роутер для прогрузки страницы с формой запроса контактов
 @router_showcase.get("/basket/contacts/")
 async def contacts(request: Request, session: AsyncSession = Depends(get_async_session)):
     org = await session.execute(select(Organization))    
@@ -268,18 +303,13 @@ async def contacts(request: Request, session: AsyncSession = Depends(get_async_s
 
     return templates.TemplateResponse("showcase/contacts.html", context)
 
-# username: str = Form(...), password: str = Form(...)
-
-#функция из видоса. 
-# def reg(user_data: schemas.UserCreate, session: AsyncSession = Depends(get_async_session)):
-
 
 #заготовка для формы запроса контактов из формы регистрации, переделать под запрос контактов
 @router_showcase.post("/basket/contacts/", response_model=None, status_code=201)#response_model это валидация для запроса
-async def contacts_form(request: Request, session: AsyncSession = Depends(get_async_session), fio: str = Form(), phone: int = Form(), delivery_address: str = Form(), pay: str = Form(), Authorization: str | None = Cookie(default=None)):
+async def contacts_form(request: Request, session: AsyncSession = Depends(get_async_session), fio: str = Form(), phone: int = Form(), delivery_address: str = Form(), pay: int = Form(), Authorization: str | None = Cookie(default=None)):
     # по куки Authorization найти ид пользака
     check_id = await access_token_verify(acces_token=Authorization)
-    kontakt = Contacts(fio=fio, phone=phone, delivery_address=delivery_address, pay_id=pay, user_id=check_id[1])
+    kontakt = Contacts(fio=fio, phone=phone, delivery_address=delivery_address, pay_id=pay, user_id=int(check_id[1]))
     
     # stmt = await session.execute(select(users))
 
@@ -292,7 +322,7 @@ async def contacts_form(request: Request, session: AsyncSession = Depends(get_as
     await session.commit()
 
 
-    return RedirectResponse("checkout", status_code=303)
+    return RedirectResponse("/basket/contacts/checkout/", status_code=303)
 
 
 
@@ -301,12 +331,23 @@ async def checkout(request: Request, session: AsyncSession = Depends(get_async_s
     
     check_id = await access_token_verify(acces_token=Authorization)
     #фильтруем корзину по юзеру
-    pay_goods = await session.scalars(select(Basket).where(Basket.user_id == check_id[1]))
-    contacts = await session.scalars(select(Contacts).where(Contacts.user_id == check_id[1]))
-    id_contact = contacts[-1].id
+
+    # query = select(Basket).options(joinedload(Basket.product)).where(Basket.user_id == int(check_id[1]))    
+    # basket = await session.scalars(query)
+
+    pay_goods = await session.scalars(select(Basket).where(Basket.user_id == int(check_id[1])))
+    contacts = await session.scalars(select(Contacts).where(Contacts.user_id == int(check_id[1])))
+    id_contact = contacts.all()[-1].id
+
+    res = [Order_list(product_id=i.product_id, quantity=i.quantity, order_number=id_contact, user_id=int(check_id[1])) for i in pay_goods.all()]
+    
+    session.add_all(res)
+    session.delete(pay_goods.all())#все элементы корзины. Удаление не работает
+    await session.commit()
+
     print(contacts)
 
-    return {"contacts": contacts}
+    return RedirectResponse("/", status_code=303)
 
 
 
@@ -315,18 +356,35 @@ async def checkout(request: Request, session: AsyncSession = Depends(get_async_s
     # взять контакт по юзеру
 
 
-@router_showcase.get("/checkout_list", response_class=HTMLResponse)
-async def checkout_list(request: Request, session: AsyncSession = Depends(get_async_session)):
-    order_list = await session.execute(select(Order_list))
-    kont = await session.execute(select(Contacts))
+@router_showcase.get("/checkout_list/orders/", response_class=HTMLResponse)
+async def checkout_list(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None)):
 
+    org = await session.execute(select(Organization))    
+    gr = await session.execute(select(Group))
+
+
+    check_id = await access_token_verify(acces_token=Authorization)
+
+    query = select(Order_list).options(joinedload(Order_list.product)).where(Order_list.user_id == int(check_id[1]))    
+    order_list = await session.scalars(query)
+    
+    kont = await session.scalars(select(Contacts).where(Contacts.user_id == int(check_id[1])))
+    #таблица контактов будет постоянно пополняться и со временем станет огромной и жестко тупить при заказах, так как она пополняется от всех пользаков при каждом заказе. надо что-то придумать. 
     context = {
     "request": request,
-    "order_list": order_list.all(),
-    "contacts": kont.all()
+    "order_list": order_list,
+    "contacts": kont.all(),
+    "org": org.scalars().first(),
+    "group": gr.scalars().all(),
     }
+# .all()
+    return templates.TemplateResponse("showcase/checkout_list.html", context)
 
-    return templates.TemplateResponse("showcase/basket.html", context)
+
+#заказы не филтруются. Но формируется таблицы с заказами. И товары из корзины не удаляются после формирования заказа. 
+
+     
+
 
 
 

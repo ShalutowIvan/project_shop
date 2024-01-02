@@ -15,10 +15,11 @@
 
 # print(massiv)
 
-a = [1, 2, 3]
+a = [1,]
 
-q = list(filter(lambda x: x == 1, a))
-print(q)
+
+print(a[0])
+
 
 
 
