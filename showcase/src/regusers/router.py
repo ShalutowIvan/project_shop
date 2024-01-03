@@ -213,10 +213,11 @@ async def access_token_verify(acces_token):#проверка аксес токе
             
             print("ОШИБКА АКСЕС ТУТ")
             print(ex)
-            return ex, None
+            return ex, None#если токен истек то это
+
 
        
-        return False, None
+        return False, None#если токена нет вообще, то это возвращается
         
 
     return (True, user_id)

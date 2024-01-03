@@ -126,7 +126,9 @@ async def home(request: Request, Authorization: str | None = Cookie(default=None
 
     #нужно переделать модель чтобы через поле группы в таблице товаров можно было обращаться к названию группы, а не только к ИД группы. Иначе лишние sql запросы будут
 
-    response = templates.TemplateResponse("showcase/start.html", context)
+    response = templates.TemplateResponse("showcase/start.html", context)    
+    # print("ОШИБКА ТУТ!!!!!!!!!!!!!!")
+    # print(check[0])# тут фолз если нет токена вообще. Во втором элементе None
 
     if type(check[0]) == ExpiredSignatureError:    
         tokens = await update_tokens(RT=RT, db=session)
@@ -192,7 +194,20 @@ async def show_group(request: Request, slug: str, session: AsyncSession = Depend
 async def add_in_basket(request: Request, good_id: int, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None)):
     #подтянул ид пользака из токена
     check_id = await access_token_verify(acces_token=Authorization)
-    
+
+
+    org = await session.execute(select(Organization))    
+    gr = await session.execute(select(Group))
+    context = {
+    "request": request,    
+    "org": org.scalars().first(),
+    "group": gr.scalars().all(),
+
+    }
+    if check_id[1] == None:#если нет токена, то отображаем страницу следующую
+        return templates.TemplateResponse("showcase/if_not_auth.html", context)
+
+
     query = select(Basket).where(Basket.product_id == good_id, Basket.user_id == int(check_id[1]))
 
     basket = await session.scalars(query)
@@ -213,6 +228,8 @@ async def add_in_basket(request: Request, good_id: int, session: AsyncSession = 
     return RedirectResponse(http_referer)
     
    
+
+
 
 
 @router_showcase.get("/basket/goods/", response_class=HTMLResponse)
@@ -370,14 +387,15 @@ async def checkout_list(request: Request, session: AsyncSession = Depends(get_as
     
     kont = await session.scalars(select(Contacts).where(Contacts.user_id == int(check_id[1])))
     #таблица контактов будет постоянно пополняться и со временем станет огромной и жестко тупить при заказах, так как она пополняется от всех пользаков при каждом заказе. надо что-то придумать. 
+    
     context = {
     "request": request,
-    "order_list": order_list,
+    "order_list": order_list.all(),
     "contacts": kont.all(),
     "org": org.scalars().first(),
     "group": gr.scalars().all(),
     }
-# .all()
+
     return templates.TemplateResponse("showcase/checkout_list.html", context)
 
 
