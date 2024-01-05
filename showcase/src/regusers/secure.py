@@ -109,6 +109,15 @@ async def update_tokens(RT, db):#передаем сюда рефреш токе
 
 
 
+
+
+
+
+import smtplib
+from email.message import EmailMessage
+from celery import Celery
+
+
 #функция из джанго. Скорее всего нужно стандартную функцию юзать для почты smtplib. Возможно отправку почты сделать через селери, это как бы фоновая задача, отдельный процесс от фастапи, как бы второе приложение. И есть фловер, это еще один процесс.
 # async def send_email_verify(data: dict|None=None, use_https=False):
 # 	msg = MailBody(**data)
@@ -116,9 +125,9 @@ async def update_tokens(RT, db):#передаем сюда рефреш токе
 #     message["From"] = USERNAME
 #     message["To"] = ",".join(msg.to)
 #     message["Subject"] = msg.subject
-#
+
 #     ctx = create_default_context()
-#
+
 #     try:
 #         with SMTP(HOST, PORT) as server:
 #             server.ehlo()
@@ -130,22 +139,80 @@ async def update_tokens(RT, db):#передаем сюда рефреш токе
 #         return {"status": 200, "errors": None}
 #     except Exception as e:
 #         return {"status": 500, "errors": e}
-#
-# #понять где писать функцию отправки почты и что в нее передавать контекст html и тд
-# # background_tasks - фоновая задача, сам объект фоновой задачи принимает в себя функцию и параметры для нее. Выполняется в фоне
-#
-#
-#     current_site = get_current_site(request)
-#     context = {
-#     'user': user,
-#     'domain': current_site.domain,
-#     "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-#     "token": token_generator.make_token(user),
-#     'protocol': 'https' if use_https else 'http',
-#     }
-#
-#     html_body = render_to_string('regusers/user_active.html', context=context,)
-#     msg = EmailMultiAlternatives(subject='Активация', to=[user.email,],)
-#     msg.attach_alternative(html_body, "text/html")
-#     msg.send()
 
+
+async def send_email_verify(user, use_https=False):
+	email = EmailMessage()
+	email['Subject'] = 'Подтверждение регистрации в интернет магазине'
+	email['From'] = HOST_USER
+	email['To'] = user.email
+
+	email.set_content("<a href=http://127.0.0.1:8000/regusers/verification/><h1>ССЫЛКА</h1></a>" , subtype='html')
+    
+    #в этой функции нужно зашифровать пользака и потом дешифровать. Все это прокинуть в ссылке. В джанго там еще шифруется что-то. Можно подсмотреть там
+    
+
+	with smtplib.SMTP_SSL(HOST, PORT) as server:
+		server.login(HOST_USER, HOST_PASSWORD)
+		server.send_message(email)
+
+    # return email
+
+
+
+# '<h1>Здравствуйте</h1><h5>Перейдите по ссылке чтобы закончить регистрацию</h5>'
+# f"<a href="{{ protocol }}://{{ domain }}{% url 'regusers:activate_user' uidb64=uid token=token %}"><h1>ССЫЛКА</h1></a>"
+# f"<a href="{{ protocol }}://127.0.0.1:8000/{{ urlfor 'activate_user' }}"><h1>ССЫЛКА</h1></a>"
+# протокол прокинем через условие
+# домен как сделать в ссылке?
+# в урл не понятно зачем пишется uid и token
+
+
+
+    
+    # current_site = get_current_site(request)
+    # context = {
+    # 'user': user,
+    # 'domain': current_site.domain,
+    # "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+    # "token": token_generator.make_token(user),
+    # 'protocol': 'https' if use_https else 'http',
+    # }
+
+    # html_body = render_to_string('regusers/user_active.html', context=context,)
+    # msg = EmailMultiAlternatives(subject='Активация', to=[user.email,],)
+    # msg.attach_alternative(html_body, "text/html")
+    # msg.send()
+
+
+#########################
+# email = EmailMessage()
+#     email['Subject'] = 'Натрейдил Отчет Дашборд'
+#     email['From'] = SMTP_USER
+#     email['To'] = SMTP_USER
+
+#     email.set_content(
+#         '<div>'
+#         f'<h1 style="color: red;">Здравствуйте, {username}, а вот и ваш отчет. Зацените 😊</h1>'
+#         '<img src="https://static.vecteezy.com/system/resources/previews/008/295/031/original/custom-relationship'
+#         '-management-dashboard-ui-design-template-suitable-designing-application-for-android-and-ios-clean-style-app'
+#         '-mobile-free-vector.jpg" width="600">'
+#         '</div>',
+#         subtype='html'
+#     )
+#     return email
+
+
+# @celery.task
+# def send_email_report_dashboard(username: str):
+#     email = get_email_template_dashboard(username)
+#     with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
+#         server.login(SMTP_USER, SMTP_PASSWORD)
+#         server.send_message(email)
+
+
+
+
+
+#понять где писать функцию отправки почты и что в нее передавать контекст html и тд
+# background_tasks - фоновая задача, сам объект фоновой задачи принимает в себя функцию и параметры для нее. Выполняется в фоне

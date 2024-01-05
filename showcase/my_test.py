@@ -15,10 +15,11 @@
 
 # print(massiv)
 
-a = [1,]
+a = "asd"
+"zxc"
 
 
-print(a[0])
+print(a)
 
 
 

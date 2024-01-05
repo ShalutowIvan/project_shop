@@ -3,8 +3,6 @@ from fastapi import FastAPI, status, Response, Path, Request, Depends
 from fastapi.staticfiles import StaticFiles
 
 
-
-from typing import List, Union
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, PlainTextResponse
 
 

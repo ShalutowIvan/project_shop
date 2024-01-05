@@ -17,7 +17,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, OA
 
 from .schemas import *
 
-from .secure import pwd_context, create_access_token, create_refresh_token, update_tokens
+from .secure import pwd_context, create_access_token, create_refresh_token, update_tokens, send_email_verify
 
 import uuid
 
@@ -74,9 +74,22 @@ async def registration_post(request: Request, session: AsyncSession = Depends(ge
     
     session.add(user)
     await session.commit()
+    print("Письмо тут!!!!!!!!!!!!!!!!!!!!!!!")
+    await send_email_verify(user=user)#в этой функции нужно зашифровать пользака и потом дешифровать
 
 
     return RedirectResponse("/regusers/auth", status_code=303)
+
+@router_reg.get("/verification/", response_model=None, status_code=201)
+async def activate_user(request: Request, uidb64=None, token=None, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None)):
+    user_id = await access_token_verify(acces_token=Authorization)
+    user = await session.scalar(select(User).where(User.id == user_id[1]))
+    user.is_active = True
+    session.add(user)
+    await session.commit()
+
+    return RedirectResponse("/", status_code=303)
+
 
 
 #аннотейтед это такие аннотации с типом данных и значениями. В доке по фастапи есть инфа в питоне 3,8 как в метанит, а в питон 3,9 появились Annotated 
