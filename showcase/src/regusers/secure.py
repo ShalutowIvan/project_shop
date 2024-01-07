@@ -13,7 +13,7 @@ from .schemas import UserCreate, MailBody
 from fastapi.security import APIKeyHeader, APIKeyCookie, OAuth2PasswordBearer
 from passlib.context import CryptContext
 from jose import JWTError, jwt
-from src.settings import KEY, KEY2, ALG, EXPIRE_TIME, EXPIRE_TIME_REFRESH
+from src.settings import KEY, KEY2, ALG, EXPIRE_TIME, EXPIRE_TIME_REFRESH, KEY3
 from datetime import datetime, timedelta
 from jose.exceptions import ExpiredSignatureError
 
@@ -147,8 +147,18 @@ async def send_email_verify(user, use_https=False):
 	email['From'] = HOST_USER
 	email['To'] = user.email
 
-	email.set_content("<a href=http://127.0.0.1:8000/regusers/verification/><h1>ССЫЛКА</h1></a>" , subtype='html')
+	http = "http" if use_https == False else "https"	 
+
+	token = jwt.encode({"sub": str(user.id)}, KEY3, algorithm=ALG)
+	# to_encode = str(user.id)
+	# token = pwd_context.hash(to_encode)
+
+	#параметры из ссылки пойдут при запуске функции activate_user
+	email.set_content(f"<a href={http}://127.0.0.1:8000/regusers/verification/check_user/{token}><h1>ССЫЛКА</h1></a>" , subtype='html')
     
+    #в token передается параметр через слеш и считается второй ссылкой и не работает
+
+
     #в этой функции нужно зашифровать пользака и потом дешифровать. Все это прокинуть в ссылке. В джанго там еще шифруется что-то. Можно подсмотреть там
     
 

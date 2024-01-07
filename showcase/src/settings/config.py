@@ -23,6 +23,7 @@ DEFAULT_EMAIL = os.environ.get("DEFAULT_EMAIL")
 
 KEY = os.environ.get("KEY")#для jwt access токена при авторизации
 KEY2 = os.environ.get("KEY2")#для рефреш токена
+KEY3 = os.environ.get("KEY3")#для токена активации
 
 ALG = os.environ.get("ALGORITHM")
 

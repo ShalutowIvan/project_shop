@@ -2,11 +2,11 @@
 
 {% block content %}
 
-<br><br><br><br><br><br>
+<br><br>
 
-<h5>{{ t }}</h5>
+<h2>{{ t }}</h2>
 
-<a href="{% url 'start' %}"><h5>Вернуться на главную страницу</h5></a>
+<a href="{{ url_for('home') }}"><h3>Вернуться на главную страницу</h3></a>
 
 
 {% endblock %}

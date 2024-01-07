@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field, EmailStr, validator, UUID4
 
 from src.db import get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.settings import templates, EXPIRE_TIME, KEY, KEY2, ALG, EXPIRE_TIME_REFRESH
+from src.settings import templates, EXPIRE_TIME, KEY, KEY2, ALG, EXPIRE_TIME_REFRESH, KEY3
 
 from .models import *
 from src.showcase.models import *
@@ -40,7 +40,6 @@ router_reg = APIRouter(
 
 #роутеры для реги
 
-
 @router_reg.get("/registration")
 async def registration_get(request: Request, session: AsyncSession = Depends(get_async_session)):
 
@@ -62,33 +61,81 @@ async def registration_get(request: Request, session: AsyncSession = Depends(get
 # def reg(user_data: schemas.UserCreate, session: AsyncSession = Depends(get_async_session)):
 
 
-# , response_model=UserCreate
 @router_reg.post("/registration", response_model=None, status_code=201)#response_model это валидация для запроса
 async def registration_post(request: Request, session: AsyncSession = Depends(get_async_session), name: str = Form(), email: str = Form(), password: str = Form()):
     # stmt = await session.execute(select(users))
 
     user = User(name=name, email=email, hashed_password=pwd_context.hash(password))
-
-    # stmt = insert(users).values(email=email, name=name, password=password)
-    # user = stmt.users(email=email, name=name, password=password)
     
     session.add(user)
     await session.commit()
-    print("Письмо тут!!!!!!!!!!!!!!!!!!!!!!!")
+    # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    # print(user.time_create_user)
+
     await send_email_verify(user=user)#в этой функции нужно зашифровать пользака и потом дешифровать
 
+    return RedirectResponse("/regusers/verification/check/", status_code=303)
 
-    return RedirectResponse("/regusers/auth", status_code=303)
 
-@router_reg.get("/verification/", response_model=None, status_code=201)
-async def activate_user(request: Request, uidb64=None, token=None, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None)):
-    user_id = await access_token_verify(acces_token=Authorization)
-    user = await session.scalar(select(User).where(User.id == user_id[1]))
+#это просто подсказка, о том что нужно зайти на почту и перейти по ссылке
+@router_reg.get("/verification/check/", response_model=None, status_code=201)
+async def confirm_email(request: Request, session: AsyncSession = Depends(get_async_session)):
+
+    t = "Перейдите в вашу почту и перейдите по ссылке из письма для подтверждения адреса почты и активации пользователя"
+    org = await session.execute(select(Organization))    
+    gr = await session.execute(select(Group))
+
+    context = {
+    "request": request,
+    "org": org.scalars().first(),
+    "group": gr.scalars().all(),
+    "t": t,
+    }
+
+    response = templates.TemplateResponse("regusers/check_email.html", context)
+    return response
+
+# @router_reg.get("/verification/check_user/{token}", response_model=None, status_code=201)
+# async def activate_user_get(request: Request, token: str, session: AsyncSession = Depends(get_async_session)):
+#     org = await session.execute(select(Organization))    
+#     gr = await session.execute(select(Group))
+
+#     context = {
+#     "request": request,
+#     "org": org.scalars().first(),
+#     "group": gr.scalars().all(),
+#     "t": t,
+#     }
+
+#     response = templates.TemplateResponse("regusers/check_email.html", context)
+#     return response
+
+# с формой затык
+
+@router_reg.get("/verification/check_user/{token}", response_model=None, status_code=201)
+async def activate_user(request: Request, token: str, session: AsyncSession = Depends(get_async_session)):
+    
+    try:
+        payload = jwt.decode(token, KEY3, algorithms=[ALG])#в acces_token передается просто строка
+        
+        user_id = payload.get("sub")#у меня тут user_id, а не юзернейм
+        if user_id is None:
+            raise HTTPException(status_code=400, detail="Нет такого пользователя")            
+    
+    except Exception as ex:
+        # print("!!!!!!!!!!!!!!!!!!!!!!!!!")
+        # print(ex)
+
+        raise HTTPException(status_code=400, detail="Incorrect URL")
+    
+
+    user = await session.scalar(select(User).where(User.id == int(user_id)))   
+    
     user.is_active = True
     session.add(user)
     await session.commit()
-
-    return RedirectResponse("/", status_code=303)
+    
+    return RedirectResponse("/regusers/auth/", status_code=303) 
 
 
 
@@ -121,6 +168,8 @@ async def auth_get(request: Request, session: AsyncSession = Depends(get_async_s
 async def auth_user(response: Response, request: Request, session: AsyncSession = Depends(get_async_session), email: EmailStr = Form(), password: str = Form()):
 
     user: User = await session.scalar(select(User).where(User.email == email))#ищем пользователя по емейл
+    # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ТУТ")
+    # print(user.time_create_user)
     if not user:
         raise HTTPException(
             status_code=HTTP_404_NOT_FOUND,
@@ -168,19 +217,23 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
 
     org = await session.execute(select(Organization))    
     gr = await session.execute(select(Group))
+    gd = await session.execute(select(Goods))
 
     context = {
     "request": request,
     "org": org.scalars().first(),
     "group": gr.scalars().all(),
+    "gd": gd.scalars(),
+    "user_name": user.name,
+    "check": True,
     }
     
-    response = templates.TemplateResponse("regusers/login.html", context)    
+    response = templates.TemplateResponse("showcase/start.html", context)    
     response.set_cookie(key="RT", value=refresh_token.refresh_token)
     response.set_cookie(key="Authorization", value=access_token_jwt)
    
     return response
-    
+    # return RedirectResponse("/", status_code=303) 
 
 
 @router_reg.get("/logout")

@@ -359,7 +359,9 @@ async def checkout(request: Request, session: AsyncSession = Depends(get_async_s
     res = [Order_list(product_id=i.product_id, quantity=i.quantity, order_number=id_contact, user_id=int(check_id[1])) for i in pay_goods.all()]
     
     session.add_all(res)
-    session.delete(pay_goods.all())#все элементы корзины. Удаление не работает
+    stmt = Basket.delete()
+    session.execute(stmt)
+        # delete(pay_goods#все элементы корзины. Удаление не работает
     await session.commit()
 
     print(contacts)

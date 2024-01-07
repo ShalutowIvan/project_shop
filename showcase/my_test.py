@@ -14,12 +14,11 @@
 # 	massiv.append(int(input()))
 
 # print(massiv)
+use_https = True
+http = "http" if use_https == False else "https"
 
-a = "asd"
-"zxc"
 
-
-print(a)
+print(http)
 
 
 
