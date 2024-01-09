@@ -95,21 +95,6 @@ async def confirm_email(request: Request, session: AsyncSession = Depends(get_as
     response = templates.TemplateResponse("regusers/check_email.html", context)
     return response
 
-# @router_reg.get("/verification/check_user/{token}", response_model=None, status_code=201)
-# async def activate_user_get(request: Request, token: str, session: AsyncSession = Depends(get_async_session)):
-#     org = await session.execute(select(Organization))    
-#     gr = await session.execute(select(Group))
-
-#     context = {
-#     "request": request,
-#     "org": org.scalars().first(),
-#     "group": gr.scalars().all(),
-#     "t": t,
-#     }
-
-#     response = templates.TemplateResponse("regusers/check_email.html", context)
-#     return response
-
 # с формой затык
 
 #функция обработки ссылки из письма при активации пользака
@@ -139,10 +124,7 @@ async def activate_user(request: Request, token: str, session: AsyncSession = De
     return RedirectResponse("/regusers/auth/", status_code=303) 
 
 
-
 #аннотейтед это такие аннотации с типом данных и значениями. В доке по фастапи есть инфа в питоне 3,8 как в метанит, а в питон 3,9 появились Annotated 
-
-
 
 #какой то видос про фаст апи для создания инет магаза
 # https://www.youtube.com/watch?v=RHWqTpNvJQw&list=PL2nrINOQYLiX6U8ArGi6Kvs_iItdWCYUi&index=1&ab_channel=%D0%93%D0%BB%D0%B5%D0%B1%D0%A2%D1%83%D0%BC%D0%B0%D0%BD%D0%BE%D0%B2
@@ -163,25 +145,13 @@ async def forgot_password_get(request: Request, session: AsyncSession = Depends(
     return response
 
 
-
 #функция post для страницы забыли пароль
 @router_reg.post("/forgot_password/", response_model=None, response_class=HTMLResponse)
 async def forgot_password_post(request: Request, session: AsyncSession = Depends(get_async_session), email: EmailStr = Form()):
-    org = await session.execute(select(Organization))    
-    gr = await session.execute(select(Group))
-
-    context = {
-    "request": request,
-    "org": org.scalars().first(),
-    "group": gr.scalars().all(),
-    }
     user = await session.scalar(select(User).where(User.email == email))
     await send_email_restore_password(user=user)
 
-# тут сброс пароля должен быть
-
-    
-    return RedirectResponse("regusers/restore/pass/", status_code=303)
+    return RedirectResponse("/regusers/restore/pass/", status_code=303)
 
 
 #это просто подсказка, о том что нужно зайти на почту и перейти по ссылке при сбросе пароля
@@ -191,32 +161,37 @@ async def confirm_email_restore_pass(request: Request, session: AsyncSession = D
     t = "Перейдите в вашу почту и перейдите по ссылке из письма для восстановления пароля пользователя"
     org = await session.execute(select(Organization))    
     gr = await session.execute(select(Group))
-
     context = {
     "request": request,
     "org": org.scalars().first(),
     "group": gr.scalars().all(),
     "t": t,
     }
-
     response = templates.TemplateResponse("regusers/go_to_restore_password.html", context)
     return response
 
-
+#тут форма для ввода нового пароля, пароль нужно запрашивать дважды. при реге тоже. регу переделать. Затык с формой опять же.... УРЛ из письма должна запускать форму, а функция для формы должна забирать данные из html. Просто ввод нового пароля без токена не подходит, потому что теряется смысл безопаности и любой у кого есть ссылка напишет почту и новый пароль.
 
 #get запрос для отрисовки страницы формы....
-@router_reg.get("/restore/password_user/{token}", response_model=None, status_code=201)
+@router_reg.get("/restore/password_user/{token}")
 async def restore_password_user_get(request: Request, token: str, session: AsyncSession = Depends(get_async_session)):
-
-    
-    org = await session.execute(select(Organization))    
+    org = await session.execute(select(Organization))
     gr = await session.execute(select(Group))
+
+    try:
+        payload = jwt.decode(token, KEY4, algorithms=[ALG])#token сюда надо перекинуть
+        user_id = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=400, detail="Нет такого пользователя")
+
+    except Exception as ex:
+        raise HTTPException(status_code=400, detail="Incorrect URL")
 
     context = {
     "request": request,
     "org": org.scalars().first(),
     "group": gr.scalars().all(),
-    "token": token,
+    # "token": token,
     }
 
     response = templates.TemplateResponse("regusers/new_password.html", context)
@@ -224,33 +199,15 @@ async def restore_password_user_get(request: Request, token: str, session: Async
 
 
 #функция для обработки ссылки из письма для сброса пароля
-@router_reg.post("/restore/password_user/", response_model=None, status_code=201)
-async def restore_password_user(request: Request, token: str, session: AsyncSession = Depends(get_async_session), password: str = Form()):
+@router_reg.post("/restore/password_user/")
+async def restore_password_user(request: Request, session: AsyncSession = Depends(get_async_session), password: str = Form()):
 
-    #тут форма для ввода нового пароля, пароль нужно запрашивать дважды. при реге тоже. регу переделать. Затык с формой опять же.... УРЛ из письма должна запускать форму, а функция для формы должна забирать данные из html. Просто ввод нового пароля без токена не подходит, потому что теряется смысл безопаности и любой у кого есть ссылка напишет почту и новый пароль. 
-
-    try:
-        payload = jwt.decode(token, KEY4, algorithms=[ALG])#в acces_token передается просто строка
-        
-        user_id = payload.get("sub")#у меня тут user_id
-        if user_id is None:
-            raise HTTPException(status_code=400, detail="Нет такого пользователя")            
-    
-    except Exception as ex:
-        # print("!!!!!!!!!!!!!!!!!!!!!!!!!")
-        # print(ex)
-
-        raise HTTPException(status_code=400, detail="Incorrect URL")
-    
-
-    user = await session.scalar(select(User).where(User.id == int(user_id)))   
-
+    user = await session.scalar(select(User).where(User.id == int(user_id)))#user_id берется из токена.
     user.hashed_password = pwd_context.hash(password)
-
     session.add(user)
     await session.commit()
-    
-    return RedirectResponse("/regusers/auth/", status_code=303) 
+    return RedirectResponse("/regusers/auth/", status_code=303)
+
 
 
 

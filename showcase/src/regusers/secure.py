@@ -117,7 +117,7 @@ async def update_tokens(RT, db):#передаем сюда рефреш токе
 
 import smtplib
 from email.message import EmailMessage
-from celery import Celery
+# from celery import Celery
 
 
 #функция из джанго. Скорее всего нужно стандартную функцию юзать для почты smtplib. Возможно отправку почты сделать через селери, это как бы фоновая задача, отдельный процесс от фастапи, как бы второе приложение. И есть фловер, это еще один процесс.
