@@ -13,7 +13,7 @@ from .schemas import UserCreate, MailBody
 from fastapi.security import APIKeyHeader, APIKeyCookie, OAuth2PasswordBearer
 from passlib.context import CryptContext
 from jose import JWTError, jwt
-from src.settings import KEY, KEY2, ALG, EXPIRE_TIME, EXPIRE_TIME_REFRESH, KEY3
+from src.settings import KEY, KEY2, ALG, EXPIRE_TIME, EXPIRE_TIME_REFRESH, KEY3, KEY4
 from datetime import datetime, timedelta
 from jose.exceptions import ExpiredSignatureError
 
@@ -22,6 +22,8 @@ from src.settings import PORT, HOST, HOST_USER, HOST_PASSWORD, DEFAULT_EMAIL
 from ssl import create_default_context
 from email.mime.text import MIMEText
 from smtplib import SMTP
+from pydantic import EmailStr
+
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -150,49 +152,37 @@ async def send_email_verify(user, use_https=False):
 	http = "http" if use_https == False else "https"	 
 
 	token = jwt.encode({"sub": str(user.id)}, KEY3, algorithm=ALG)
-	# to_encode = str(user.id)
-	# token = pwd_context.hash(to_encode)
-
+	
 	#параметры из ссылки пойдут при запуске функции activate_user
 	email.set_content(f"<a href={http}://127.0.0.1:8000/regusers/verification/check_user/{token}><h1>ССЫЛКА</h1></a>" , subtype='html')
     
-    #в token передается параметр через слеш и считается второй ссылкой и не работает
-
-
-    #в этой функции нужно зашифровать пользака и потом дешифровать. Все это прокинуть в ссылке. В джанго там еще шифруется что-то. Можно подсмотреть там
-    
-
 	with smtplib.SMTP_SSL(HOST, PORT) as server:
 		server.login(HOST_USER, HOST_PASSWORD)
 		server.send_message(email)
 
-    # return email
+    
 
+async def send_email_restore_password(user, use_https=False):
+	email = EmailMessage()
+	email['Subject'] = 'Восстановление пароля'
+	email['From'] = HOST_USER
+	email['To'] = user.email
 
+	http = "http" if use_https == False else "https"	 
 
-# '<h1>Здравствуйте</h1><h5>Перейдите по ссылке чтобы закончить регистрацию</h5>'
-# f"<a href="{{ protocol }}://{{ domain }}{% url 'regusers:activate_user' uidb64=uid token=token %}"><h1>ССЫЛКА</h1></a>"
-# f"<a href="{{ protocol }}://127.0.0.1:8000/{{ urlfor 'activate_user' }}"><h1>ССЫЛКА</h1></a>"
-# протокол прокинем через условие
-# домен как сделать в ссылке?
-# в урл не понятно зачем пишется uid и token
+	token = jwt.encode({"sub": str(user.id)}, KEY4, algorithm=ALG)
+	
+	#параметры из ссылки пойдут при запуске функции activate_user
+	email.set_content(f"<a href={http}://127.0.0.1:8000/regusers/restore/password_user/{token}><h1>ССЫЛКА</h1></a>" , subtype='html')
+    
+	with smtplib.SMTP_SSL(HOST, PORT) as server:
+		server.login(HOST_USER, HOST_PASSWORD)
+		server.send_message(email)
 
 
 
     
-    # current_site = get_current_site(request)
-    # context = {
-    # 'user': user,
-    # 'domain': current_site.domain,
-    # "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-    # "token": token_generator.make_token(user),
-    # 'protocol': 'https' if use_https else 'http',
-    # }
-
-    # html_body = render_to_string('regusers/user_active.html', context=context,)
-    # msg = EmailMultiAlternatives(subject='Активация', to=[user.email,],)
-    # msg.attach_alternative(html_body, "text/html")
-    # msg.send()
+   
 
 
 #########################

@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field, EmailStr, validator, UUID4
 
 from src.db import get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.settings import templates, EXPIRE_TIME, KEY, KEY2, ALG, EXPIRE_TIME_REFRESH, KEY3
+from src.settings import templates, EXPIRE_TIME, KEY, KEY2, ALG, EXPIRE_TIME_REFRESH, KEY3, KEY4
 
 from .models import *
 from src.showcase.models import *
@@ -17,7 +17,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, OA
 
 from .schemas import *
 
-from .secure import pwd_context, create_access_token, create_refresh_token, update_tokens, send_email_verify
+from .secure import pwd_context, create_access_token, create_refresh_token, update_tokens, send_email_verify, send_email_restore_password
 
 import uuid
 
@@ -112,6 +112,7 @@ async def confirm_email(request: Request, session: AsyncSession = Depends(get_as
 
 # с формой затык
 
+#функция обработки ссылки из письма при активации пользака
 @router_reg.get("/verification/check_user/{token}", response_model=None, status_code=201)
 async def activate_user(request: Request, token: str, session: AsyncSession = Depends(get_async_session)):
     
@@ -143,12 +144,119 @@ async def activate_user(request: Request, token: str, session: AsyncSession = De
 
 
 
-
+#какой то видос про фаст апи для создания инет магаза
 # https://www.youtube.com/watch?v=RHWqTpNvJQw&list=PL2nrINOQYLiX6U8ArGi6Kvs_iItdWCYUi&index=1&ab_channel=%D0%93%D0%BB%D0%B5%D0%B1%D0%A2%D1%83%D0%BC%D0%B0%D0%BD%D0%BE%D0%B2
 
+#функция get для страницы забыли пароль
+@router_reg.get("/forgot_password/", response_model=None, response_class=HTMLResponse)
+async def forgot_password_get(request: Request, session: AsyncSession = Depends(get_async_session)):
+    org = await session.execute(select(Organization))    
+    gr = await session.execute(select(Group))
+
+    context = {
+    "request": request,
+    "org": org.scalars().first(),
+    "group": gr.scalars().all(),
+    }
+
+    response = templates.TemplateResponse("regusers/forgot_password.html", context)
+    return response
 
 
 
+#функция post для страницы забыли пароль
+@router_reg.post("/forgot_password/", response_model=None, response_class=HTMLResponse)
+async def forgot_password_post(request: Request, session: AsyncSession = Depends(get_async_session), email: EmailStr = Form()):
+    org = await session.execute(select(Organization))    
+    gr = await session.execute(select(Group))
+
+    context = {
+    "request": request,
+    "org": org.scalars().first(),
+    "group": gr.scalars().all(),
+    }
+    user = await session.scalar(select(User).where(User.email == email))
+    await send_email_restore_password(user=user)
+
+# тут сброс пароля должен быть
+
+    
+    return RedirectResponse("regusers/restore/pass/", status_code=303)
+
+
+#это просто подсказка, о том что нужно зайти на почту и перейти по ссылке при сбросе пароля
+@router_reg.get("/restore/pass/", response_model=None, status_code=201)
+async def confirm_email_restore_pass(request: Request, session: AsyncSession = Depends(get_async_session)):
+
+    t = "Перейдите в вашу почту и перейдите по ссылке из письма для восстановления пароля пользователя"
+    org = await session.execute(select(Organization))    
+    gr = await session.execute(select(Group))
+
+    context = {
+    "request": request,
+    "org": org.scalars().first(),
+    "group": gr.scalars().all(),
+    "t": t,
+    }
+
+    response = templates.TemplateResponse("regusers/go_to_restore_password.html", context)
+    return response
+
+
+
+#get запрос для отрисовки страницы формы....
+@router_reg.get("/restore/password_user/{token}", response_model=None, status_code=201)
+async def restore_password_user_get(request: Request, token: str, session: AsyncSession = Depends(get_async_session)):
+
+    
+    org = await session.execute(select(Organization))    
+    gr = await session.execute(select(Group))
+
+    context = {
+    "request": request,
+    "org": org.scalars().first(),
+    "group": gr.scalars().all(),
+    "token": token,
+    }
+
+    response = templates.TemplateResponse("regusers/new_password.html", context)
+    return response
+
+
+#функция для обработки ссылки из письма для сброса пароля
+@router_reg.post("/restore/password_user/", response_model=None, status_code=201)
+async def restore_password_user(request: Request, token: str, session: AsyncSession = Depends(get_async_session), password: str = Form()):
+
+    #тут форма для ввода нового пароля, пароль нужно запрашивать дважды. при реге тоже. регу переделать. Затык с формой опять же.... УРЛ из письма должна запускать форму, а функция для формы должна забирать данные из html. Просто ввод нового пароля без токена не подходит, потому что теряется смысл безопаности и любой у кого есть ссылка напишет почту и новый пароль. 
+
+    try:
+        payload = jwt.decode(token, KEY4, algorithms=[ALG])#в acces_token передается просто строка
+        
+        user_id = payload.get("sub")#у меня тут user_id
+        if user_id is None:
+            raise HTTPException(status_code=400, detail="Нет такого пользователя")            
+    
+    except Exception as ex:
+        # print("!!!!!!!!!!!!!!!!!!!!!!!!!")
+        # print(ex)
+
+        raise HTTPException(status_code=400, detail="Incorrect URL")
+    
+
+    user = await session.scalar(select(User).where(User.id == int(user_id)))   
+
+    user.hashed_password = pwd_context.hash(password)
+
+    session.add(user)
+    await session.commit()
+    
+    return RedirectResponse("/regusers/auth/", status_code=303) 
+
+
+
+
+
+#функция авторизации
 @router_reg.get("/auth", response_model=None, response_class=HTMLResponse)
 async def auth_get(request: Request, session: AsyncSession = Depends(get_async_session)):
     org = await session.execute(select(Organization))    
@@ -163,7 +271,7 @@ async def auth_get(request: Request, session: AsyncSession = Depends(get_async_s
     response = templates.TemplateResponse("regusers/login.html", context)
     return response
 
-#пока сделал проверку пользователя по вводу логина и пароля и если все верно то создается токен в БД, в токене есть юзер ид пользователя
+
 @router_reg.post("/auth", response_model=None, response_class=HTMLResponse)
 async def auth_user(response: Response, request: Request, session: AsyncSession = Depends(get_async_session), email: EmailStr = Form(), password: str = Form()):
 
