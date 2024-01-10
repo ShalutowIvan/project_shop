@@ -123,9 +123,6 @@ async def home(request: Request, Authorization: str | None = Cookie(default=None
     "user_name": user_name,
     }
 
-
-    #нужно переделать модель чтобы через поле группы в таблице товаров можно было обращаться к названию группы, а не только к ИД группы. Иначе лишние sql запросы будут
-
     response = templates.TemplateResponse("showcase/start.html", context)    
     # print("ОШИБКА ТУТ!!!!!!!!!!!!!!")
     # print(check[0])# тут фолз если нет токена вообще. Во втором элементе None

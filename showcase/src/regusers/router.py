@@ -172,14 +172,29 @@ async def confirm_email_restore_pass(request: Request, session: AsyncSession = D
 
 #тут форма для ввода нового пароля, пароль нужно запрашивать дважды. при реге тоже. регу переделать. Затык с формой опять же.... УРЛ из письма должна запускать форму, а функция для формы должна забирать данные из html. Просто ввод нового пароля без токена не подходит, потому что теряется смысл безопаности и любой у кого есть ссылка напишет почту и новый пароль.
 
-#get запрос для отрисовки страницы формы....
+#get запрос для отрисовки страницы формы восстановления пароля....
 @router_reg.get("/restore/password_user/{token}")
 async def restore_password_user_get(request: Request, token: str, session: AsyncSession = Depends(get_async_session)):
     org = await session.execute(select(Organization))
-    gr = await session.execute(select(Group))
+    gr = await session.execute(select(Group))    
+
+    context = {
+    "request": request,
+    "org": org.scalars().first(),
+    "group": gr.scalars().all(),
+    "token": token,
+    }
+
+    response = templates.TemplateResponse("regusers/new_password.html", context)
+    return response
+
+
+#функция для обработки ссылки из письма для сброса пароля. token автоматом закидывается в форму, и поле с токеном в html сделал невидимым
+@router_reg.post("/restore/password_user/")
+async def restore_password_user(request: Request, session: AsyncSession = Depends(get_async_session), password: str = Form(), token: str = Form()):
 
     try:
-        payload = jwt.decode(token, KEY4, algorithms=[ALG])#token сюда надо перекинуть
+        payload = jwt.decode(token, KEY4, algorithms=[ALG])
         user_id = payload.get("sub")
         if user_id is None:
             raise HTTPException(status_code=400, detail="Нет такого пользователя")
@@ -187,22 +202,8 @@ async def restore_password_user_get(request: Request, token: str, session: Async
     except Exception as ex:
         raise HTTPException(status_code=400, detail="Incorrect URL")
 
-    context = {
-    "request": request,
-    "org": org.scalars().first(),
-    "group": gr.scalars().all(),
-    # "token": token,
-    }
 
-    response = templates.TemplateResponse("regusers/new_password.html", context)
-    return response
-
-
-#функция для обработки ссылки из письма для сброса пароля
-@router_reg.post("/restore/password_user/")
-async def restore_password_user(request: Request, session: AsyncSession = Depends(get_async_session), password: str = Form()):
-
-    user = await session.scalar(select(User).where(User.id == int(user_id)))#user_id берется из токена.
+    user = await session.scalar(select(User).where(User.id == int(user_id)))##token сюда надо перекинуть и юзерид
     user.hashed_password = pwd_context.hash(password)
     session.add(user)
     await session.commit()

@@ -161,7 +161,7 @@ async def send_email_verify(user, use_https=False):
 		server.send_message(email)
 
     
-
+# сделать токен одноразовым
 async def send_email_restore_password(user, use_https=False):
 	email = EmailMessage()
 	email['Subject'] = 'Восстановление пароля'

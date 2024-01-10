@@ -270,4 +270,7 @@ position: fixed;
 */
 
 
-
+.invis{
+visibility: hidden;
+/* display: none;	*/
+}
