@@ -217,6 +217,7 @@ async def add_in_basket(request: Request, good_id: int, session: AsyncSession = 
         session.add(product)
         await session.commit()
     else:
+        check_id = await access_token_verify(acces_token=Authorization)
         basket[0].quantity += 1
         await session.commit()
         
@@ -252,7 +253,7 @@ async def basket_view(request: Request, session: AsyncSession = Depends(get_asyn
     "basket": basket,
     "org": org.scalars().first(),
     "group": gr.scalars().all(),
-
+    "check": check_id[0],
     }
 
     return templates.TemplateResponse("showcase/basket.html", context)
@@ -273,7 +274,8 @@ async def basket_view(request: Request, session: AsyncSession = Depends(get_asyn
 async def delete_in_basket(request: Request, basket_id: int, session: AsyncSession = Depends(get_async_session)):    
     
     basket = await session.get(Basket, basket_id)
-    
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print(basket)
     await session.delete(basket)
     await session.commit()    
     
@@ -315,7 +317,8 @@ async def contacts(request: Request, session: AsyncSession = Depends(get_async_s
     "group": gr.scalars().all(),
     }
 
-    return templates.TemplateResponse("showcase/contacts.html", context)
+    response = templates.TemplateResponse("showcase/contacts.html", context)
+    return response
 
 
 #заготовка для формы запроса контактов из формы регистрации, переделать под запрос контактов
@@ -324,22 +327,14 @@ async def contacts_form(request: Request, session: AsyncSession = Depends(get_as
     # по куки Authorization найти ид пользака
     check_id = await access_token_verify(acces_token=Authorization)
     kontakt = Contacts(fio=fio, phone=phone, delivery_address=delivery_address, pay_id=pay, user_id=int(check_id[1]))
-    
-    # stmt = await session.execute(select(users))
-
-    # user = User(name=name, email=email, hashed_password=pwd_context.hash(password))
-
-    # stmt = insert(users).values(email=email, name=name, password=password)
-    # user = stmt.users(email=email, name=name, password=password)
-    
+        
     session.add(kontakt)
     await session.commit()
-
 
     return RedirectResponse("/basket/contacts/checkout/", status_code=303)
 
 
-
+#роутер для кнопки оформления заказа после ввода контактов
 @router_showcase.get("/basket/contacts/checkout/", response_class=HTMLResponse)
 async def checkout(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None)):
     
@@ -356,8 +351,15 @@ async def checkout(request: Request, session: AsyncSession = Depends(get_async_s
     res = [Order_list(product_id=i.product_id, quantity=i.quantity, order_number=id_contact, user_id=int(check_id[1])) for i in pay_goods.all()]
     
     session.add_all(res)
-    stmt = Basket.delete()
-    session.execute(stmt)
+
+    # for i in pay_goods.all():  
+    #     print("!!!!!!!!!!!!!!!!!!!")
+    #     print(i)
+
+    #     await session.delete(i)
+
+    
+    
         # delete(pay_goods#все элементы корзины. Удаление не работает
     await session.commit()
 
@@ -473,6 +475,7 @@ async def checkout_list(request: Request, session: AsyncSession = Depends(get_as
 
 #     {% endif %}
 # <!--конец форма -->
+
 
 
 

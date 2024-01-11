@@ -66,6 +66,8 @@ async def update_tokens(RT, db):#передаем сюда рефреш токе
 		payload = jwt.decode(RT, KEY2, algorithms=[ALG])
 		pl_id = payload.get("sub")
 		pl_email = payload.get("iss")
+		print("ВАСЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯ!!!!!!!")
+		print(pl_id)
 
 	except Exception as ex:#если истек рефреш то его просто удаляем, и нужно заново логиниться
 		print("ОШИБКА ОБНОВЛЕНИЯ ТУТ!!!!!!!!!")
@@ -82,11 +84,14 @@ async def update_tokens(RT, db):#передаем сюда рефреш токе
         
     #проверка совпадает ли токен из кук с базой для безопасности, в случае если злоумышленник обновил уже токен, а мы нет, то все токены должны удалиться
 	RT_in_db: Token = await db.scalar(select(Token).where(Token.refresh_token == RT))#ищем рефреш в ДБ по токену из кук
+	# print("ВАСЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯ!!!!!!!")
+	# print(RT_in_db)
 	if not RT_in_db:
 		tk: Token = await db.scalar(select(Token).where(Token.user_id == int(pl_id)))#ищем токен по пользаку и удаляем его
-		await db.delete(tk)
-		await db.commit()
-		await db.refresh(tk)
+		if tk:
+			await db.delete(tk)
+			await db.commit()
+			await db.refresh(tk)
 		print("Токен не совпадает с базой!!!!!!!")
 		return False, False
 
