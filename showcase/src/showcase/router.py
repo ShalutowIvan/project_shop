@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, Cookie
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, PlainTextResponse
 
 
-from sqlalchemy import insert, select
+from sqlalchemy import insert, select, text
 from sqlalchemy.orm import joinedload
 
 from src.db import get_async_session
@@ -95,6 +95,24 @@ router_showcase = APIRouter(
 
 ##################################################################################
 
+# функция для авторизации в других функциях, планирую ее как зависимость сделать или просто в теле функции вызывать
+async def authorization(auth, rt):
+
+    check = await access_token_verify(acces_token=auth)
+
+    response = templates.TemplateResponse("showcase/start.html", {"request": request}) 
+
+    if type(check[0]) == ExpiredSignatureError:    
+        tokens = await update_tokens(RT=RT, db=session)
+        refresh = tokens[0]
+        access = tokens[1]
+        response.set_cookie(key="RT", value=refresh)
+        response.set_cookie(key="Authorization", value=access)
+
+    return response
+
+
+
 
 @router_showcase.get("/", response_class=HTMLResponse)
 async def home(request: Request, Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):    
@@ -140,7 +158,7 @@ async def home(request: Request, Authorization: str | None = Cookie(default=None
 
 
 @router_showcase.get("/{slug}", response_class=HTMLResponse)
-async def show_group(request: Request, slug: str, session: AsyncSession = Depends(get_async_session)):
+async def show_group(request: Request, slug: str, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
     # параметр должен подтянуться из базы групп из поля слаг. В теле функции нужно по слагу фильтровать товары через запрос из бд и выводить их html в отдельный шаблон с контекстом. 
 
     #нужно сделать валидацию для параметра slug, а то он тянет любое значение лиш бы было str
@@ -149,9 +167,7 @@ async def show_group(request: Request, slug: str, session: AsyncSession = Depend
     good_gr = list(filter(lambda x: x.group.slug == slug, good_gr))
 
     gr = await session.execute(select(Group))
-
-    # good_gr = await session.execute(select(Goods))
-    # good_gr = await session.scalars(select(Goods).where(Goods.group_id == sl.id))
+    
     org = await session.execute(select(Organization))
 
 
@@ -231,10 +247,19 @@ async def add_in_basket(request: Request, good_id: int, session: AsyncSession = 
 
 
 @router_showcase.get("/basket/goods/", response_class=HTMLResponse)
-async def basket_view(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None)):
+async def basket_view(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
 
     check_id = await access_token_verify(acces_token=Authorization)
     
+    if type(check_id[0]) == ExpiredSignatureError:    
+        tokens = await update_tokens(RT=RT, db=session)
+        refresh = tokens[0]
+        access = tokens[1]
+        response.set_cookie(key="RT", value=refresh)
+        response.set_cookie(key="Authorization", value=access)
+
+
+
     query = select(Basket).options(joinedload(Basket.product)).where(Basket.user_id == int(check_id[1]))    
     basket = await session.scalars(query)
     # basket = basket.all()
@@ -274,8 +299,8 @@ async def basket_view(request: Request, session: AsyncSession = Depends(get_asyn
 async def delete_in_basket(request: Request, basket_id: int, session: AsyncSession = Depends(get_async_session)):    
     
     basket = await session.get(Basket, basket_id)
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    print(basket)
+    # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    # print(basket.product_id)
     await session.delete(basket)
     await session.commit()    
     
@@ -352,21 +377,12 @@ async def checkout(request: Request, session: AsyncSession = Depends(get_async_s
     
     session.add_all(res)
 
-    # for i in pay_goods.all():  
-    #     print("!!!!!!!!!!!!!!!!!!!")
-    #     print(i)
-
-    #     await session.delete(i)
-
-    
-    
-        # delete(pay_goods#все элементы корзины. Удаление не работает
+    #удаление всех записей в корзине с фильтром по пользаку
+    await session.execute(text(f"DELETE FROM basket WHERE user_id = {check_id[1]};"))    
+        
     await session.commit()
 
-    print(contacts)
-
     return RedirectResponse("/", status_code=303)
-
 
 
 
@@ -375,7 +391,7 @@ async def checkout(request: Request, session: AsyncSession = Depends(get_async_s
 
 
 @router_showcase.get("/checkout_list/orders/", response_class=HTMLResponse)
-async def checkout_list(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None)):
+async def checkout_list(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
 
     org = await session.execute(select(Organization))    
     gr = await session.execute(select(Group))
@@ -383,6 +399,7 @@ async def checkout_list(request: Request, session: AsyncSession = Depends(get_as
 
     check_id = await access_token_verify(acces_token=Authorization)
 
+    
     query = select(Order_list).options(joinedload(Order_list.product)).where(Order_list.user_id == int(check_id[1]))    
     order_list = await session.scalars(query)
     
@@ -397,7 +414,17 @@ async def checkout_list(request: Request, session: AsyncSession = Depends(get_as
     "group": gr.scalars().all(),
     }
 
-    return templates.TemplateResponse("showcase/checkout_list.html", context)
+    response = templates.TemplateResponse("showcase/checkout_list.html", context)
+
+    if type(check_id[0]) == ExpiredSignatureError:    
+        tokens = await update_tokens(RT=RT, db=session)
+        refresh = tokens[0]
+        access = tokens[1]
+        response.set_cookie(key="RT", value=refresh)
+        response.set_cookie(key="Authorization", value=access)
+
+
+    return response
 
 
 #заказы не филтруются. Но формируется таблицы с заказами. И товары из корзины не удаляются после формирования заказа. 

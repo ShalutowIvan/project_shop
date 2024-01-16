@@ -1,7 +1,7 @@
 from fastapi import Form, APIRouter, Depends, HTTPException, Request, Response, status, Cookie, Header
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, PlainTextResponse
 from starlette.status import HTTP_404_NOT_FOUND, HTTP_401_UNAUTHORIZED
-from sqlalchemy import insert, select
+from sqlalchemy import insert, select, text
 from pydantic import BaseModel, Field, EmailStr, validator, UUID4
 
 from src.db import get_async_session
