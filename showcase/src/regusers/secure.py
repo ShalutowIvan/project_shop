@@ -78,7 +78,7 @@ async def update_tokens(RT, db):#передаем сюда рефреш токе
 				await db.delete(us_token)
 				await db.commit()
 		
-		return False, False
+		return [False, False]
 
     #создаем новый рефреш и аксес. Данные для создания токенов берем из декодированного токена из пейлоада
         
@@ -93,7 +93,7 @@ async def update_tokens(RT, db):#передаем сюда рефреш токе
 			await db.commit()
 			await db.refresh(tk)
 		print("Токен не совпадает с базой!!!!!!!")
-		return False, False
+		return [False, False]
 
 	#рефреш токен
 	refresh_token_expires = timedelta(minutes=int(EXPIRE_TIME_REFRESH))    

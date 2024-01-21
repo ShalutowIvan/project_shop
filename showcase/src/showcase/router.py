@@ -96,37 +96,61 @@ router_showcase = APIRouter(
 ##################################################################################
 
 # функция для авторизации в других функциях, планирую ее как зависимость сделать или просто в теле функции вызывать
-async def authorization(auth, rt):
+# async def authorization(auth, rt):
 
-    check = await access_token_verify(acces_token=auth)
+#     check = await access_token_verify(acces_token=auth)
 
-    response = templates.TemplateResponse("showcase/start.html", {"request": request}) 
+#     response = templates.TemplateResponse("showcase/start.html", {"request": request}) 
 
-    if type(check[0]) == ExpiredSignatureError:    
-        tokens = await update_tokens(RT=RT, db=session)
-        refresh = tokens[0]
-        access = tokens[1]
-        response.set_cookie(key="RT", value=refresh)
-        response.set_cookie(key="Authorization", value=access)
+#     if type(check[0]) == ExpiredSignatureError:    
+#         tokens = await update_tokens(RT=RT, db=session)
+#         refresh = tokens[0]
+#         access = tokens[1]
+#         response.set_cookie(key="RT", value=refresh)
+#         response.set_cookie(key="Authorization", value=access)
 
-    return response
+#     return response
 
+
+@router_showcase.get("/test")
+async def test(response: Response):
+    now = "ASD QWE"
+    response.set_cookie(key="last_visit", value=now)
+    return  {"message": "куки установлены"}
 
 
 
 @router_showcase.get("/", response_class=HTMLResponse)
-async def home(request: Request, Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):    
-    
+async def home(request: Request, Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
+
     org = await session.execute(select(Organization))    
     gr = await session.execute(select(Group))
     gd = await session.execute(select(Goods))
 
     check = await access_token_verify(acces_token=Authorization)
     
+    # response = templates.TemplateResponse("showcase/start.html", {"request": request})
+
+# контекст не видит браузер
+    flag = False
+
+    if type(check[0]) == ExpiredSignatureError:    
+        tokens = await update_tokens(RT=RT, db=session)
+        # refresh = tokens[0]
+        # access = tokens[1]
+        flag = True
+        check[0] = tokens[0]
+        check[1] = tokens[1]
+        # response.set_cookie(key="RT", value=refresh)
+        # response.set_cookie(key="Authorization", value=access)
+
+
     if check[1] != None:
         query = select(User).where(User.id == int(check[1]))    
         user = await session.scalars(query)
-        user_name = user.all()[0].name
+        print(user)
+        user_name = ""
+        # user_name = user.all()[0].name
     else:
         user_name = ""
 
@@ -141,16 +165,21 @@ async def home(request: Request, Authorization: str | None = Cookie(default=None
     "user_name": user_name,
     }
 
-    response = templates.TemplateResponse("showcase/start.html", context)    
+    response = templates.TemplateResponse("showcase/start.html", context)
+    #если флаг, то надо куки новые закинуть
+    if flag:
+        response.set_cookie(key="RT", value=check[0])
+        response.set_cookie(key="Authorization", value=check[1])
+
     # print("ОШИБКА ТУТ!!!!!!!!!!!!!!")
     # print(check[0])# тут фолз если нет токена вообще. Во втором элементе None
 
-    if type(check[0]) == ExpiredSignatureError:    
-        tokens = await update_tokens(RT=RT, db=session)
-        refresh = tokens[0]
-        access = tokens[1]
-        response.set_cookie(key="RT", value=refresh)
-        response.set_cookie(key="Authorization", value=access)
+    # if type(check[0]) == ExpiredSignatureError:    
+    #     tokens = await update_tokens(RT=RT, db=session)
+    #     refresh = tokens[0]
+    #     access = tokens[1]
+    #     response.set_cookie(key="RT", value=refresh)
+    #     response.set_cookie(key="Authorization", value=access)
 
 
     return response

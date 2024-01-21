@@ -336,7 +336,7 @@ async def access_token_verify(acces_token):#проверка аксес токе
         user_id = payload.get("sub")#у меня тут user_id, а не юзернейм
         if user_id is None:
             print("нет такого user_id")
-            return False, None
+            return [False, None]
             
     
     except Exception as ex:
@@ -345,14 +345,14 @@ async def access_token_verify(acces_token):#проверка аксес токе
             
             print("ОШИБКА АКСЕС ТУТ")
             print(ex)
-            return ex, None#если токен истек то это
+            return [ex, None]#если токен истек то это
 
 
        
-        return False, None#если токена нет вообще, то это возвращается
+        return [False, None]#если токена нет вообще, то это возвращается
         
 
-    return (True, user_id)
+    return [True, user_id]
 
 
 
