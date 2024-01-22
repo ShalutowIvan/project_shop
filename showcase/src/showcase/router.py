@@ -348,11 +348,13 @@ async def contacts_form(request: Request, session: AsyncSession = Depends(get_as
 
     #тут нет обновения токена, текущая функция срабатывает только когда пользак введет свои данные в форме. пока он вводит форму токен может истечь и обновления нет и выйдет ошибка. Если перейти на другую страницу в других роутах есть обновления, но тут нет. И тут нет респонс, некуда закинуть куки если даже обновлю. При обновлении и аксес обновляется и рефреш в БД, и будет ошибка и произойдет вылет пользака если он потом перейдет на другую страницу приложения так как если рефшер токен не совпадает с базой, то у меня удаляются вообще все токены.
 
-    # flag = False
-    # if type(check[0]) == ExpiredSignatureError:   
-    #     tokens = await test_token_expire(RT=RT, db=session)        
-    #     check = tokens[2]
-    #     flag = True
+    
+    if type(check[0]) == ExpiredSignatureError:
+        context = await base_requisites(db=session, check=check, request=request)
+
+        return templates.TemplateResponse("showcase/if_not_auth_in_order.html", context)
+
+
 
     kontakt = Contacts(fio=fio, phone=phone, delivery_address=delivery_address, pay_id=pay, user_id=int(check[1]))
         
@@ -371,7 +373,7 @@ async def contacts_form(request: Request, session: AsyncSession = Depends(get_as
     #удаление всех записей в корзине с фильтром по пользаку
     await session.execute(text(f"DELETE FROM basket WHERE user_id = {check[1]};"))  
 
-    await session.commit()
+    await session.commit()    
 
     # return RedirectResponse("/basket/contacts/checkout/", status_code=303)
     return RedirectResponse("/", status_code=303)#после оформления переходим на стартовую
