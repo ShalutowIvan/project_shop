@@ -112,105 +112,91 @@ router_showcase = APIRouter(
 #     return response
 
 
-@router_showcase.get("/test")
-async def test(response: Response):
-    now = "ASD QWE"
-    response.set_cookie(key="last_visit", value=now)
-    return  {"message": "куки установлены"}
+#функция для запуска обновления токенов в случае если аксес истек
+async def test_token_expire(RT, db):
+    tokens = await update_tokens(RT=RT, db=db)
+    check = await access_token_verify(acces_token=tokens[1])
+    return (tokens[0], tokens[1], check)#рефреш, аксес, дешифровка аксес
 
 
+#функция для формирования контекста страницы
+async def base_requisites(db, check, request):#db - сессия, check - результат дешифровки аксес токена, request - Request
+    org = await db.execute(select(Organization))    
+    group = await db.execute(select(Group))
+    # good = await db.execute(select(Goods))
 
-@router_showcase.get("/", response_class=HTMLResponse)
-async def home(request: Request, Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
-
-    org = await session.execute(select(Organization))    
-    gr = await session.execute(select(Group))
-    gd = await session.execute(select(Goods))
-
-    check = await access_token_verify(acces_token=Authorization)
-    
-    # response = templates.TemplateResponse("showcase/start.html", {"request": request})
-
-# контекст не видит браузер
-    flag = False
-
-    if type(check[0]) == ExpiredSignatureError:    
-        tokens = await update_tokens(RT=RT, db=session)
-        # refresh = tokens[0]
-        # access = tokens[1]
-        flag = True
-        check[0] = tokens[0]
-        check[1] = tokens[1]
-        # response.set_cookie(key="RT", value=refresh)
-        # response.set_cookie(key="Authorization", value=access)
-
-
-    if check[1] != None:
+    if check[1] != None and check[1] != False:       
         query = select(User).where(User.id == int(check[1]))    
-        user = await session.scalars(query)
-        print(user)
-        user_name = ""
-        # user_name = user.all()[0].name
+        user = await db.scalars(query)                
+        user_name = user.all()[0].name
     else:
         user_name = ""
-
-
 
     context = {
     "request": request,    
     "org": org.scalars().first(),
-    "group": gr.scalars(),
-    "gd": gd.scalars(),
+    "group": group.scalars(),
+    # "good": good.scalars(),
     "check": check[0],
     "user_name": user_name,
     }
 
+    return context
+
+
+
+
+@router_showcase.get("/", response_class=HTMLResponse)
+async def home(request: Request, Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):    
+
+    check = await access_token_verify(acces_token=Authorization)    
+    
+    flag = False
+    if type(check[0]) == ExpiredSignatureError:   
+        tokens = await test_token_expire(RT=RT, db=session)        
+        check = tokens[2]
+        flag = True
+    
+    context = await base_requisites(db=session, check=check, request=request)
+    good = await session.execute(select(Goods))
+    context["good"] = good.scalars()
+
     response = templates.TemplateResponse("showcase/start.html", context)
     #если флаг, то надо куки новые закинуть
     if flag:
-        response.set_cookie(key="RT", value=check[0])
-        response.set_cookie(key="Authorization", value=check[1])
-
-    # print("ОШИБКА ТУТ!!!!!!!!!!!!!!")
-    # print(check[0])# тут фолз если нет токена вообще. Во втором элементе None
-
-    # if type(check[0]) == ExpiredSignatureError:    
-    #     tokens = await update_tokens(RT=RT, db=session)
-    #     refresh = tokens[0]
-    #     access = tokens[1]
-    #     response.set_cookie(key="RT", value=refresh)
-    #     response.set_cookie(key="Authorization", value=access)
-
+        response.set_cookie(key="RT", value=tokens[0])
+        response.set_cookie(key="Authorization", value=tokens[1])
 
     return response
-
 
 
 @router_showcase.get("/{slug}", response_class=HTMLResponse)
-async def show_group(request: Request, slug: str, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
-    # параметр должен подтянуться из базы групп из поля слаг. В теле функции нужно по слагу фильтровать товары через запрос из бд и выводить их html в отдельный шаблон с контекстом. 
+async def show_group(request: Request, slug: str, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):    
 
     #нужно сделать валидацию для параметра slug, а то он тянет любое значение лиш бы было str
+    check = await access_token_verify(acces_token=Authorization)
+
+    flag = False
+    if type(check[0]) == ExpiredSignatureError:   
+        tokens = await test_token_expire(RT=RT, db=session)        
+        check = tokens[2]
+        flag = True    
+
     query = select(Goods).options(joinedload(Goods.group))
-    good_gr = await session.scalars(query)    
+    good_gr = await session.scalars(query)
     good_gr = list(filter(lambda x: x.group.slug == slug, good_gr))
 
-    gr = await session.execute(select(Group))
-    
-    org = await session.execute(select(Organization))
-
-
-    context = {
-    "request": request,
-    "good_gr": good_gr,
-    "org": org.scalars().first(),
-    "group": gr.scalars().all(),
-    }
+    context = await base_requisites(db=session, check=check, request=request)
+    context["good"] = good_gr
 
     response = templates.TemplateResponse("showcase/good.html", context)
 
+    if flag:
+        response.set_cookie(key="RT", value=tokens[0])
+        response.set_cookie(key="Authorization", value=tokens[1])
+
     return response
-    # return RedirectResponse(f"/{slug}")    
+      
 
 # <a href="{{ i.slug }}">{{ i.name_group }}</a>
 
@@ -235,34 +221,27 @@ async def show_group(request: Request, slug: str, session: AsyncSession = Depend
 @router_showcase.get("/basket/{good_id}")
 async def add_in_basket(request: Request, good_id: int, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None)):
     #подтянул ид пользака из токена
-    check_id = await access_token_verify(acces_token=Authorization)
+    check = await access_token_verify(acces_token=Authorization)
+    
+    if check[1] == None:#если нет токена то есть пользак вообще не вводил логин пас, то отображаем страницу следующую
+        context = await base_requisites(db=session, check=check, request=request)
 
-
-    org = await session.execute(select(Organization))    
-    gr = await session.execute(select(Group))
-    context = {
-    "request": request,    
-    "org": org.scalars().first(),
-    "group": gr.scalars().all(),
-
-    }
-    if check_id[1] == None:#если нет токена, то отображаем страницу следующую
         return templates.TemplateResponse("showcase/if_not_auth.html", context)
 
 
-    query = select(Basket).where(Basket.product_id == good_id, Basket.user_id == int(check_id[1]))
+    query = select(Basket).where(Basket.product_id == good_id, Basket.user_id == int(check[1]))
 
     basket = await session.scalars(query)
     basket = basket.all()
     
 
     if basket == []:#если в корзине нет такого товара, то добавляет товар в корзину
-        check_id = await access_token_verify(acces_token=Authorization)
-        product = Basket(product_id=good_id, quantity=1, user_id=int(check_id[1]))
+        check = await access_token_verify(acces_token=Authorization)
+        product = Basket(product_id=good_id, quantity=1, user_id=int(check[1]))
         session.add(product)
         await session.commit()
     else:
-        check_id = await access_token_verify(acces_token=Authorization)
+        check = await access_token_verify(acces_token=Authorization)
         basket[0].quantity += 1
         await session.commit()
         
@@ -278,47 +257,28 @@ async def add_in_basket(request: Request, good_id: int, session: AsyncSession = 
 @router_showcase.get("/basket/goods/", response_class=HTMLResponse)
 async def basket_view(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
 
-    check_id = await access_token_verify(acces_token=Authorization)
+    check = await access_token_verify(acces_token=Authorization)
     
-    if type(check_id[0]) == ExpiredSignatureError:    
-        tokens = await update_tokens(RT=RT, db=session)
-        refresh = tokens[0]
-        access = tokens[1]
-        response.set_cookie(key="RT", value=refresh)
-        response.set_cookie(key="Authorization", value=access)
+    flag = False
+    if type(check[0]) == ExpiredSignatureError:   
+        tokens = await test_token_expire(RT=RT, db=session)        
+        check = tokens[2]
+        flag = True    
 
+    
+    query = select(Basket).options(joinedload(Basket.product)).where(Basket.user_id == int(check[1]))    
+    basket = await session.scalars(query)    
 
+    context = await base_requisites(db=session, check=check, request=request)
+    context["basket"] = basket
 
-    query = select(Basket).options(joinedload(Basket.product)).where(Basket.user_id == int(check_id[1]))    
-    basket = await session.scalars(query)
-    # basket = basket.all()
-    # basket = list(filter(lambda x: x.user_id == check_id[1], basket))
+    response = templates.TemplateResponse("showcase/basket.html", context)
 
-    # basket = basket.filter(Basket.user_id == check_id[1])
-    # разобраться с фильтрами
-    # print("КОРЗИНАААААААААААААААА")
-    # print(basket)
-    # print(check_id[1])
-    org = await session.execute(select(Organization))    
-    gr = await session.execute(select(Group))
+    if flag:
+        response.set_cookie(key="RT", value=tokens[0])
+        response.set_cookie(key="Authorization", value=tokens[1])
 
-    context = {
-    "request": request,
-    "basket": basket,
-    "org": org.scalars().first(),
-    "group": gr.scalars().all(),
-    "check": check_id[0],
-    }
-
-    return templates.TemplateResponse("showcase/basket.html", context)
-
-
-#тестовый переход на функцию basket_view (не маршрут, а именно функцию). Пока ничего не получилось, делаю переход по маршруту
-# @router_showcase.get("/")
-# async def redir(request: Request):
-#     return basket_view
-
-
+    return response
 
 
 
@@ -328,8 +288,6 @@ async def basket_view(request: Request, session: AsyncSession = Depends(get_asyn
 async def delete_in_basket(request: Request, basket_id: int, session: AsyncSession = Depends(get_async_session)):    
     
     basket = await session.get(Basket, basket_id)
-    # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    # print(basket.product_id)
     await session.delete(basket)
     await session.commit()    
     
@@ -361,106 +319,122 @@ async def delete_in_basket(request: Request, basket_id: int, session: AsyncSessi
 
 #роутер для прогрузки страницы с формой запроса контактов
 @router_showcase.get("/basket/contacts/")
-async def contacts(request: Request, session: AsyncSession = Depends(get_async_session)):
-    org = await session.execute(select(Organization))    
-    gr = await session.execute(select(Group))
+async def contacts(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
+    
+    check = await access_token_verify(acces_token=Authorization)
+    
+    flag = False
+    if type(check[0]) == ExpiredSignatureError:   
+        tokens = await test_token_expire(RT=RT, db=session)        
+        check = tokens[2]
+        flag = True
 
-    context = {
-    "request": request,
-    "org": org.scalars().first(),
-    "group": gr.scalars().all(),
-    }
+    context = await base_requisites(db=session, check=check, request=request)
 
     response = templates.TemplateResponse("showcase/contacts.html", context)
+
+    if flag:
+        response.set_cookie(key="RT", value=tokens[0])
+        response.set_cookie(key="Authorization", value=tokens[1])
+
     return response
 
 
 #заготовка для формы запроса контактов из формы регистрации, переделать под запрос контактов
 @router_showcase.post("/basket/contacts/", response_model=None, status_code=201)#response_model это валидация для запроса
-async def contacts_form(request: Request, session: AsyncSession = Depends(get_async_session), fio: str = Form(), phone: int = Form(), delivery_address: str = Form(), pay: int = Form(), Authorization: str | None = Cookie(default=None)):
+async def contacts_form(request: Request, session: AsyncSession = Depends(get_async_session), fio: str = Form(), phone: int = Form(), delivery_address: str = Form(), pay: int = Form(), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
     # по куки Authorization найти ид пользака
-    check_id = await access_token_verify(acces_token=Authorization)
-    kontakt = Contacts(fio=fio, phone=phone, delivery_address=delivery_address, pay_id=pay, user_id=int(check_id[1]))
+    check = await access_token_verify(acces_token=Authorization)
+
+    #тут нет обновения токена, текущая функция срабатывает только когда пользак введет свои данные в форме. пока он вводит форму токен может истечь и обновления нет и выйдет ошибка. Если перейти на другую страницу в других роутах есть обновления, но тут нет. И тут нет респонс, некуда закинуть куки если даже обновлю. При обновлении и аксес обновляется и рефреш в БД, и будет ошибка и произойдет вылет пользака если он потом перейдет на другую страницу приложения так как если рефшер токен не совпадает с базой, то у меня удаляются вообще все токены.
+
+    # flag = False
+    # if type(check[0]) == ExpiredSignatureError:   
+    #     tokens = await test_token_expire(RT=RT, db=session)        
+    #     check = tokens[2]
+    #     flag = True
+
+    kontakt = Contacts(fio=fio, phone=phone, delivery_address=delivery_address, pay_id=pay, user_id=int(check[1]))
         
     session.add(kontakt)
     await session.commit()
+    await session.refresh(kontakt)
 
-    return RedirectResponse("/basket/contacts/checkout/", status_code=303)
+    pay_goods = await session.scalars(select(Basket).where(Basket.user_id == int(check[1])))
+    contacts = await session.scalars(select(Contacts).where(Contacts.user_id == int(check[1])))
+    id_contact = contacts.all()[-1].id#это будет номер заказа, таблицу контактов запрашиваю для указания номера заказа
 
-
-#роутер для кнопки оформления заказа после ввода контактов
-@router_showcase.get("/basket/contacts/checkout/", response_class=HTMLResponse)
-async def checkout(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None)):
-    
-    check_id = await access_token_verify(acces_token=Authorization)
-    #фильтруем корзину по юзеру
-
-    # query = select(Basket).options(joinedload(Basket.product)).where(Basket.user_id == int(check_id[1]))    
-    # basket = await session.scalars(query)
-
-    pay_goods = await session.scalars(select(Basket).where(Basket.user_id == int(check_id[1])))
-    contacts = await session.scalars(select(Contacts).where(Contacts.user_id == int(check_id[1])))
-    id_contact = contacts.all()[-1].id
-
-    res = [Order_list(product_id=i.product_id, quantity=i.quantity, order_number=id_contact, user_id=int(check_id[1])) for i in pay_goods.all()]
+    res = [Order_list(product_id=i.product_id, quantity=i.quantity, order_number=id_contact, user_id=int(check[1])) for i in pay_goods.all()]
     
     session.add_all(res)
 
     #удаление всех записей в корзине с фильтром по пользаку
-    await session.execute(text(f"DELETE FROM basket WHERE user_id = {check_id[1]};"))    
-        
+    await session.execute(text(f"DELETE FROM basket WHERE user_id = {check[1]};"))  
+
     await session.commit()
 
-    return RedirectResponse("/", status_code=303)
+    # return RedirectResponse("/basket/contacts/checkout/", status_code=303)
+    return RedirectResponse("/", status_code=303)#после оформления переходим на стартовую
+
+
+#роутер для кнопки оформления заказа после ввода контактов. Он оказался не нужен
+# @router_showcase.get("/basket/contacts/checkout/", response_class=HTMLResponse)
+# async def checkout(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None)):
+    
+#     check = await access_token_verify(acces_token=Authorization)
+#     #фильтруем корзину по юзеру
+
+#     # query = select(Basket).options(joinedload(Basket.product)).where(Basket.user_id == int(check_id[1]))    
+#     # basket = await session.scalars(query)
+
+#     pay_goods = await session.scalars(select(Basket).where(Basket.user_id == int(check[1])))
+#     contacts = await session.scalars(select(Contacts).where(Contacts.user_id == int(check[1])))
+#     id_contact = contacts.all()[-1].id
+
+#     res = [Order_list(product_id=i.product_id, quantity=i.quantity, order_number=id_contact, user_id=int(check[1])) for i in pay_goods.all()]
+    
+#     session.add_all(res)
+
+#     #удаление всех записей в корзине с фильтром по пользаку
+#     await session.execute(text(f"DELETE FROM basket WHERE user_id = {check[1]};"))    
+        
+#     await session.commit()
+
+#     return RedirectResponse("/", status_code=303)
 
 
 
- # взять из модели корзины все товары по юзеру
-    # взять контакт по юзеру
 
 
 @router_showcase.get("/checkout_list/orders/", response_class=HTMLResponse)
 async def checkout_list(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
-
-    org = await session.execute(select(Organization))    
-    gr = await session.execute(select(Group))
-
-
-    check_id = await access_token_verify(acces_token=Authorization)
-
     
-    query = select(Order_list).options(joinedload(Order_list.product)).where(Order_list.user_id == int(check_id[1]))    
+    check = await access_token_verify(acces_token=Authorization)
+
+    flag = False
+    if type(check[0]) == ExpiredSignatureError:   
+        tokens = await test_token_expire(RT=RT, db=session)        
+        check = tokens[2]
+        flag = True
+    
+    query = select(Order_list).options(joinedload(Order_list.product)).where(Order_list.user_id == int(check[1]))    
     order_list = await session.scalars(query)
     
-    kont = await session.scalars(select(Contacts).where(Contacts.user_id == int(check_id[1])))
+    kont = await session.scalars(select(Contacts).where(Contacts.user_id == int(check[1])))
     #таблица контактов будет постоянно пополняться и со временем станет огромной и жестко тупить при заказах, так как она пополняется от всех пользаков при каждом заказе. надо что-то придумать. 
     
-    context = {
-    "request": request,
-    "order_list": order_list.all(),
-    "contacts": kont.all(),
-    "org": org.scalars().first(),
-    "group": gr.scalars().all(),
-    }
+    context = await base_requisites(db=session, check=check, request=request)
+    context["order_list"] = order_list.all()
+    context["contacts"] = kont.all()
+    #решить что делать с таблицей контактов и с таблицей заказов, они будут очень сильно разрастаться и тормозить потом
 
     response = templates.TemplateResponse("showcase/checkout_list.html", context)
 
-    if type(check_id[0]) == ExpiredSignatureError:    
-        tokens = await update_tokens(RT=RT, db=session)
-        refresh = tokens[0]
-        access = tokens[1]
-        response.set_cookie(key="RT", value=refresh)
-        response.set_cookie(key="Authorization", value=access)
-
+    if flag:
+        response.set_cookie(key="RT", value=tokens[0])
+        response.set_cookie(key="Authorization", value=tokens[1])
 
     return response
-
-
-#заказы не филтруются. Но формируется таблицы с заказами. И товары из корзины не удаляются после формирования заказа. 
-
-     
-
-
 
 
 

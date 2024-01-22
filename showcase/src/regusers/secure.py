@@ -91,7 +91,7 @@ async def update_tokens(RT, db):#передаем сюда рефреш токе
 		if tk:
 			await db.delete(tk)
 			await db.commit()
-			await db.refresh(tk)
+			# await db.refresh(tk)
 		print("Токен не совпадает с базой!!!!!!!")
 		return [False, False]
 
