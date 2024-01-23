@@ -10,6 +10,7 @@ from src.settings import templates, EXPIRE_TIME, KEY, KEY2, ALG, EXPIRE_TIME_REF
 
 from .models import *
 from src.showcase.models import *
+from src.showcase.router import base_requisites
 from typing import Annotated
 
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, OAuth2PasswordRequestFormStrict
@@ -42,35 +43,29 @@ router_reg = APIRouter(
 
 @router_reg.get("/registration")
 async def registration_get(request: Request, session: AsyncSession = Depends(get_async_session)):
-
-    org = await session.execute(select(Organization))    
-    gr = await session.execute(select(Group))
-
-    context = {
-    "request": request,
-    "org": org.scalars().first(),
-    "group": gr.scalars().all(),
-    }
+    
+    context = await base_requisites(db=session, request=request)
 
     response = templates.TemplateResponse("regusers/register.html", context)
     return response
 
-# username: str = Form(...), password: str = Form(...)
-
-#функция из видоса. 
-# def reg(user_data: schemas.UserCreate, session: AsyncSession = Depends(get_async_session)):
 
 
 @router_reg.post("/registration", response_model=None, status_code=201)#response_model это валидация для запроса
 async def registration_post(request: Request, session: AsyncSession = Depends(get_async_session), name: str = Form(), email: str = Form(), password: str = Form()):
-    # stmt = await session.execute(select(users))
+    
+    #тут добавить проверку сложности пароля!
+    if len(password) < 8 or password.lower() == password or password.upper() == password or not any(i.isdigit() for i in password) or all(i.isdigit() for i in password):
+        context = await base_requisites(db=session, request=request)
+        context["password_not_strong"] = "Пароль должен быть не менее 8 символов и должен содержать заглавные, строчные буквы и цифры!"
+        response = templates.TemplateResponse("regusers/register.html", context)
+        return response
+
 
     user = User(name=name, email=email, hashed_password=pwd_context.hash(password))
     
     session.add(user)
-    await session.commit()
-    # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    # print(user.time_create_user)
+    await session.commit()    
 
     await send_email_verify(user=user)#в этой функции нужно зашифровать пользака и потом дешифровать
 
@@ -82,20 +77,13 @@ async def registration_post(request: Request, session: AsyncSession = Depends(ge
 async def confirm_email(request: Request, session: AsyncSession = Depends(get_async_session)):
 
     t = "Перейдите в вашу почту и перейдите по ссылке из письма для подтверждения адреса почты и активации пользователя"
-    org = await session.execute(select(Organization))    
-    gr = await session.execute(select(Group))
-
-    context = {
-    "request": request,
-    "org": org.scalars().first(),
-    "group": gr.scalars().all(),
-    "t": t,
-    }
+    
+    context = await base_requisites(db=session, request=request)
+    context["t"] = t
 
     response = templates.TemplateResponse("regusers/check_email.html", context)
     return response
 
-# с формой затык
 
 #функция обработки ссылки из письма при активации пользака
 @router_reg.get("/verification/check_user/{token}", response_model=None, status_code=201)
@@ -104,15 +92,17 @@ async def activate_user(request: Request, token: str, session: AsyncSession = De
     try:
         payload = jwt.decode(token, KEY3, algorithms=[ALG])#в acces_token передается просто строка
         
-        user_id = payload.get("sub")#у меня тут user_id, а не юзернейм
+        user_id = payload.get("sub")#у меня тут user_id
         if user_id is None:
-            raise HTTPException(status_code=400, detail="Нет такого пользователя")            
+            context = await base_requisites(db=session, request=request)
+            return templates.TemplateResponse("showcase/user_not_found.html", context)
+            
     
     except Exception as ex:
         # print("!!!!!!!!!!!!!!!!!!!!!!!!!")
         # print(ex)
-
-        raise HTTPException(status_code=400, detail="Incorrect URL")
+        context = await base_requisites(db=session, request=request)
+        return templates.TemplateResponse("showcase/user_not_found.html", context)
     
 
     user = await session.scalar(select(User).where(User.id == int(user_id)))   
@@ -124,22 +114,11 @@ async def activate_user(request: Request, token: str, session: AsyncSession = De
     return RedirectResponse("/regusers/auth/", status_code=303) 
 
 
-#аннотейтед это такие аннотации с типом данных и значениями. В доке по фастапи есть инфа в питоне 3,8 как в метанит, а в питон 3,9 появились Annotated 
-
-#какой то видос про фаст апи для создания инет магаза
-# https://www.youtube.com/watch?v=RHWqTpNvJQw&list=PL2nrINOQYLiX6U8ArGi6Kvs_iItdWCYUi&index=1&ab_channel=%D0%93%D0%BB%D0%B5%D0%B1%D0%A2%D1%83%D0%BC%D0%B0%D0%BD%D0%BE%D0%B2
-
 #функция get для страницы забыли пароль
 @router_reg.get("/forgot_password/", response_model=None, response_class=HTMLResponse)
 async def forgot_password_get(request: Request, session: AsyncSession = Depends(get_async_session)):
-    org = await session.execute(select(Organization))    
-    gr = await session.execute(select(Group))
-
-    context = {
-    "request": request,
-    "org": org.scalars().first(),
-    "group": gr.scalars().all(),
-    }
+    
+    context = await base_requisites(db=session, request=request)
 
     response = templates.TemplateResponse("regusers/forgot_password.html", context)
     return response
@@ -149,6 +128,13 @@ async def forgot_password_get(request: Request, session: AsyncSession = Depends(
 @router_reg.post("/forgot_password/", response_model=None, response_class=HTMLResponse)
 async def forgot_password_post(request: Request, session: AsyncSession = Depends(get_async_session), email: EmailStr = Form()):
     user = await session.scalar(select(User).where(User.email == email))
+
+    if user is None:
+        context = await base_requisites(db=session, request=request)
+        context["user_not_found"] = "Пользователь не найден!"
+        response = templates.TemplateResponse("regusers/forgot_password.html", context)
+        return response
+
     await send_email_restore_password(user=user)
 
     return RedirectResponse("/regusers/restore/pass/", status_code=303)
@@ -159,14 +145,9 @@ async def forgot_password_post(request: Request, session: AsyncSession = Depends
 async def confirm_email_restore_pass(request: Request, session: AsyncSession = Depends(get_async_session)):
 
     t = "Перейдите в вашу почту и перейдите по ссылке из письма для восстановления пароля пользователя"
-    org = await session.execute(select(Organization))    
-    gr = await session.execute(select(Group))
-    context = {
-    "request": request,
-    "org": org.scalars().first(),
-    "group": gr.scalars().all(),
-    "t": t,
-    }
+    
+    context = await base_requisites(db=session, request=request)
+    context["t"] = t
     response = templates.TemplateResponse("regusers/go_to_restore_password.html", context)
     return response
 
@@ -175,15 +156,9 @@ async def confirm_email_restore_pass(request: Request, session: AsyncSession = D
 #get запрос для отрисовки страницы формы восстановления пароля....
 @router_reg.get("/restore/password_user/{token}")
 async def restore_password_user_get(request: Request, token: str, session: AsyncSession = Depends(get_async_session)):
-    org = await session.execute(select(Organization))
-    gr = await session.execute(select(Group))    
-
-    context = {
-    "request": request,
-    "org": org.scalars().first(),
-    "group": gr.scalars().all(),
-    "token": token,
-    }
+    
+    context = await base_requisites(db=session, request=request)
+    context["token"] = token
 
     response = templates.TemplateResponse("regusers/new_password.html", context)
     return response
@@ -197,54 +172,65 @@ async def restore_password_user(request: Request, session: AsyncSession = Depend
         payload = jwt.decode(token, KEY4, algorithms=[ALG])
         user_id = payload.get("sub")
         if user_id is None:
-            raise HTTPException(status_code=400, detail="Нет такого пользователя")
+            context = await base_requisites(db=session, request=request)
+            context["user_not_found"] = "Пользователь не найден!"
+            response = templates.TemplateResponse("regusers/new_password.html", context)
+            return response
 
     except Exception as ex:
-        raise HTTPException(status_code=400, detail="Incorrect URL")
+        context = await base_requisites(db=session, request=request)
+        context["url_incorrect"] = "Некорректная ссылка!"
+        response = templates.TemplateResponse("regusers/new_password.html", context)
+        return response
+
+    if len(password) < 8 or password.lower() == password or password.upper() == password or not any(i.isdigit() for i in password) or all(i.isdigit() for i in password):
+        context = await base_requisites(db=session, request=request)
+        context["password_not_strong"] = "Пароль должен быть не менее 8 символов и должен содержать заглавные, строчные буквы и цифры!"
+        response = templates.TemplateResponse("regusers/new_password.html", context)
+        return response
 
 
-    user = await session.scalar(select(User).where(User.id == int(user_id)))##token сюда надо перекинуть и юзерид
+    user = await session.scalar(select(User).where(User.id == int(user_id)))
     user.hashed_password = pwd_context.hash(password)
     session.add(user)
     await session.commit()
     return RedirectResponse("/regusers/auth/", status_code=303)
 
 
-
-
-
-
-#функция авторизации
+#функция get авторизации
 @router_reg.get("/auth", response_model=None, response_class=HTMLResponse)
 async def auth_get(request: Request, session: AsyncSession = Depends(get_async_session)):
-    org = await session.execute(select(Organization))    
-    gr = await session.execute(select(Group))
-
-    context = {
-    "request": request,
-    "org": org.scalars().first(),
-    "group": gr.scalars().all(),
-    }
+    
+    context = await base_requisites(db=session, request=request)
 
     response = templates.TemplateResponse("regusers/login.html", context)
     return response
 
 
+#функция post авторизации
 @router_reg.post("/auth", response_model=None, response_class=HTMLResponse)
-async def auth_user(response: Response, request: Request, session: AsyncSession = Depends(get_async_session), email: EmailStr = Form(), password: str = Form()):
+async def auth_user(request: Request, session: AsyncSession = Depends(get_async_session), email: EmailStr = Form(), password: str = Form()):
 
     user: User = await session.scalar(select(User).where(User.email == email))#ищем пользователя по емейл
-    # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ТУТ")
-    # print(user.time_create_user)
-    if not user:
-        raise HTTPException(
-            status_code=HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-
-    if not pwd_context.verify(password, user.hashed_password):#сверка пароля с БД
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
     
+    if not user:
+        context = await base_requisites(db=session, request=request)
+        context["user_not_found"] = "Пользователь не зарегистрирован!"
+        response = templates.TemplateResponse("regusers/login.html", context)
+        return response
+    
+    if not pwd_context.verify(password, user.hashed_password):#сверка пароля с БД
+        context = await base_requisites(db=session, request=request)
+        context["password_incorrect"] = "Неверный пароль!"
+        response = templates.TemplateResponse("regusers/login.html", context)
+        return response
+        
+    if user.is_active != True:
+        context = await base_requisites(db=session, request=request)
+        context["user_not_active"] = "Пользователь не активирован! Перейдите по ссылке из письма, которое пришло вам на почту для активации!"
+        response = templates.TemplateResponse("regusers/login.html", context)
+        return response
+
     
     refresh_token: Token = await session.scalar(select(Token).where(Token.user_id == user.id))
     
@@ -260,59 +246,45 @@ async def auth_user(response: Response, request: Request, session: AsyncSession 
             await session.commit()
             refresh_token = None
 
-
+    #если рефреш токена нет или он истек, то создаем токены
     if not refresh_token:
         #рефреш токен
         refresh_token_expires = timedelta(minutes=int(EXPIRE_TIME_REFRESH))        
-        refresh_token_jwt = create_refresh_token(data={"sub": str(user.id), "iss": user.email}, expires_delta=refresh_token_expires)
+        refresh_token_jwt = create_refresh_token(data={"sub": str(user.id)}, expires_delta=refresh_token_expires)
 
         #аксес токен
         access_token_expires = timedelta(minutes=int(EXPIRE_TIME))        
-        access_token_jwt = create_access_token(data={"sub": str(user.id), "iss": "showcase"}, expires_delta=access_token_expires)
+        access_token_jwt = create_access_token(data={"sub": str(user.id), "user_name": user.name}, expires_delta=access_token_expires)
         
 
         token: Token = Token(user_id=user.id, refresh_token=refresh_token_jwt)
         session.add(token)       
         await session.commit()
         await session.refresh(token)
-        refresh_token: Token = await session.scalar(select(Token).where(Token.user_id == user.id))
+        refresh_token: Token = await session.scalar(select(Token).where(Token.user_id == user.id))#перезаписываем в переменную объект рефреш токена, так как нужен именно объект токена
     else:
         access_token_expires = timedelta(minutes=int(EXPIRE_TIME))
-        access_token_jwt = create_access_token(data={"sub": str(user.id), "iss": "showcase"}, expires_delta=access_token_expires)
-
-
-    org = await session.execute(select(Organization))    
-    gr = await session.execute(select(Group))
-    gd = await session.execute(select(Goods))
-
-    context = {
-    "request": request,
-    "org": org.scalars().first(),
-    "group": gr.scalars().all(),
-    "gd": gd.scalars(),
-    "user_name": user.name,
-    "check": True,
-    }
+        access_token_jwt = create_access_token(data={"sub": str(user.id), "user_name": user.name}, expires_delta=access_token_expires)
     
+    
+    context = await base_requisites(db=session, request=request)
+    context["user_name"] = user.name
+    context["check"] = True
+    good = await session.execute(select(Goods))
+    context["good"] = good.scalars()
+
     response = templates.TemplateResponse("showcase/start.html", context)    
     response.set_cookie(key="RT", value=refresh_token.refresh_token)
     response.set_cookie(key="Authorization", value=access_token_jwt)
    
     return response
-    # return RedirectResponse("/", status_code=303) 
+    
 
 
 @router_reg.get("/logout")
 async def logout_user(request: Request, response: Response, Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
     
-    org = await session.execute(select(Organization))    
-    gr = await session.execute(select(Group))
-
-    context = {
-    "request": request,
-    "org": org.scalars().first(),
-    "group": gr.scalars().all(),
-    }
+    context = await base_requisites(db=session, request=request)
 
     response = templates.TemplateResponse("regusers/login.html", context)
     
@@ -327,44 +299,24 @@ async def logout_user(request: Request, response: Response, Authorization: str |
     return response
     
 
-#функция проверки токена.
-async def access_token_verify(acces_token):#проверка аксес токена из куки  
-    
-    try:
-        payload = jwt.decode(acces_token, KEY, algorithms=[ALG])#в acces_token передается просто строка
-        
-        user_id = payload.get("sub")#у меня тут user_id, а не юзернейм
-        if user_id is None:
-            print("нет такого user_id")
-            return [False, None]
-            
-    
-    except Exception as ex:
-                
-        if type(ex) == ExpiredSignatureError:#если время действия токена истекло, то вывод принта. Можно тут написать логику что будет если аксес токен истекает
-            
-            print("ОШИБКА АКСЕС ТУТ")
-            print(ex)
-            return [ex, None]#если токен истек то это
 
 
-       
-        return [False, None]#если токена нет вообще, то это возвращается
-        
 
-    return [True, user_id]
+
+
+
 
 
 
 
 
 # #функция проверки токена из кук. Пока роуты без схем, нужно сделать со схемами пайдентика
-@router_reg.get("/self", response_model=None)
-async def test_token(request: Request, RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
+# @router_reg.get("/self", response_model=None)
+# async def test_token(request: Request, RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
     
-    response = templates.TemplateResponse("regusers/test2.html", {"request": request})
+#     response = templates.TemplateResponse("regusers/test2.html", {"request": request})
     
-    return response
+#     return response
     
 
     

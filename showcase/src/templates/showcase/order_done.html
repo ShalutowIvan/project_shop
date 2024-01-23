@@ -1,0 +1,15 @@
+{% extends 'showcase/start.html' %}
+
+
+{% block content %}
+
+
+<h1>Ваш заказ оформлен!</h1>
+<h1>Номер заказа: {{ order_number }}</h1>
+<h3>Сообщите его когда будете забирать заказ!</h3>
+<br>
+
+<a href="{{ url_for('home') }}" ><h3>Перейти на главную</h3></a>
+
+
+{% endblock %}

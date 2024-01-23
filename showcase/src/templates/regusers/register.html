@@ -10,7 +10,13 @@
     <p><input name="name" placeholder="введите имя"></p>
     <p><input type="email" name="email" placeholder="e-mail"></p>
     <p><input type="password" name="password" placeholder="Пароль"></p>
-  
+
+    {% if password_not_strong %}    
+    <p>{{ password_not_strong }}</p>
+    {% else %}
+    <br>
+    {% endif %}
+    
   <input type="submit" value="Зарегистрироваться" />
 
 </form>

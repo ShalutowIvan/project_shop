@@ -13,8 +13,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .models import *
 from src.regusers.models import User
 from src.settings import templates
-from src.regusers.router import access_token_verify
-from src.regusers.secure import update_tokens
+from src.regusers.secure import test_token_expire, access_token_decode
+
 from jose.exceptions import ExpiredSignatureError
 
 
@@ -26,117 +26,25 @@ router_showcase = APIRouter(
     tags=["Showcase"]
 )
 
-# router_showgroup = APIRouter(
-#     prefix="",
-#     tags=["Showgroup"]
-# )
-
-
-
-
-##################################################################################
-#памятка как делать sql запрос с асинхронным подключением к сессии БД!!!!!!!!!!!!
-#этот код нужно писать в асинхронной функции
-# org = select(organization)#создали запрос на таблицу организаций. organization это модель БД, которую мы ранее сами сделали. select это функция из sql алхимии. 
-# res = await session.execute(org)#запросили ее из сессии, всю таблицу. session - это параметр функции вьюшки, execute это метод для подключения. В скобках пишем переменную которую написали выше.
-# print(f"Название {res.all()[0]}")#тут мы сделали sql запрос всей таблицы, возвращается список кортежей по каждой строке в таблице, 1 строка 1 кортеж. Тут к предыдущей переменной можно юзать функции из sql алхимии. 
-##################################################################################
-
-
-
-
-##################################################################################
-#памятка как работает Depends
-#сначала срабатывает функция которую передали в Depends. Потом срабатывает функция в которой указан depends.
-#Если в Depends есть оператор yield с сессией БД, то он еще завершает потом работу БД.
-#то есть получается функция которую передали в Depends вызывается перед запуском той функции в которой указали Depends. 
-#также можно и передавать в Depends класс. В классе должен быть инициализатор с нужными параметрами. Можно указать параметры в инициализаторе такие как в функции и это будет тоже самое. 
-#примеры
-# class Paginator:
-#     def __init__(self, limit: int = 10, skip: int = 0):
-#         self.limit = limit
-#         self.skip = skip
-
-
-# def page(limit: int = 10, skip: int = 0):#эту функцию можно юзать как Depends и класс выше, и эффект будет один и тот же. В функции представления будут также передаваться доп параметры те же самые. Скорее всего потому что объект класса Paginator это как бы тоже словарь, и тут в функции возвращается тоже словарь
-#     return {"limit": limit, "skip": skip}
-
-
-# @app.get("/subject_class")
-# async def get_subject_class(pagination_params: Paginator = Depends(Paginator)):#название класса в скобках можно не прописывать, либо название класса в качестве аннотации типа можено не прописывать.
-#     return pagination_params
-#еще можно делать вызываемые объект как функции с методом __call__
-# в методе __call__ можно прописать условие, в котором в случае невыполнения условия будет вызываться исключение - ошибка. И в случае вызова исключения функция в которой мы укажем эту зависимость не будет выполняться. В случае если зависимость отработает без вызова исключений, то основная функция сработает. 
-# Пример:
-# class Authguard:
-#     def __init__(self, name: str):
-#         self.name = name
-
-
-#     def __call__(self, request: Request):
-#         if "super_cookie" not in request.cookies:#cookies это dict , то есть словарь, тут идет проверка есть ли такой ключ в словаре
-#             raise HTTPException(status_code=403, detail="Запрещено")
-#         return True
-
-# auth_guard_payments = AuthGuard("payments")
-
-
-# @app.get("/subject_class")
-# async def get_subject_class(auth_guard_payments: AuthGuard = Depends(auth_guard_payments)):
-#     return "my payments..."
-
-#еще можно писать зависимости в декораторе в виде списка зависимостей
-# @app.get("/subject_class", dependencies=[Depends(auth_guard_payments)])
-# async def get_subject_class():#а в фукнции уже не нужно будет писать зависимости. При запуске весь список зависимостей также будет прогоняться. 
-#     return "my payments..."
-#cookies это dict , то есть словарь, тут идет проверка есть ли такой ключ в словаре. 
-#!!!!!!!!! Также список dependencies=[Depends(auth_guard_payments)] можно прописать при создании объекта роутера, тогда ко всем роутерам будут добавляться эти зависимости, и во всех роутерах будет или какая-то проверка или доп параметр. Очень крутая штука
-
-
-##################################################################################
-
-# функция для авторизации в других функциях, планирую ее как зависимость сделать или просто в теле функции вызывать
-# async def authorization(auth, rt):
-
-#     check = await access_token_verify(acces_token=auth)
-
-#     response = templates.TemplateResponse("showcase/start.html", {"request": request}) 
-
-#     if type(check[0]) == ExpiredSignatureError:    
-#         tokens = await update_tokens(RT=RT, db=session)
-#         refresh = tokens[0]
-#         access = tokens[1]
-#         response.set_cookie(key="RT", value=refresh)
-#         response.set_cookie(key="Authorization", value=access)
-
-#     return response
-
-
-#функция для запуска обновления токенов в случае если аксес истек
-async def test_token_expire(RT, db):
-    tokens = await update_tokens(RT=RT, db=db)
-    check = await access_token_verify(acces_token=tokens[1])
-    return (tokens[0], tokens[1], check)#рефреш, аксес, дешифровка аксес
 
 
 #функция для формирования контекста страницы
-async def base_requisites(db, check, request):#db - сессия, check - результат дешифровки аксес токена, request - Request
+async def base_requisites(db, request, check=[False, None, " "]):#db - сессия, check - результат дешифровки аксес токена, request - Request
     org = await db.execute(select(Organization))    
-    group = await db.execute(select(Group))
-    # good = await db.execute(select(Goods))
+    group = await db.execute(select(Group))    
 
     if check[1] != None and check[1] != False:       
-        query = select(User).where(User.id == int(check[1]))    
-        user = await db.scalars(query)                
-        user_name = user.all()[0].name
+        # query = select(User).where(User.id == int(check[1]))   
+        # user = await db.scalars(query)                
+        # user_name = user.all()[0].name
+        user_name = check[2]
     else:
         user_name = ""
 
     context = {
     "request": request,    
     "org": org.scalars().first(),
-    "group": group.scalars(),
-    # "good": good.scalars(),
+    "group": group.scalars(),    
     "check": check[0],
     "user_name": user_name,
     }
@@ -149,7 +57,7 @@ async def base_requisites(db, check, request):#db - сессия, check - рез
 @router_showcase.get("/", response_class=HTMLResponse)
 async def home(request: Request, Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):    
 
-    check = await access_token_verify(acces_token=Authorization)    
+    check = await access_token_decode(acces_token=Authorization)    
     
     flag = False
     if type(check[0]) == ExpiredSignatureError:   
@@ -174,7 +82,7 @@ async def home(request: Request, Authorization: str | None = Cookie(default=None
 async def show_group(request: Request, slug: str, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):    
 
     #нужно сделать валидацию для параметра slug, а то он тянет любое значение лиш бы было str
-    check = await access_token_verify(acces_token=Authorization)
+    check = await access_token_decode(acces_token=Authorization)
 
     flag = False
     if type(check[0]) == ExpiredSignatureError:   
@@ -201,9 +109,6 @@ async def show_group(request: Request, slug: str, session: AsyncSession = Depend
 # <a href="{{ i.slug }}">{{ i.name_group }}</a>
 
 
-#кнопка для добавления товара в корзину. Пока убрал
-# <a href="{% url 'add_in_basket' g.id %}"><button>Добавить в корзину</button></a>
-
 #это форма для поиска товаров
 # <form action="{% url 'start' %}" method="get">
 
@@ -221,7 +126,7 @@ async def show_group(request: Request, slug: str, session: AsyncSession = Depend
 @router_showcase.get("/basket/{good_id}")
 async def add_in_basket(request: Request, good_id: int, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None)):
     #подтянул ид пользака из токена
-    check = await access_token_verify(acces_token=Authorization)
+    check = await access_token_decode(acces_token=Authorization)
     
     if check[1] == None:#если нет токена то есть пользак вообще не вводил логин пас, то отображаем страницу следующую
         context = await base_requisites(db=session, check=check, request=request)
@@ -235,13 +140,11 @@ async def add_in_basket(request: Request, good_id: int, session: AsyncSession = 
     basket = basket.all()
     
 
-    if basket == []:#если в корзине нет такого товара, то добавляет товар в корзину
-        check = await access_token_verify(acces_token=Authorization)
+    if basket == []:#если в корзине нет такого товара, то добавляет товар в корзину        
         product = Basket(product_id=good_id, quantity=1, user_id=int(check[1]))
         session.add(product)
         await session.commit()
-    else:
-        check = await access_token_verify(acces_token=Authorization)
+    else:        
         basket[0].quantity += 1
         await session.commit()
         
@@ -251,14 +154,17 @@ async def add_in_basket(request: Request, good_id: int, session: AsyncSession = 
     
    
 
-
-
-
 @router_showcase.get("/basket/goods/", response_class=HTMLResponse)
 async def basket_view(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
 
-    check = await access_token_verify(acces_token=Authorization)
+    check = await access_token_decode(acces_token=Authorization)
     
+    if check[1] == None:#если нет токена то есть пользак вообще не вводил логин пас, то отображаем страницу следующую
+        context = await base_requisites(db=session, check=check, request=request)
+
+        return templates.TemplateResponse("showcase/if_not_auth.html", context)
+
+
     flag = False
     if type(check[0]) == ExpiredSignatureError:   
         tokens = await test_token_expire(RT=RT, db=session)        
@@ -279,8 +185,6 @@ async def basket_view(request: Request, session: AsyncSession = Depends(get_asyn
         response.set_cookie(key="Authorization", value=tokens[1])
 
     return response
-
-
 
 
 #удаление товара по коду товара то есть id
@@ -321,7 +225,7 @@ async def delete_in_basket(request: Request, basket_id: int, session: AsyncSessi
 @router_showcase.get("/basket/contacts/")
 async def contacts(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
     
-    check = await access_token_verify(acces_token=Authorization)
+    check = await access_token_decode(acces_token=Authorization)
     
     flag = False
     if type(check[0]) == ExpiredSignatureError:   
@@ -330,6 +234,16 @@ async def contacts(request: Request, session: AsyncSession = Depends(get_async_s
         flag = True
 
     context = await base_requisites(db=session, check=check, request=request)
+
+    pay_goods = await session.scalars(select(Basket).where(Basket.user_id == int(check[1])))
+
+    if pay_goods.all() == []:
+        context["empty_basket"] = "Корзина пуста!"
+        response = templates.TemplateResponse("showcase/basket.html", context)
+        if flag:
+            response.set_cookie(key="RT", value=tokens[0])
+            response.set_cookie(key="Authorization", value=tokens[1])
+        return response    
 
     response = templates.TemplateResponse("showcase/contacts.html", context)
 
@@ -344,17 +258,18 @@ async def contacts(request: Request, session: AsyncSession = Depends(get_async_s
 @router_showcase.post("/basket/contacts/", response_model=None, status_code=201)#response_model это валидация для запроса
 async def contacts_form(request: Request, session: AsyncSession = Depends(get_async_session), fio: str = Form(), phone: int = Form(), delivery_address: str = Form(), pay: int = Form(), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
     # по куки Authorization найти ид пользака
-    check = await access_token_verify(acces_token=Authorization)
-
-    #тут нет обновения токена, текущая функция срабатывает только когда пользак введет свои данные в форме. пока он вводит форму токен может истечь и обновления нет и выйдет ошибка. Если перейти на другую страницу в других роутах есть обновления, но тут нет. И тут нет респонс, некуда закинуть куки если даже обновлю. При обновлении и аксес обновляется и рефреш в БД, и будет ошибка и произойдет вылет пользака если он потом перейдет на другую страницу приложения так как если рефшер токен не совпадает с базой, то у меня удаляются вообще все токены.
-
+    check = await access_token_decode(acces_token=Authorization)
     
-    if type(check[0]) == ExpiredSignatureError:
-        context = await base_requisites(db=session, check=check, request=request)
+    flag = False
+    if type(check[0]) == ExpiredSignatureError:   
+        tokens = await test_token_expire(RT=RT, db=session)        
+        check = tokens[2]
+        flag = True
 
-        return templates.TemplateResponse("showcase/if_not_auth_in_order.html", context)
+    # if type(check[0]) == ExpiredSignatureError:
+    #     context = await base_requisites(db=session, check=check, request=request)
 
-
+    #     return templates.TemplateResponse("showcase/if_not_auth_in_order.html", context)
 
     kontakt = Contacts(fio=fio, phone=phone, delivery_address=delivery_address, pay_id=pay, user_id=int(check[1]))
         
@@ -372,18 +287,28 @@ async def contacts_form(request: Request, session: AsyncSession = Depends(get_as
 
     #удаление всех записей в корзине с фильтром по пользаку
     await session.execute(text(f"DELETE FROM basket WHERE user_id = {check[1]};"))  
+    # await session.execute(text(f"DELETE FROM contacts WHERE user_id = {check[1]};"))  
 
     await session.commit()    
 
-    # return RedirectResponse("/basket/contacts/checkout/", status_code=303)
-    return RedirectResponse("/", status_code=303)#после оформления переходим на стартовую
+    context = await base_requisites(db=session, check=check, request=request)
+    context["order_number"] = id_contact
+    response = templates.TemplateResponse("showcase/order_done.html", context)
 
+    if flag:        
+        response.set_cookie(key="RT", value=tokens[0])
+        response.set_cookie(key="Authorization", value=tokens[1])
+        
+
+    # return RedirectResponse("/basket/contacts/checkout/", status_code=303)
+    # return RedirectResponse("/", status_code=303)#после оформления переходим на стартовую
+    return response
 
 #роутер для кнопки оформления заказа после ввода контактов. Он оказался не нужен
 # @router_showcase.get("/basket/contacts/checkout/", response_class=HTMLResponse)
 # async def checkout(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None)):
     
-#     check = await access_token_verify(acces_token=Authorization)
+#     check = await access_token_decode(acces_token=Authorization)
 #     #фильтруем корзину по юзеру
 
 #     # query = select(Basket).options(joinedload(Basket.product)).where(Basket.user_id == int(check_id[1]))    
@@ -411,7 +336,11 @@ async def contacts_form(request: Request, session: AsyncSession = Depends(get_as
 @router_showcase.get("/checkout_list/orders/", response_class=HTMLResponse)
 async def checkout_list(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
     
-    check = await access_token_verify(acces_token=Authorization)
+    check = await access_token_decode(acces_token=Authorization)
+
+    if check[1] == None:#если нет токена то есть пользак вообще не вводил логин пас, то отображаем страницу следующую
+        context = await base_requisites(db=session, check=check, request=request)
+        return templates.TemplateResponse("showcase/if_not_auth.html", context)
 
     flag = False
     if type(check[0]) == ExpiredSignatureError:   
@@ -428,6 +357,7 @@ async def checkout_list(request: Request, session: AsyncSession = Depends(get_as
     context = await base_requisites(db=session, check=check, request=request)
     context["order_list"] = order_list.all()
     context["contacts"] = kont.all()
+
     #решить что делать с таблицей контактов и с таблицей заказов, они будут очень сильно разрастаться и тормозить потом
 
     response = templates.TemplateResponse("showcase/checkout_list.html", context)
@@ -439,6 +369,52 @@ async def checkout_list(request: Request, session: AsyncSession = Depends(get_as
     return response
 
 
+
+from fastapi import UploadFile, File
+import shutil
+
+
+@router_showcase.get("/load_files/file/", response_class=HTMLResponse)
+async def file_get(request: Request):
+    context = {"request": request}
+
+    response = templates.TemplateResponse("showcase/upload_file.html", context)
+
+    return response
+
+
+#загрузка фото в базу товаров, это чтобы как то проверить как работать с фото
+@router_showcase.post("/load_files/file/", response_class=HTMLResponse)
+async def file_post(request: Request, foto: UploadFile = File(...)):
+
+    # check = await access_token_decode(acces_token=Authorization)
+
+    # flag = False
+    # if type(check[0]) == ExpiredSignatureError:   
+    #     tokens = await test_token_expire(RT=RT, db=session)        
+    #     check = tokens[2]
+    #     flag = True
+
+    # foto: UploadFile = File(...) - это параметр в функции для загрузки файла
+
+
+
+    with open(f'{foto.filename}', 'wb') as buffer:#открываем тестовый файл как буфер и загружаем в него файл
+        shutil.copyfileobj(foto.file, buffer)#тут будет создан файл который запишется на диск
+
+
+    context = {"request": request}
+    # context = await base_requisites(db=session, check=check, request=request)
+    response = templates.TemplateResponse("showcase/upload_file.html", context)
+
+    # if flag:
+    #     response.set_cookie(key="RT", value=tokens[0])
+    #     response.set_cookie(key="Authorization", value=tokens[1])
+
+    return response
+
+#видос про загрузку файлов
+# https://www.youtube.com/watch?v=kANFWfgTZT8&ab_channel=FastAPIChannel
 
 
 # <!-- пагинация начало -->

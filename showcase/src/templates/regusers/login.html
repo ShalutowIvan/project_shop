@@ -7,14 +7,34 @@
 <form action="{{ url_for('auth_user') }}" method="post">
   
     
-    <p><input type="email" name="email" placeholder="e-mail"></p>
+    <p><input type="email" name="email" placeholder="e-mail"></p> 
+    {% if user_not_found %}    
+    <p>{{ user_not_found }}</p>
+    {% else %}
+    <br>
+    {% endif %}
+
     <p><input type="password" name="password" placeholder="Пароль"></p>
-  
-  <input type="submit" value="Войти" />
+    {% if password_incorrect %}    
+    <p>{{ password_incorrect }}</p>
+    {% else %}
+    <br>
+    {% endif %}
+
+    <input type="submit" value="Войти" />
+    
+    {% if user_not_active %}    
+    <p>{{ user_not_active }}</p>
+    {% else %}
+    <br>
+    {% endif %}
 
 </form>
 
-<br><br>
+    
+
+<br>
+
 <a href="{{ url_for('registration_get') }}">Регистрация</a>
 <br>
 <a href="{{ url_for('forgot_password_get') }}"><h4>Забыли пароль?</h4></a>

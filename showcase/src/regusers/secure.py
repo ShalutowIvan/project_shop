@@ -9,6 +9,7 @@ from starlette.status import HTTP_400_BAD_REQUEST
 
 from .models import User, Token
 from .schemas import UserCreate, MailBody
+from .schemas import UserCreate, MailBody
 
 from fastapi.security import APIKeyHeader, APIKeyCookie, OAuth2PasswordBearer
 from passlib.context import CryptContext
@@ -65,7 +66,7 @@ async def update_tokens(RT, db):#передаем сюда рефреш токе
 	try:
 		payload = jwt.decode(RT, KEY2, algorithms=[ALG])
 		pl_id = payload.get("sub")
-		pl_email = payload.get("iss")
+		# pl_email = payload.get("iss")
 		print("ВАСЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯ!!!!!!!")
 		print(pl_id)
 
@@ -87,7 +88,7 @@ async def update_tokens(RT, db):#передаем сюда рефреш токе
 	# print("ВАСЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯ!!!!!!!")
 	# print(RT_in_db)
 	if not RT_in_db:
-		tk: Token = await db.scalar(select(Token).where(Token.user_id == int(pl_id)))#ищем токен по пользаку и удаляем его
+		tk: Token = await db.scalar(select(Token).where(Token.user_id == int(pl_id)))#ищем токен по ID пользака и удаляем его, это мошенников чтобы их обезвредить
 		if tk:
 			await db.delete(tk)
 			await db.commit()
@@ -95,13 +96,15 @@ async def update_tokens(RT, db):#передаем сюда рефреш токе
 		print("Токен не совпадает с базой!!!!!!!")
 		return [False, False]
 
+	#если токен совпал с базой, то мы обновляем оба токена
 	#рефреш токен
 	refresh_token_expires = timedelta(minutes=int(EXPIRE_TIME_REFRESH))    
-	refresh_token_jwt = create_refresh_token(data={"sub": str(pl_id), "iss": pl_email}, expires_delta=refresh_token_expires)
+	refresh_token_jwt = create_refresh_token(data={"sub": str(pl_id)}, expires_delta=refresh_token_expires)
 
 	#аксес токен
+	user: User = await db.scalar(select(User).where(User.id == int(pl_id)))
 	access_token_expires = timedelta(minutes=int(EXPIRE_TIME))
-	access_token_jwt = create_access_token(data={"sub": pl_id, "iss": "showcase"}, expires_delta=access_token_expires)
+	access_token_jwt = create_access_token(data={"sub": pl_id, "user_name": user.name}, expires_delta=access_token_expires)
 
 	#обновляем рефреш в базе	
 	new_RT: Token = Token(user_id=int(pl_id), refresh_token=refresh_token_jwt)#для создания объекта нужен Ид пользака
@@ -114,7 +117,36 @@ async def update_tokens(RT, db):#передаем сюда рефреш токе
 	return [refresh_token_jwt, access_token_jwt]
 
 
+#функция проверки токена.
+async def access_token_decode(acces_token):#проверка аксес токена из куки  
+    
+    try:
+        payload = jwt.decode(acces_token, KEY, algorithms=[ALG])#в acces_token передается просто строка
+        
+        user_id = payload.get("sub")#у меня тут user_id, а не юзернейм
+        user_name = payload.get("user_name")
+        if user_id is None:
+            print("нет такого user_id")
+            return [False, None, " "]
+                
+    except Exception as ex:
+                
+        if type(ex) == ExpiredSignatureError:#если время действия токена истекло, то вывод принта. Можно тут написать логику что будет если аксес токен истекает
+            
+            print("ОШИБКА АКСЕС ТУТ")
+            print(ex)
+            return [ex, None, " "]#если токен истек то это
+    
+        return [False, None, " "]#если токена нет вообще, то это возвращается
+        
+    return [True, user_id, user_name]
 
+
+#функция для удобной проверки и обновления токенов
+async def test_token_expire(RT, db):
+    tokens = await update_tokens(RT=RT, db=db)
+    check = await access_token_decode(acces_token=tokens[1])
+    return (tokens[0], tokens[1], check)#рефреш, аксес, дешифровка аксес
 
 
 
