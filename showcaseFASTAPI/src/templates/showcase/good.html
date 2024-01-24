@@ -1,0 +1,39 @@
+{% extends 'showcase/start.html' %}
+
+
+{% block content %}
+
+
+
+
+{% if good != [] %}
+
+
+{% for g in good %}
+
+<h1> {{ g.name_product }}</h1>
+
+{% if g.photo %}
+<p><img class="product-img" src="{{ url_for('static', path=g.photo) }}"></p>
+{% endif %}
+
+<p> Цена {{ g.price }}</p>
+<p> Доступна для продажи {{ g.availability }}</p>
+
+
+
+{% endfor %}
+
+
+{% else %}
+
+
+<h1>Товаров нет</h1>
+
+
+{% endif %}
+
+
+{% endblock %}
+
+
