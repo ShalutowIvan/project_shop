@@ -15,11 +15,24 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from shop.views import *
+from rest_framework import routers
+
+# router = routers.SimpleRouter()
+router = routers.DefaultRouter()
+# router.register(r'good', GoodsViewSet, basename="tovar")
+router.register(r'good', GoodsViewSet)
+print(router.urls)#коллекция урл
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/goodlist/', GoodsAPIList.as_view()),
-    path('api/v1/goodlist/<int:pk>/', GoodsAPIList.as_view()),
+    # path('api/v1/goodlist/', GoodsAPIList.as_view()),
+    # path('api/v1/goodlist/<int:pk>/', GoodsAPIUpdate.as_view()),
+    # path('api/v1/gooddetail/<int:pk>/', GoodsAPIDetail.as_view()),
+    # path('api/v1/goodlist/', GoodsViewSet.as_view({'get': 'list'})),
+    # path('api/v1/goodlist/<int:pk>/', GoodsViewSet.as_view({'put': 'update'})),
+    path('api/v1/', include(router.urls)), #http://127.0.0.1:8000/api/v1/good/# то есть в конце урл дописывается строка (префикс) из роутера, то есть api/v1/ + good. urls - это набор маршрутов (коллекция) из вью сета. 
 ]
