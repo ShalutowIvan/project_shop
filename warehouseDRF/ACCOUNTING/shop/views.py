@@ -2,9 +2,11 @@ from django.shortcuts import render
 from rest_framework import generics, viewsets, mixins
 from .models import *
 from .serializers import *
+from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser
 from django.forms import model_to_dict
 
 # class TestApi(generics.ListAPIView):
@@ -125,30 +127,86 @@ from django.forms import model_to_dict
 # 	queryset = Goods.objects.all()
 # 	serializer_class = GoodsSerializer
 
-class GoodsViewSet(mixins.CreateModelMixin,
-                   mixins.RetrieveModelMixin,
-                   mixins.UpdateModelMixin,
-                   mixins.DestroyModelMixin,
-                   mixins.ListModelMixin,
-                   viewsets.GenericViewSet):#можно и вот вручную наследовать все классы. Эти же миксины наследуются в классе ModelViewSet, и мы можем убирать не нужный нам миксин, тогда например не будет возможности удалять позицию по сылке роутера. 
+# class GoodsViewSet(mixins.CreateModelMixin,
+#                    mixins.RetrieveModelMixin,
+#                    mixins.UpdateModelMixin,
+#                    mixins.DestroyModelMixin,
+#                    mixins.ListModelMixin,
+#                    viewsets.GenericViewSet):#можно и вот вручную наследовать все классы. Эти же миксины наследуются в классе ModelViewSet, и мы можем убирать не нужный нам миксин, тогда например не будет возможности удалять позицию по сылке роутера. 
+# 	# queryset = Goods.objects.all()
+# 	serializer_class = GoodsSerializer
+
+# 	#импорт из from rest_framework.decorators import action. Пропишем метод для вывода групп. Странно, почему нельзя сделать другой вью сет для групп, но посмотрим
+# 	# @action(methods=['get'], detail=False)#это декоратор для того чтобы можно было прописать свой маршрут, помимо тех что формируются автоматом. 
+# 	# def group(self, request):
+# 	# 	gr = Group.objects.all()
+# 	# 	return Response({'groups': [g.name_group for g in gr]})#возвращаем json со списоком групп
+# 	#теперь появится новый маршрут после good будет дописано автоматом group: http://127.0.0.1:8000/api/v1/good/group/
+# 	#имя маршрута будет такое: goods-group, дописывается название функции с декоратором action
+# 	# Но если в нашем случае если прописать еще параметр цифру для фильтрации после good и потом еще слово group, то будет ошибка, что такого маршрута нет. Чтобы ошибки не было нужно прописать detail=True и в параметрах функции указать параметр pk=None. Тогда можно будет переходить по этой ссылке с параметром. Ссылка такая получается http://127.0.0.1:8000/api/v1/good/1/group/
+# 	@action(methods=['get'], detail=True)
+# 	def group(self, request, pk=None):
+# 		# gr = Group.objects.all()
+# 		gr = Group.objects.get(pk=pk)#можно еще прописать так, и тогда тот параметр цифра будет влиять на фильтрацию групп, и если теперь перейти по ссылке http://127.0.0.1:8000/api/v1/good/1/group/, то вывдетеся первая группа с pk=1. Получается как бы параметр функции не в конце урл. Получается можно делать нестандартные маршруты в классах вьюсет (viewsets). То есть тут вьюшка как бы для товаров, но другие модели тоже можно выводить с текущим роутером. И декоратор action как бы добавляет новую функцию к текущему роутеру, но с другими действиями. 		
+# 		return Response({'groups': [g.name_group for g in gr]})#возвращаем json со списоком групп
+
+
+# 	def get_queryset(self):
+# 		pk = self.kwargs.get("pk")#получили параметр pk. 
+# 		if not pk:#если нет такой записи то возвращаются все записи по нужному нам списку
+# 			return Goods.objects.all()[:3]
+		
+
+# 		return Goods.objects.filter(pk=pk)#иначе если есть параметр pk в таблице, то его выводим. Причем тут фильтр ищет не из первых 3-х значений. 
+
+		#теперь будут только первые 3 выводиться. Теперь можно убрать атрибут queryset, но надо не забыть прописать basename в роутере. Но теперь если указать параметр в ссылке, то будет ошибка. Нужно получать этот параметр в функции get_queryset. 
+
+
+#сделаем 3 представления для создания, обновления и удаления
+class GoodsAPIList(generics.ListCreateAPIView):
 	queryset = Goods.objects.all()
 	serializer_class = GoodsSerializer
+	permission_classes = (IsAuthenticatedOrReadOnly, )
 
-	#импорт из from rest_framework.decorators import action. Пропишем метод для вывода групп. Странно, почему нельзя сделать другой вью сет для групп, но посмотрим
-	# @action(methods=['get'], detail=False)#это декоратор для того чтобы можно было прописать свой маршрут, помимо тех что формируются автоматом. 
-	# def group(self, request):
-	# 	gr = Group.objects.all()
-	# 	return Response({'groups': [g.name_group for g in gr]})#возвращаем json со списоком групп
-	#теперь появится новый маршрут после good будет дописано автоматом group: http://127.0.0.1:8000/api/v1/good/group/
-	#имя маршрута будет такое: goods-group, дописывается название функции с декоратором action
-	# Но в нашем случае если прописать еще параметр цифру для фильтрации и потом еще слово group, то будет ошибка, что такого маршрута нет. Чтобы ошибки не было нужно прописать detail=True и в параметрах функции указать параметр pk=None. Тогда можно будет переходить по этой ссылке
-	@action(methods=['get'], detail=True)
-	def group(self, request, pk=None):
-		gr = Group.objects.all()
-		return Response({'groups': [g.name_group for g in gr]})#возвращаем json со списоком групп
-
-# ост 9 мин
     		
+class GoodsAPIUpdate(generics.RetrieveUpdateAPIView):
+	queryset = Goods.objects.all()
+	serializer_class = GoodsSerializer
+	permission_classes = (IsOwnerOrReadOnly, )
+
+
+class GoodsAPIDestroy(generics.RetrieveDestroyAPIView):
+	queryset = Goods.objects.all()
+	serializer_class = GoodsSerializer
+	permission_classes = (IsAdminOrReadOnly, )#прописали свой пермиссионс, теперь удалять может только админ, а другие могут только смотреть. 
+
+#пропишем маршруты для текущих вьюшек. И теперь любой пользак может что-либо делать с данными с нашего сайта. Это означает что безопасности нет вообще. 
+# Сделаем так чтобы можно было добавлять записи только если авторизован пользак. Можно воспользоваться классом IsAuthenticatedOrReadOnly. Его нужно прописать в атрибуте permission_classes в виде кортежа. Теперь без авторизации нельзя добавлять статьи
+#это чтобы поле с пользаком скрывалось при добавлении через форму в урлке от джанго, которое мы делаем через форму вьюшки GoodsAPIList. Мы тут создаем скрытое поле, и там по умолчанию прописываем текущего пользака. 
+
+#далее преположим что удалять может только админ. Сделаем такое разрешение. Пропишем permission_classes = (IsAdminUser, ) в классе GoodsAPIDestroy
+#если так прописать то удалять сможет только админ. Но просматривать может тоже только админ. Такого класса в джанго нет, чтобы нельзя было удалять, но можно было просматривать. Но его можно создать самому. 
+# Есть класс BasePermission, в нем есть 2 метода:
+# def has_permission(self, request, view):
+#         """
+#         Return `True` if permission is granted, `False` otherwise.
+#         """
+#         return True
+
+# def has_object_permission(self, request, view, obj):
+#         """
+#         Return `True` if permission is granted, `False` otherwise.
+#         """
+#         return True
+# Первый метод has_permission позволяет настраивать права доступа на уровне всего запроса (от клиента), а второй метод has_object_permission – права доступа на уровне отдельного объекта (данных, записи БД).
+#Сделаем свой класс назовем его IsAdminOrReadOnly, чтобы просматривать записи мог каждый, а удалять только админ. Сделаем отдельный файл permissions.py, в нем будут наши собственные permissions
+
+# Сделаем так, чтобы изменять записи мог только автор. А просматиривать могут также все пользаки. 
+#Сделал класс IsOwnerOrReadOnly и записал его в виде кортежа во вьшке GoodsAPIUpdate. Теперь все работает как нам надо. Если есть авторизация, то можно просмотреть и редачить записи, а если нет авторизации, то только смотреть. 
+
+
+
+
 
 
 

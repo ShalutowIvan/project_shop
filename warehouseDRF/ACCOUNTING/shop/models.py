@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.auth.models import User
 
 class Goods(models.Model):
 	name_product = models.CharField(max_length=255, default='_', verbose_name="Название товара")
@@ -10,6 +10,7 @@ class Goods(models.Model):
 	stock = models.FloatField(verbose_name="Остаток")
 	availability = models.BooleanField(default=True, verbose_name="Доступность")
 	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара", null=True)#миграцию пока не делал с null
+	user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь",)# сделал поле юзера, чтобы было видно кто товар создал. Будет конечно 1 пользак, но лучше все же слелать ограничение. 
 
 	def __str__(self):
 		return self.name_product

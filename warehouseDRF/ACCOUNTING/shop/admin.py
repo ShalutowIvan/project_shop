@@ -4,7 +4,7 @@ from .models import *
 
 
 class GoodsAdmin(admin.ModelAdmin):
-	list_display = ('id', 'name_product', 'price', 'vendor_code', 'stock', 'availability')#это для отображения ссылок для перехода на нужные поля сайта
+	list_display = ('id', 'name_product', 'price', 'vendor_code', 'stock', 'availability', 'user')#это для отображения ссылок для перехода на нужные поля сайта
 	list_display_links = ('id', 'name_product')#это для отображения ссылок для перехода на нужные поля сайта
 	search_fields = ('name_product', )#это инфа по каким полям будет идти поиск. Далее идем в файл models.py для уазания названия полей на русском языке. 
 	list_editable = ('availability',)#это чтобы через админку можно было редачить этот параметр
