@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from shop.views import *
 from rest_framework import routers
 
@@ -67,5 +67,7 @@ urlpatterns = [
     path('api/v1/good/', GoodsAPIList.as_view()),
     path('api/v1/good/<int:pk>/', GoodsAPIUpdate.as_view()),
     path('api/v1/gooddelete/<int:pk>/', GoodsAPIDestroy.as_view()),
+    path('api/v1/auth/', include('djoser.urls')),
+    re_path(r'^auth/', include('djoser.urls.authtoken')),
     
 ]
