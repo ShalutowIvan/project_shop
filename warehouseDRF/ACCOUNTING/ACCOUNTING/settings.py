@@ -164,10 +164,10 @@ SIMPLE_JWT = {
     "JWK_URL": None,
     "LEEWAY": 0,
 
-    "AUTH_HEADER_TYPES": ("Bearer",),#определяет заголовок перед токеном в заголовке запроса
+    "AUTH_HEADER_TYPES": ("Bearer",),#определяет заголовок перед токеном в заголовке запроса. Слово можно писать любое получается
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",#имя заголовка
-    "USER_ID_FIELD": "id",
-    "USER_ID_CLAIM": "user_id",
+    "USER_ID_FIELD": "id",#поле которое будет определяться в jwt
+    "USER_ID_CLAIM": "user_id",#каким ключом будет определяться id пользака, то есть внутри токена ключ user_id будет соответствовать id пользака 
     "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
 
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
@@ -176,8 +176,8 @@ SIMPLE_JWT = {
 
     "JTI_CLAIM": "jti",
 
-    "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
-    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
+    "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",#SLIDING_TOKEN что то новое, обычно их не юзают
+    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),#те же самые время истечения рефреш и аксес токена
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
 
     "TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainPairSerializer",

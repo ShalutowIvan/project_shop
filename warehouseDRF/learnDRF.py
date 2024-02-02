@@ -382,11 +382,69 @@
 #     path('api/v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 #     path('api/v1/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
 # ]
+
 # Потом из док-ции по ссылке: https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html
 # Нужно скопировать словарь SIMPLE_JWT и импортировать from datetime import timedelta, записать это в файл settings.py
 #поправить там нужно SEVRET_KEY. Его можно прописать в отдельном файле с использованием .env файла. 
+# authentication_classes по обычным токенам лучше не прописывать, чтобы работала аутентификация из файла settings. 
+# Переходим по пути path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+# в браузере
+# будет предложено авторизоваться в системе. 
+#если ввести логин и пароль то вернется пара токенов:
+# {
+#     "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTcwNjk1MzUwMSwiaWF0IjoxNzA2ODY3MTAxLCJqdGkiOiJmNmZiZTk3ZDFiNzQ0Njg4OWNiOTc1Y2Y5YjM5OTQ3NiIsInVzZXJfaWQiOjJ9.AP_jLBYvSrg-F4T-NL3rnJgDiL0IckM1yLO_rBgroJk",
+#     "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA2ODY3NDAxLCJpYXQiOjE3MDY4NjcxMDEsImp0aSI6IjAzYzVmMGRhODhiZDRjOWViNzA0MzRmZTI2NGIzMzMwIiwidXNlcl9pZCI6Mn0.3DIB0pm5OixDiIY9qkQWqArmDYtZzqxs9yk0A0Zhmkc"
+# }
+#есть сайт: https://jwt.io/
+# Там можно смотреть содержимое jwt, он расшифровывает токены, только подпись не трогает, то есть пейлоад и хедер докодирует. 
+# {
+#   "alg": "HS256",
+#   "typ": "JWT"
+# }
+# {
+#   "token_type": "access",
+#   "exp": 1706867401,
+#   "iat": 1706867101,
+#   "jti": "03c5f0da88bd4c9eb70434fe264b3330",
+#   "user_id": 2
+# }
+# и сервер поймет какой пользак запрашивает доступ. 
+# Попробуем через постман сделать гет запрос без токена. Также будет ошибка 
+# {"detail":"Учетные данные не были предоставлены."}
+# потом с jwt запрос сделаем. 
+# Хедер то есть key такой же Authorization, и значение 
+# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA2ODY4MDMyLCJpYXQiOjE3MDY4Njc3MzIsImp0aSI6Ijc4ZWJmMDU0YjcyMzQ4ZDU4NmE0ZmYwMWJmN2U1NjdjIiwidXNlcl9pZCI6Mn0.L7VhhKBa7mYTw5ceZpMg7rmTkoF_7W4cxU_iPcS0t8s
+# главное успеть в постмане его отправить пока он не истек. 5 мин дается. Иначе вернется ошибка
+# ссылка для постмана такая была: http://127.0.0.1:8000/api/v1/good/1/
+# Вернется этот json
+# {
+#     "id": 1,
+#     "name_product": "Хлеб",
+#     "slug": "hleb",
+#     "vendor_code": "_",
+#     "price": "44.00",
+#     "photo": "http://127.0.0.1:8000/photos/2024/01/26/%D1%85%D0%BB%D0%B5%D0%B1.png",
+#     "stock": 11.0,
+#     "availability": true,
+#     "group": 1
+# }
 
-# ост 5 мин
+# Если время токена истекает то ошибка будет: {
+#     "detail": "Given token not valid for any token type",
+#     "code": "token_not_valid",
+#     "messages": [
+#         {
+#             "token_class": "AccessToken",
+#             "token_type": "access",
+#             "message": "Token is invalid or expired"
+#         }
+#     ]
+# }
+
+#чтобы обновить токены можно воспользоваться рефреш токеном. 
+# Нужно перейти по адресу: http://127.0.0.1:8000/api/v1/token/refresh/
+# Там нужно скопировать рефреш токен в поле Refresh и отпрваить пост запрос
+# И будет возвращен новый аксес токен. Почему-то только аксес без нового рефреш. Странно. Скорее всего придется тут все самому пилить. Или сделать свою авторизацию простенькую. 
 
 
 
