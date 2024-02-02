@@ -19,6 +19,9 @@ from django.urls import path, include, re_path
 from shop.views import *
 from rest_framework import routers
 
+#для jwt
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
+
 
 # class MyCustomRouter(routers.SimpleRouter):#наследуемся от симплроутера и прописываем свои параметры
 #     #сначала определяем атрибут routes, это список из маршрутов. Каждый элемент списка это объект класса Route. Каждый класс определяет 1 отдельный маршрут. 
@@ -69,5 +72,9 @@ urlpatterns = [
     path('api/v1/gooddelete/<int:pk>/', GoodsAPIDestroy.as_view()),
     path('api/v1/auth/', include('djoser.urls')),
     re_path(r'^auth/', include('djoser.urls.authtoken')),
+    #авторизация jwt
+    path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/v1/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     
 ]
