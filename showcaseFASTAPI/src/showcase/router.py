@@ -369,6 +369,31 @@ async def checkout_list(request: Request, session: AsyncSession = Depends(get_as
     return response
 
 
+#пробный гет урл для запроса во второе приложение############################################
+
+@router_showcase.get("/checkout_list/orders/all/")
+async def checkout_list(request: Request, session: AsyncSession = Depends(get_async_session)):    
+    
+    query = select(Order_list).options(joinedload(Order_list.product))
+    order_list = await session.scalars(query)    
+    
+    context = order_list.all()
+    #что-то придумать чтобы сортировка шла по номеру заказа и формировался список товаров по номру заказа. 
+    
+    order_number = None
+    res = {}
+    for i in context:
+        if res.get(i.order_number) == None:
+            res[i.order_number] = ((i.product.name_product, i.quantity, i.time_create, i.user_id), )
+            order_number = int(i.order_number)
+        else:
+            res[i.order_number] += ((i.product.name_product, i.quantity, i.time_create, i.user_id), )
+    
+    
+    return res
+
+#####################################################################################
+
 
 from fastapi import UploadFile, File
 import shutil
@@ -484,6 +509,7 @@ async def file_post(request: Request, foto: UploadFile = File()):
 
 #     {% endif %}
 # <!--конец форма -->
+
 
 
 

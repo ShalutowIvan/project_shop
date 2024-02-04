@@ -1,0 +1,32 @@
+{% extends 'showcase/start.html' %}
+
+
+{% block content %}
+
+
+
+
+
+<h5>{{ contact }}</h5>
+
+
+{% for j in contact %}
+
+<h5>Номер заказа: {{ j }}</h5>
+
+{% for i in order_list %}
+
+{% if i.order_number == j %}
+
+<p> Название товара {{ i.name_product }}</p>
+<p> Количество {{ i.quantity }}</p>
+<p> Цена {{ i.price }}</p>
+<p> Время создания {{ i.time_create }}</p>
+
+{% endif %}
+
+{% endfor %}
+{% endfor %}
+
+
+{% endblock %}

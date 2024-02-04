@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  
+<a href="http://127.0.0.1:8000/checkout_list/orders/all/"><p>ССЫЛКА</p></a>
+
+<form action="{% url 'test_url' %}" method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+    <p><label class="form-label" for="{{ form.url.id_for_label }}">{{form.url.label}}: </label>{{ form.url }}</p>
+    
+  
+  <input type="submit" value="Send" />
+
+</form>
+
+
+
+</body>
+</html>

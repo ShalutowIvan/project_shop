@@ -17,8 +17,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 from shop.views import *
+from regusers.views import *
 from rest_framework import routers
-
+from django.conf.urls.static import static
+from django.conf import settings
 #для jwt
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 
@@ -66,15 +68,20 @@ urlpatterns = [
     # path('api/v1/goodlist/<int:pk>/', GoodsViewSet.as_view({'put': 'update'})),
     # path('api/v1/', include(router.urls)), #http://127.0.0.1:8000/api/v1/good/# то есть в конце урл дописывается строка (префикс) из роутера, то есть api/v1/ + good. urls - это набор маршрутов (коллекция) из вью сета. 
     # path('api/v1/', include(router2.urls)),
-    path('api/v1/drf-auth/', include('rest_framework.urls')),
-    path('api/v1/good/', GoodsAPIList.as_view()),
-    path('api/v1/good/<int:pk>/', GoodsAPIUpdate.as_view()),
-    path('api/v1/gooddelete/<int:pk>/', GoodsAPIDestroy.as_view()),
-    path('api/v1/auth/', include('djoser.urls')),
-    re_path(r'^auth/', include('djoser.urls.authtoken')),
-    #авторизация jwt
-    path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/v1/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
-    
-]
+    # path('api/v1/drf-auth/', include('rest_framework.urls')),
+    # path('api/v1/good/', GoodsAPIList.as_view()),
+    # path('api/v1/good/<int:pk>/', GoodsAPIUpdate.as_view()),
+    # path('api/v1/gooddelete/<int:pk>/', GoodsAPIDestroy.as_view()),
+    # path('api/v1/auth/', include('djoser.urls')),
+    # re_path(r'^auth/', include('djoser.urls.authtoken')),
+    # #авторизация jwt
+    # path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    # path('api/v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # path('api/v1/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path('', include('shop.urls')),#тут указали стартовую страницу от которой будут идти все другие ссылки приложения
+    path('', include('regusers.urls')),
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

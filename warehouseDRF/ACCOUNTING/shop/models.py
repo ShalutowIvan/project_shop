@@ -85,3 +85,15 @@ class Order_list_bought(models.Model):
 		verbose_name = "История покупок"
 		verbose_name_plural = "История покупок"
 		ordering = ['time_create', 'name_product']
+
+
+class Url_list(models.Model):
+	url = models.CharField(max_length=255, default='_', verbose_name="Ссылка")
+	
+	def __str__(self):
+		return self.url
+
+	class Meta:
+		verbose_name = "Ссылка"
+		verbose_name_plural = "Ссылки"
+		# ordering = ['time_create', 'name_product']

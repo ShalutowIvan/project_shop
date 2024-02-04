@@ -1,4 +1,9 @@
-a = "11331"
-q = any(i.isdigit() for i in a) and not all(i.isdigit() for i in a)
-print(q)
+a = {}
+# q = a.get(1)
+# print(q)
+a[1] = (("asd", ), )
+
+a[1] += ((1, ), )
+a[1] += ((2, ), )
+print(a[1])
 

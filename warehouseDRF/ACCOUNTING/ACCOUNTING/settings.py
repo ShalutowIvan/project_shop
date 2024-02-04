@@ -11,8 +11,9 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 from datetime import timedelta
+# from .password import *
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'shop.apps.ShopConfig',
+    'regusers.apps.RegusersConfig',
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
@@ -60,7 +62,7 @@ ROOT_URLCONF = 'ACCOUNTING.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates'),],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -111,8 +113,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ru'
 
-# TIME_ZONE = 'UTC'
-TIME_ZONE = 'Europe/Moscow'
+TIME_ZONE = 'UTC'
+# TIME_ZONE = 'Europe/Moscow'
+
 
 USE_I18N = True
 
@@ -124,10 +127,35 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATICFILES_DIRS = [
+    BASE_DIR / "static", 
+]
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')#тут формируется путь к каталогу media для сохранения фото
+MEDIA_URL = '/media/'
+
+
+
+#для реги по сессиям
+
+# LOGIN_URL = '/login/'
+
+# # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_USE_TLS = False
+# EMAIL_USE_SSL = True
+# EMAIL_PORT = PORT
+# EMAIL_HOST = HOST
+# EMAIL_HOST_USER = HOST_USER
+# EMAIL_HOST_PASSWORD = HOST_PASSWORD
+# DEFAULT_FROM_EMAIL = DEFAULT_EMAIL
+
+
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
@@ -144,7 +172,10 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ]
+    ],
+
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 2,
 }
 
 
