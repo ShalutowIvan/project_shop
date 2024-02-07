@@ -257,30 +257,28 @@ async def contacts(request: Request, session: AsyncSession = Depends(get_async_s
 #заготовка для формы запроса контактов из формы регистрации, переделать под запрос контактов
 @router_showcase.post("/basket/contacts/", response_model=None, status_code=201)#response_model это валидация для запроса
 async def contacts_form(request: Request, session: AsyncSession = Depends(get_async_session), fio: str = Form(), phone: int = Form(), delivery_address: str = Form(), pay: int = Form(), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
-    # по куки Authorization найти ид пользака
+    #дешифровка jwt аксес
     check = await access_token_decode(acces_token=Authorization)
     
+    #проверка на истечение токена, в случае если истек обновляем
     flag = False
-    if type(check[0]) == ExpiredSignatureError:   
+    if type(check[0]) == ExpiredSignatureError:
         tokens = await test_token_expire(RT=RT, db=session)        
         check = tokens[2]
-        flag = True
-
-    # if type(check[0]) == ExpiredSignatureError:
-    #     context = await base_requisites(db=session, check=check, request=request)
-
-    #     return templates.TemplateResponse("showcase/if_not_auth_in_order.html", context)
-
+        flag = True    
+    #создаем объект в таблице контактов
     kontakt = Contacts(fio=fio, phone=phone, delivery_address=delivery_address, pay_id=pay, user_id=int(check[1]))
         
     session.add(kontakt)
     await session.commit()
     await session.refresh(kontakt)
 
+    #делаем запрос в таблице корзина с фильтром по пользаку
     pay_goods = await session.scalars(select(Basket).where(Basket.user_id == int(check[1])))
+    #запрос в таблице контактов по пользаку
     contacts = await session.scalars(select(Contacts).where(Contacts.user_id == int(check[1])))
-    id_contact = contacts.all()[-1].id#это будет номер заказа, таблицу контактов запрашиваю для указания номера заказа
-
+    id_contact = contacts.all()[-1].id#берем последний в списке номер, это будет номер заказа, таблицу контактов запрашиваю для указания номера заказа
+    #формируем генератор списка товаров из корзины
     res = [Order_list(product_id=i.product_id, quantity=i.quantity, order_number=id_contact, user_id=int(check[1])) for i in pay_goods.all()]
     
     session.add_all(res)
@@ -378,7 +376,7 @@ async def checkout_list(request: Request, session: AsyncSession = Depends(get_as
     order_list = await session.scalars(query)    
     
     context = order_list.all()
-    #что-то придумать чтобы сортировка шла по номеру заказа и формировался список товаров по номру заказа. 
+    
     
     order_number = None
     res = {}
