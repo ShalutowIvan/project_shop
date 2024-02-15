@@ -253,10 +253,10 @@ async def contacts(request: Request, session: AsyncSession = Depends(get_async_s
 
     return response
 
-
+import uuid
 #заготовка для формы запроса контактов из формы регистрации, переделать под запрос контактов
 @router_showcase.post("/basket/contacts/", response_model=None, status_code=201)#response_model это валидация для запроса
-async def contacts_form(request: Request, session: AsyncSession = Depends(get_async_session), fio: str = Form(), phone: int = Form(), delivery_address: str = Form(), pay: int = Form(), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
+async def contacts_form(request: Request, session: AsyncSession = Depends(get_async_session), fio: str = Form(), phone: str = Form(), delivery_address: str = Form(), pay: int = Form(), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
     #дешифровка jwt аксес
     check = await access_token_decode(acces_token=Authorization)
     
@@ -266,6 +266,7 @@ async def contacts_form(request: Request, session: AsyncSession = Depends(get_as
         tokens = await test_token_expire(RT=RT, db=session)        
         check = tokens[2]
         flag = True    
+    
     #создаем объект в таблице контактов
     kontakt = Contacts(fio=fio, phone=phone, delivery_address=delivery_address, pay_id=pay, user_id=int(check[1]))
         
@@ -280,14 +281,14 @@ async def contacts_form(request: Request, session: AsyncSession = Depends(get_as
     id_contact = contacts.all()[-1].id#берем последний в списке номер, это будет номер заказа, таблицу контактов запрашиваю для указания номера заказа
     #формируем генератор списка товаров из корзины
     res = [Order_list(product_id=i.product_id, quantity=i.quantity, order_number=id_contact, user_id=int(check[1])) for i in pay_goods.all()]
-    
+            
     session.add_all(res)
 
     #удаление всех записей в корзине с фильтром по пользаку
     await session.execute(text(f"DELETE FROM basket WHERE user_id = {check[1]};"))  
     # await session.execute(text(f"DELETE FROM contacts WHERE user_id = {check[1]};"))  
 
-    await session.commit()    
+    await session.commit()
 
     context = await base_requisites(db=session, check=check, request=request)
     context["order_number"] = id_contact
@@ -376,7 +377,7 @@ async def checkout_list(request: Request, session: AsyncSession = Depends(get_as
     order_list = await session.scalars(query)    
     
     context = order_list.all()
-    
+    #нужно чтобы в запросе были: наименование товара, фио заказчика, номер телефона заказчика, номер заказа, колво, время заказа
     
     order_number = None
     res = {}

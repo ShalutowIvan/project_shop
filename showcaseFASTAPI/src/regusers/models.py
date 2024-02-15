@@ -14,9 +14,11 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(256))
     time_create_user: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))
     email: Mapped[str] = mapped_column(String(length=320), unique=True, index=True, nullable=False)
+    # phone: Mapped[str] = mapped_column(String(length=320), unique=True, index=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(length=1024), nullable=False)
     is_active: Mapped[bool] = mapped_column(default=False, nullable=False)
     
+
     #связи
     tokens: Mapped["Token"] = relationship(back_populates="user")
     basket: Mapped["Basket"] = relationship(back_populates="user")
