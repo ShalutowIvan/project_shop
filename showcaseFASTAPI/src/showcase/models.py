@@ -92,37 +92,41 @@ class Pay(enum.Enum):
 
 
 #способ оплаты
-class Payment(Base):
-    __tablename__ = "payment"
-    id: Mapped[int] = mapped_column(unique=True, primary_key=True)
-    payment_method: Mapped[str] = mapped_column(nullable=False)#тут будет выбор нал или безнал из класса Pay, там указаны перечисления. Пока убрал перечисления, так как выдается ошибка при миграции... (тип "pay" уже существует
-# [SQL: CREATE TYPE pay AS ENUM ('cash', 'non_cash')])
+# class Payment(Base):
+#     __tablename__ = "payment"
+#     id: Mapped[int] = mapped_column(unique=True, primary_key=True)
+#     payment_method: Mapped[str] = mapped_column(nullable=False)#тут будет выбор нал или безнал из класса Pay, там указаны перечисления. Пока убрал перечисления, так как выдается ошибка при миграции... (тип "pay" уже существует
+# # [SQL: CREATE TYPE pay AS ENUM ('cash', 'non_cash')])
     
-    contacts: Mapped["Contacts"] = relationship(back_populates="payment")
+#     contacts: Mapped["Contacts"] = relationship(back_populates="payment")
 
-
-class Contacts(Base):
-    __tablename__ = "contacts"
+#ранее называлась Contacts
+class Order_counter(Base):
+    __tablename__ = "order_counter"
     id: Mapped[int] = mapped_column(primary_key=True)    
-    fio: Mapped[str] = mapped_column(nullable=False)
-    phone: Mapped[str] = mapped_column(default="0")
-    delivery_address: Mapped[str] = mapped_column(default="_")
+    user_id: Mapped[int] = mapped_column(nullable=False)
+    
 
-    pay_id: Mapped[int] = mapped_column(ForeignKey("payment.id", ondelete="CASCADE"))
-    payment: Mapped["Payment"] = relationship(back_populates="contacts")
+    # user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
+    # user: Mapped["User"] = relationship(back_populates="order_counter")
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
-    user: Mapped["User"] = relationship(back_populates="contacts")
+    # pay_id: Mapped[int] = mapped_column(ForeignKey("payment.id", ondelete="CASCADE"))
+    # payment: Mapped["Payment"] = relationship(back_populates="contacts")
 
-    order_list: Mapped["Order_list"] = relationship(back_populates="order")
+    # order_list: Mapped["Order_list"] = relationship(back_populates="order")
 
 
 class Order_list(Base):
     __tablename__ = "order_list"
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    order_number: Mapped[int] = mapped_column(ForeignKey("contacts.id", ondelete="CASCADE"))
-    order: Mapped["Contacts"] = relationship(back_populates="order_list")
+    # order_number: Mapped[int] = mapped_column(ForeignKey("contacts.id", ondelete="CASCADE"))
+    # order: Mapped["Contacts"] = relationship(back_populates="order_list")
+    order_number: Mapped[int] = mapped_column(nullable=False)
+
+    fio: Mapped[str] = mapped_column(nullable=False)
+    delivery_address: Mapped[str] = mapped_column(default="_")
+    phone: Mapped[str] = mapped_column(default="0")
 
     product_id: Mapped[int] = mapped_column(ForeignKey("goods.id", ondelete="SET NULL"), nullable=True)
     product: Mapped["Goods"] = relationship(back_populates="order_list")
@@ -133,6 +137,7 @@ class Order_list(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
     user: Mapped["User"] = relationship(back_populates="order_list")
     
+
     
 
 

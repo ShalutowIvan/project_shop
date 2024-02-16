@@ -17,13 +17,12 @@ class User(Base):
     # phone: Mapped[str] = mapped_column(String(length=320), unique=True, index=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(length=1024), nullable=False)
     is_active: Mapped[bool] = mapped_column(default=False, nullable=False)
-    
 
     #связи
     tokens: Mapped["Token"] = relationship(back_populates="user")
     basket: Mapped["Basket"] = relationship(back_populates="user")
     order_list: Mapped["Order_list"] = relationship(back_populates="user")
-    contacts: Mapped["Contacts"] = relationship(back_populates="user")
+    # order_counter: Mapped["Order_counter"] = relationship(back_populates="user")
 
 
 class Token(Base):

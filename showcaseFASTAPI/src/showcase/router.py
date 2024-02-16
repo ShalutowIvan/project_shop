@@ -253,7 +253,7 @@ async def contacts(request: Request, session: AsyncSession = Depends(get_async_s
 
     return response
 
-import uuid
+# import uuid
 #заготовка для формы запроса контактов из формы регистрации, переделать под запрос контактов
 @router_showcase.post("/basket/contacts/", response_model=None, status_code=201)#response_model это валидация для запроса
 async def contacts_form(request: Request, session: AsyncSession = Depends(get_async_session), fio: str = Form(), phone: str = Form(), delivery_address: str = Form(), pay: int = Form(), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
@@ -268,19 +268,20 @@ async def contacts_form(request: Request, session: AsyncSession = Depends(get_as
         flag = True    
     
     #создаем объект в таблице контактов
-    kontakt = Contacts(fio=fio, phone=phone, delivery_address=delivery_address, pay_id=pay, user_id=int(check[1]))
-        
-    session.add(kontakt)
+    # kontakt = Contacts(fio=fio, phone=phone, delivery_address=delivery_address, pay_id=pay, user_id=int(check[1]))
+    order_counter = Order_counter(user_id=int(check[1]))
+
+    session.add(order_counter)
     await session.commit()
-    await session.refresh(kontakt)
+    await session.refresh(order_counter)
 
     #делаем запрос в таблице корзина с фильтром по пользаку
     pay_goods = await session.scalars(select(Basket).where(Basket.user_id == int(check[1])))
     #запрос в таблице контактов по пользаку
-    contacts = await session.scalars(select(Contacts).where(Contacts.user_id == int(check[1])))
-    id_contact = contacts.all()[-1].id#берем последний в списке номер, это будет номер заказа, таблицу контактов запрашиваю для указания номера заказа
+    order_number = await session.scalars(select(Order_counter).where(Order_counter.user_id == int(check[1])))
+    id_order_number = order_number.all()[-1].id#берем последний в списке номер, это будет номер заказа, таблицу контактов запрашиваю для указания номера заказа
     #формируем генератор списка товаров из корзины
-    res = [Order_list(product_id=i.product_id, quantity=i.quantity, order_number=id_contact, user_id=int(check[1])) for i in pay_goods.all()]
+    res = [Order_list(order_number=id_order_number, fio=fio, delivery_address=delivery_address, phone=phone, product_id=i.product_id, quantity=i.quantity, user_id=int(check[1])) for i in pay_goods.all()]
             
     session.add_all(res)
 
@@ -291,7 +292,7 @@ async def contacts_form(request: Request, session: AsyncSession = Depends(get_as
     await session.commit()
 
     context = await base_requisites(db=session, check=check, request=request)
-    context["order_number"] = id_contact
+    context["order_number"] = id_order_number
     response = templates.TemplateResponse("showcase/order_done.html", context)
 
     if flag:        
@@ -350,12 +351,12 @@ async def checkout_list(request: Request, session: AsyncSession = Depends(get_as
     query = select(Order_list).options(joinedload(Order_list.product)).where(Order_list.user_id == int(check[1]))    
     order_list = await session.scalars(query)
     
-    kont = await session.scalars(select(Contacts).where(Contacts.user_id == int(check[1])))
+    kount = await session.scalars(select(Order_counter).where(Order_counter.user_id == int(check[1])))
     #таблица контактов будет постоянно пополняться и со временем станет огромной и жестко тупить при заказах, так как она пополняется от всех пользаков при каждом заказе. надо что-то придумать. 
     
     context = await base_requisites(db=session, check=check, request=request)
     context["order_list"] = order_list.all()
-    context["contacts"] = kont.all()
+    context["count_order"] = kount.all()
 
     #решить что делать с таблицей контактов и с таблицей заказов, они будут очень сильно разрастаться и тормозить потом
 
@@ -383,15 +384,16 @@ async def checkout_list(request: Request, session: AsyncSession = Depends(get_as
     res = {}
     for i in context:
         if res.get(i.order_number) == None:
-            res[i.order_number] = ((i.product.name_product, i.quantity, i.time_create, i.user_id), )
+            res[i.order_number] = ((i.product.name_product, i.quantity, i.time_create, i.product.price, i.delivery_address, i.fio, i.phone), )
             order_number = int(i.order_number)
         else:
-            res[i.order_number] += ((i.product.name_product, i.quantity, i.time_create, i.user_id), )
+            res[i.order_number] += ((i.product.name_product, i.quantity, i.time_create, i.product.price, i.delivery_address, i.fio, i.phone), )
     
     
     return res
 
 #####################################################################################
+
 
 
 from fastapi import UploadFile, File

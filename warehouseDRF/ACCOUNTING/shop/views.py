@@ -16,30 +16,21 @@ from django.forms import model_to_dict
 
 from .forms import *
 
-
-
-
-
-# def test_view(request):
-#     if request.method == "POST":
-#         form = Url_form(data=request.POST)#передали какие-то данные из пост запроса. request.POST это словарь, из него можно по ключам брать данные и что-то с ними делать.
-#         if form.is_valid():#проверяем валидка ли форма. Для проверки используем встроенную функцию для форм в джанго. Там все проверки прописаны уже. 
-#             url = request.POST['url']
-#             # rq = requests.get(f"{url}")
-#             rq = requests.get("http://127.0.0.1:8000/checkout_list/orders/all/")
-
-#             return {"res": rq.text}
-# 			# return HttpResponseRedirect(reverse_lazy('start'))
-
-#     else:
-#         form = Url_form()#когда пользователь только входит на страницу, то срабатывает этот код, так как изначально срабатывает get запрос. Далее в контекст заносится форма, и передается через render функцию в html-ку. Кстати код в html form.as_p означает вывести всю форму через теги p параграфы просто подряд. Можно выводить через другие теги. 
-    
-#     context = {'form': form}
-#     return render(request, "shop/test.html", context=context)
-
-
-
 import requests
+
+
+class GoodsViewSet(mixins.CreateModelMixin,
+                   mixins.RetrieveModelMixin,
+                   mixins.UpdateModelMixin,
+                   mixins.DestroyModelMixin,
+                   mixins.ListModelMixin,
+                   viewsets.GenericViewSet):
+	pass
+
+
+# спланировать какой будет функционал в учетной системе и как все будет выглядеть
+# сделать список заказов
+
 
 def test_view(request):
 	rq = requests.get("http://127.0.0.1:8000/checkout_list/orders/all/")
@@ -48,4 +39,5 @@ def test_view(request):
 	return HttpResponse(res)
 
 #в таком виде сейчас возвращается
-# {"51":[["Хлеб",4.0,"2024-02-04T02:55:37.047965",22]],"49":[["Хлеб",1.0,"2024-02-04T01:05:37.596731",22],["Молоко",1.0,"2024-02-04T01:05:37.596731",22]],"50":[["Молоко",5.0,"2024-02-04T01:50:17.124023",22]]}
+# {"1":[["Хлеб",1.0,"2024-02-16T02:13:59.166505",44.0,"домой","Вася","89998887766"]],"2":[["Хлеб",2.0,"2024-02-16T02:19:42.964451",44.0,"домой","Jhon","89998887766"]]}
+#ключ словаря это номер заказа, далее в значении ключа инфа о заказе
