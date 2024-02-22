@@ -28,8 +28,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
 
-router = routers.SimpleRouter()
-router.register(r'goods', GoodsViewSet)
+# router = routers.SimpleRouter()
+# router.register(r'goods', GoodsViewSet)
 
 
 urlpatterns = [
@@ -37,7 +37,7 @@ urlpatterns = [
     
     path('', include('shop.urls')),#тут указали стартовую страницу от которой будут идти все другие ссылки приложения
     path('', include('regusers.urls')),
-    path('api/v1/', include(router.urls)),
+    # path('api/v1/', include(router.urls)),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 

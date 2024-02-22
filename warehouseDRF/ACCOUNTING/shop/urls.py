@@ -20,7 +20,7 @@ urlpatterns = [
     # path('product/<slug:product_slug>/', show_product, name='product')
 
     path('order/', test_view, name='test_url'),
-
-
+    path('order/list/', Order_list_view.as_view(), name='order_list'),
+    path('order/list/<int:pk>', Order_list_view.as_view(), name='order_list_c'),
 
     ]

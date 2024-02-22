@@ -19,17 +19,27 @@ from .forms import *
 import requests
 
 
-class GoodsViewSet(mixins.CreateModelMixin,
-                   mixins.RetrieveModelMixin,
-                   mixins.UpdateModelMixin,
-                   mixins.DestroyModelMixin,
-                   mixins.ListModelMixin,
-                   viewsets.GenericViewSet):
-	pass
+# class GoodsViewSet(mixins.CreateModelMixin,
+#                    mixins.RetrieveModelMixin,
+#                    mixins.UpdateModelMixin,
+#                    mixins.DestroyModelMixin,
+#                    mixins.ListModelMixin,
+#                    viewsets.GenericViewSet):
+# 	pass
 
 
 # спланировать какой будет функционал в учетной системе и как все будет выглядеть
 # сделать список заказов
+
+class Order_list_view(APIView):
+
+	def get(self, request):
+		pass
+
+
+	def post(self, request):
+		pass
+
 
 
 def test_view(request):
