@@ -18,8 +18,8 @@ urlpatterns = [
 
     # path('group/<str:name_product>/', add_in_basket, name='add_in_basket'),
     # path('product/<slug:product_slug>/', show_product, name='product')
-
-    path('order/', test_view, name='test_url'),
+    path('', ShopHome.as_view(), name='home'),
+    path('synchronization_order/', synchronization, name='synchronization'),
     path('order/list/', Order_list_view.as_view(), name='order_list'),
     path('order/list/<int:pk>', Order_list_view.as_view(), name='order_list_c'),
 

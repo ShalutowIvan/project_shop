@@ -35,9 +35,10 @@ admin.site.register(Organization, OrganizationAdmin)
 
 
 class Order_list_boughtAdmin(admin.ModelAdmin):
-	list_display = ('id', 'name_product', 'quantity',)
-	list_display_links = ('id', 'name_product')
-	search_fields = ('name_product', )
+	list_display = ('id', 'product_id', 'quantity',)
+	list_display_links = ('id', 'product_id')
+	search_fields = ('product_id', )
 	
 
 admin.site.register(Order_list_bought, Order_list_boughtAdmin)
+

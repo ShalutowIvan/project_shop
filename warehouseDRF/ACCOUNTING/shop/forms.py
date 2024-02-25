@@ -56,12 +56,12 @@ from .models import *
 #         return fio
 
 
-class Url_form(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+# class Url_form(forms.ModelForm):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
 
-    class Meta:
-        model = Url_list
-        fields = ['url', ]
+#     class Meta:
+#         model = Url_list
+#         fields = ['url', ]
 
 

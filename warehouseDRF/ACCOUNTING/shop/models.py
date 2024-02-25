@@ -70,30 +70,32 @@ class Organization(models.Model):
 
 
 class Order_list_bought(models.Model):
-	buyer = models.CharField(max_length=255, default='_', verbose_name="Покупатель")
-	name_product = models.ForeignKey(to=Goods, on_delete=models.CASCADE, verbose_name="Товар")		
-	quantity = models.FloatField(verbose_name="Количество")
-	order_number = models.IntegerField(default=0, verbose_name="Количество")
-	time_create = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
-	
+	fio = models.CharField(max_length=255, default='_', verbose_name="Покупатель")
+	phone = models.CharField(max_length=255, default='_', verbose_name="Телефон")	
+	product_id = models.ForeignKey(to=Goods, on_delete=models.CASCADE, verbose_name="Товар")#тут указать только код товара то есть ИД и ИД должен совпадать в витрине и в учетной системе, так как это связанное поле тип int. Если что можно и название потом прокинуть, но пока не надо
+	quantity = models.FloatField(default=0, verbose_name="Количество")	
+	order_number = models.IntegerField(verbose_name="Номер заказа")
+	time_create = models.DateTimeField(verbose_name="Время создания")#время создания заказа покупателем
+	delivery_address = models.CharField(max_length=255, default='_', verbose_name="Адрес организации")
+
 
 	def __str__(self):
-		return f"Товар: {self.name_product}, Количество: {self.quantity}"
+		return f"Товар: {self.product_id}, Количество: {self.quantity}"
 
 
 	class Meta:
 		verbose_name = "История покупок"
-		verbose_name_plural = "История покупок"
-		ordering = ['time_create', 'name_product']
+		verbose_name_plural = "Истории покупок"
+		ordering = ['time_create', 'product_id']
 
 
-class Url_list(models.Model):
-	url = models.CharField(max_length=255, default='_', verbose_name="Ссылка")
+# class Url_list(models.Model):
+# 	url = models.CharField(max_length=255, default='_', verbose_name="Ссылка")
 	
-	def __str__(self):
-		return self.url
+# 	def __str__(self):
+# 		return self.url
 
-	class Meta:
-		verbose_name = "Ссылка"
-		verbose_name_plural = "Ссылки"
-		# ordering = ['time_create', 'name_product']
+# 	class Meta:
+# 		verbose_name = "Ссылка"
+# 		verbose_name_plural = "Ссылки"
+# 		# ordering = ['time_create', 'name_product']

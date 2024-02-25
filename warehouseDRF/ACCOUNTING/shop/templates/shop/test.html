@@ -7,14 +7,10 @@
 </head>
 <body>
   
-<a href="http://127.0.0.1:8000/checkout_list/orders/all/"><p>ССЫЛКА</p></a>
-
-<form action="{% url 'test_url' %}" method="post" enctype="multipart/form-data">
-  {% csrf_token %}
-    <p><label class="form-label" for="{{ form.url.id_for_label }}">{{form.url.label}}: </label>{{ form.url }}</p>
     
+    <a href="{% url 'synchronization' %}"><button class="synchro">Синхронизация</button></a>
   
-  <input type="submit" value="Send" />
+  
 
 </form>
 

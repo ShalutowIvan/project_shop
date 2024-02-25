@@ -372,24 +372,32 @@ async def checkout_list(request: Request, session: AsyncSession = Depends(get_as
 #пробный гет урл для запроса во второе приложение############################################
 
 @router_showcase.get("/checkout_list/orders/all/")
-async def checkout_list(request: Request, session: AsyncSession = Depends(get_async_session)):    
+async def synchronization(request: Request, session: AsyncSession = Depends(get_async_session)):    
     
-    query = select(Order_list).options(joinedload(Order_list.product))
+    query = select(Order_list)
+    # .options(joinedload(Order_list.product))
     order_list = await session.scalars(query)    
     
     context = order_list.all()
     #нужно чтобы в запросе были: наименование товара, фио заказчика, номер телефона заказчика, номер заказа, колво, время заказа
     
-    order_number = None
-    res = {}
-    for i in context:
-        if res.get(i.order_number) == None:
-            res[i.order_number] = ((i.product.name_product, i.quantity, i.time_create, i.product.price, i.delivery_address, i.fio, i.phone), )
-            order_number = int(i.order_number)
-        else:
-            res[i.order_number] += ((i.product.name_product, i.quantity, i.time_create, i.product.price, i.delivery_address, i.fio, i.phone), )
+    # order_number = None
+    # res = {}
+    # for i in context:
+    #     if res.get(i.order_number) == None:
+    #         res[i.order_number] = ((i.product.name_product, i.quantity, i.time_create, i.product.price, i.delivery_address, i.fio, i.phone), )
+    #         order_number = int(i.order_number)
+    #     else:
+    #         res[i.order_number] += ((i.product.name_product, i.quantity, i.time_create, i.product.price, i.delivery_address, i.fio, i.phone), )
     
-    
+    res = ({"fio": i.fio, "phone": i.phone, "product_id": i.product_id, "quantity": i.quantity, "order_number": i.order_number, "time_create": i.time_create, "delivery_address": i.delivery_address} for i in context)
+    # for i in context:
+    #     del i["id"]
+    #     del i["user_id"]
+    # print(context)
+    # for i in context:
+    #     print(i.__dict__)
+
     return res
 
 #####################################################################################

@@ -1,13 +1,13 @@
 {% load static %}
-{% load showcase_tags %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>ИНТЕРНЕТ МАГАЗИН</title>
-	<link rel="stylesheet" type="text/css" href="{% static 'showcase/css/main.css' %}">
-	<link rel="stylesheet" type="text/css" href="{% static 'showcase/css/bootstrap.css' %}">
+	<title>УЧЕТ ТОВАРОВ</title>
+	<link rel="stylesheet" type="text/css" href="{% static 'shop/css/main.css' %}">
+	<!-- <link rel="stylesheet" type="text/css" href="{% static 'shop/css/bootstrap.css' %}"> -->
 	
 <!--	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.1/css/fontawesome.min.css">
 -->
@@ -17,23 +17,22 @@
 
 <!--панель сверху - шапка. -->
 <header>
-	<img src="{% static 'showcase/images/i.jpg' %}" alt="Лого">
-	<h1>{{ org.name_org }}</h1>
-	<a href="{% url 'adminka' %}"><h1>АДМИНКА</h1></a>
+	<img src="{% static 'shop/images/logo.jpg' %}" alt="Лого">
+	<!-- <h1>{{ org.name_org }}</h1> -->
+	
 	
 
 	{% if request.user.is_authenticated %}
 
 	<p>{{user.username}}</p>
-	<a href="{% url 'regusers:logout' %}"><p>Выйти</p></a>
-	<a href="{% url 'basket_view' %}"><p>Корзина</p></a>
-	<a href="{% url 'checkout_list' %}"><p>Мои покупки</p></a>
+	<a href="{% url 'regusers:logout' %}"><p>Выйти</p></a>	
+	
 {% else %}
 
-	<a href="{% url 'regusers:login' %}"><p>Войти</p></a>
-	<a href="{% url 'regusers:register' %}"><p>Регистрация</p></a>
+<!-- 	<a href="{% url 'regusers:login' %}"><p>Войти</p></a>
+	<a href="{% url 'regusers:register' %}"><p>Регистрация</p></a> -->
 				{% endif %}
-
+<a href="{% url 'synchronization' %}"><button class="synchro">Синхронизация</button></a>
 
 </header>
 
@@ -44,10 +43,8 @@
 
 		<!--<span class="logo">Товары</span>-->
 		<br><br><br><br><br><br><br><br><br><br>
-		<a href="{% url 'start' %}"><i class="fa-thin fa-house"></i><h3>Группы товаров</h3></a>
+		
 			
-{% show_gr %}
-
 
 	</aside>
 
@@ -60,93 +57,37 @@
 
 
 
-<form action="{% url 'start' %}" method="get">
-
-	<input type="search" type="text" name='q' placeholder="Введите название товара">
-
-	<button type="submit">Найти</button>
-</form>
 
 <br>
+{% for i in order_list %}
+
+<div id="orders">
+
+<h3>{{ i.order_number }}</h3>
+
+<h3>Товар: {{ i.product_id }}</h3>
+
+<h3>{{ i.fio }}</h3>
+<h3>{{ i.phone }}</h3>
+<h3>{{ i.quantity}}</h3>
+<h3>{{ i.delivery_address }}</h3>
 
 
-<div class="content_good">
-
-{% for j in gd %}
-
-
-
-	<div id="goods">
-{% if j.photo %}
-<p><img class="product-img" src="{{j.photo.url}}"></p>
-{% endif %}
-	<h1> {{j.name_product}}</h1>
-<p> Цена {{j.price}}</p>
-<p> Доступна для продажи {{j.availability}}</p>
-
-<!--форма для добавления корзины -->
-	{% if request.user.is_authenticated %}
-<a href="{% url 'add_in_basket' j.id %}"><button class="add_basket">Добавить в корзину</button></a>
-
-	<br><br>
-
-
-	{% endif %}
-<!--конец форма -->
 </div>
 
 {% endfor %}
-			</nobr>
-</div>	
+
 
 	{% endblock %}
 
 
 
 
-<!-- пагинация начало -->
-{% if page_obj.has_other_pages %}
-<nav class="list-pages">
-	<ul>
-{% if page_obj.has_previous %}
-<li class="page-num">
-<a href="?page={{ page_obj.previous_page_number }}">&lt;</a>
-</li>
-{% endif %}
-
-{% for i in paginator.page_range %}
-
-{% if page_obj.number == i %}
-<li class="page_selected">{{ i }}</li>
-
-{% elif i >= page_obj.number|add:-2 and i <= page_obj.number|add:2  %}
-
-
-<li class="page-num">
-	<a href="?page={{ i }}">{{ i }}</a>
-</li>
-{% endif %}
-
-{% endfor %}
-
-
-{% if page_obj.has_next %}
-<li class="page-num">
-<a href="?page={{ page_obj.next_page_number }}">&gt;</a>
-</li>
-{% endif %}
-</ul>
-</nav>
-{% endif %}
-
-<!-- пагинация конец -->
-
-
 </main>
 
 <div class="footer">
-	<p>Телефон: {{ org.phone }}</p>
-	<p>Информация о нас: {{ org.about }}</p>
+	<!-- <p>Телефон: {{ org.phone }}</p>
+	<p>Информация о нас: {{ org.about }}</p> -->
 
 </div>
 
