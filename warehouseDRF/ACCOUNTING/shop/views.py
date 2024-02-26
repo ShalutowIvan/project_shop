@@ -25,15 +25,15 @@ import requests
 class ShopHome(ListView):
     # paginate_by = 11
     # model = Goods
-    template_name = 'shop/start.html'
-    context_object_name = 'done'
+	template_name = 'shop/start.html'
+	context_object_name = 'done'
 
-    def get_queryset(self):
-    	return
+	def get_queryset(self):
+		return
         
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
-        db_order = Order_list_bought.objects.all()
+	def get_context_data(self, *, object_list=None, **kwargs):
+		context = super().get_context_data(**kwargs)
+		db_order = Order_list_bought.objects.all()
         # db_order2 = db_order
         # for i in db_order:
         # 	for j in db_order2:
@@ -42,12 +42,23 @@ class ShopHome(ListView):
 		# 				i.product_id = [i.product_id, ]
 		# 			else:
 		# 				i.product_id.append(j.product_id)
-				# додумать алгоритм, не знаю как вывести номер заказа и список товаров к нему	
+		# додумать алгоритм, не знаю как вывести номер заказа и список товаров к нему	
+		
+		
+		res = {}
+		for i in db_order:
+			if res.get(i.order_number) == None:
+				res[i.order_number] = (i.fio, i.phone, i.time_create, i.delivery_address, (i.product_id, i.quantity) )			
+			else:
+				res[i.order_number] += ((i.product_id, i.quantity), )
+		
+		for i in res:
+			print(i)
+		# print(res[3])
+		#переделать вывод в html, теперь заказ норм формируется
+		context["order_list"] = db_order
 
-
-        context["order_list"] = db_order
-
-        return context
+		return context
 
 
 def synchronization(request):
