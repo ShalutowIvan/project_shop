@@ -53,12 +53,17 @@ class ShopHome(ListView):
 				res[i.order_number] += ((i.product_id, i.quantity), )
 		
 		for i in res:
-			print(i)
+			print(res[i])
 		# print(res[3])
 		#переделать вывод в html, теперь заказ норм формируется
-		context["order_list"] = db_order
+		context["order_list"] = res
 
 		return context
+
+# <h3>{{ i.fio }}</h3>
+# <h3>{{ i.phone }}</h3>
+# <h3>{{ i.quantity}}</h3>
+# <h3>{{ i.delivery_address }}</h3>
 
 
 def synchronization(request):

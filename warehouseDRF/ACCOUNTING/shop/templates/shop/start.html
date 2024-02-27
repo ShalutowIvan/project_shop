@@ -63,17 +63,17 @@
 
 <div id="orders">
 
-<h3>Товары: {{ i }}</h3>
+<h3>Номер заказа: {{ i }}</h3>
 
-<h3>{{ i.product_id }}</h3>
+<!-- i это ключ словаря, а нужен эелмент словаря то есть значение словаря -->
 
-<h3>{{ i.fio }}</h3>
-<h3>{{ i.phone }}</h3>
-<h3>{{ i.quantity}}</h3>
-<h3>{{ i.delivery_address }}</h3>
+{% for j in i %}
 
+<h3>{{ j }}</h3>
 
 </div>
+{% endfor %}
+
 
 {% endfor %}
 
