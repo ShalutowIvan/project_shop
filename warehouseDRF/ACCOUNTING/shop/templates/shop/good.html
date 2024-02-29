@@ -1,42 +1,28 @@
-{% extends 'showcase/start.html' %}
+{% extends 'shop/start.html' %}
 
 
 {% block content %}
 
+<br><br>
 
-<form action="{% url 'start' %}" method="get">
+{% for j in gd %}
 
-	<input type="search" type="text" name='q' placeholder="Введите название товара">
-
-	<button type="submit">Найти</button>
-</form>
-
-
-{% if goods %}
-
-
-{% for g in goods %}
-
-<h1> Название товара {{g.name_product}}</h1>
-<p> Цена {{g.price}}</p>
-<p> Доступна для продажи {{g.availability}}</p>
-
-{% if g.photo %}
-<p><img class="product-img" src="{{g.photo.url}}"></p>
+	<div id="goods">
+{% if j.photo %}
+<p><img class="product-img" src="{{j.photo.url}}"></p>
 {% endif %}
+	<h1> {{j.name_product}}</h1>
+<p> Цена {{j.price}}</p>
+<p> Доступна для продажи {{j.availability}}</p>
 
-<a href="{% url 'add_in_basket' g.id %}"><button>Добавить в корзину</button></a>
+
+</div>
 
 {% endfor %}
+			</nobr>
 
 
-{% else %}
-<br>
-
-<h3>Товаров нет</h3>
-
-
-{% endif %}
+	
 
 
 {% endblock %}

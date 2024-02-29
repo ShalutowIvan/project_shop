@@ -41,7 +41,7 @@ class Goods(Base):
     slug: Mapped[str] = mapped_column(String, nullable=False)
     photo: Mapped[str] = mapped_column(String, nullable=False)
     
-    availability: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    availability: Mapped[bool] = mapped_column(Boolean, nullable=False)# не нужен этот параметр
     time_create: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))#utcnow для разных часовых поясов в случае расположения бд и пользователя в разных часовых поясах, это универсальный часовой пояс. При создании будет автоматом записываться текущее время создания поля.
     # time_create: Mapped[datetime] = mapped_column(default=datetime.utcnow)#это по сути тоже самое, но тут юзается питоновская функция. Что лучше пока не понятно, вроде лучше не юзать питоновскую функцию
     group_id: Mapped[int] = mapped_column(ForeignKey("group.id", ondelete="RESTRICT"))#ссылаемся на таблицу group на ее элемент id

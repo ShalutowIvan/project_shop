@@ -22,11 +22,30 @@ from .forms import *
 import requests
 
 
-class ShopHome(ListView):
+
+class Home(ListView):
     # paginate_by = 11
     # model = Goods
 	template_name = 'shop/start.html'
-	context_object_name = 'done'
+	context_object_name = 'home'
+
+	def get_queryset(self):
+		return
+        
+	def get_context_data(self, *, object_list=None, **kwargs):
+		context = super().get_context_data(**kwargs)		       		
+		org = Organization.objects.all()
+		if org:
+			context['org'] = org[0]
+
+		return context
+
+
+class Order_list(ListView):
+    # paginate_by = 11
+    # model = Goods
+	template_name = 'shop/order_list.html'
+	context_object_name = 'order'
 
 	def get_queryset(self):
 		return
@@ -34,38 +53,24 @@ class ShopHome(ListView):
 	def get_context_data(self, *, object_list=None, **kwargs):
 		context = super().get_context_data(**kwargs)
 		db_order = Order_list_bought.objects.all()
-        # db_order2 = db_order
-        # for i in db_order:
-        # 	for j in db_order2:
-        # 		if i.order_number == j.order_number:
-        # 			if type(i.product_id) != list:
-		# 				i.product_id = [i.product_id, ]
-		# 			else:
-		# 				i.product_id.append(j.product_id)
-		# додумать алгоритм, не знаю как вывести номер заказа и список товаров к нему	
-		
-		
+        		
 		res = {}
 		for i in db_order:
 			if res.get(i.order_number) == None:
-				res[i.order_number] = (i.fio, i.phone, i.time_create, i.delivery_address, (i.product_id, i.quantity) )			
+				res[i.order_number] = [i.fio, i.phone, i.time_create, i.delivery_address, [[i.product_id, i.quantity], ] ]
 			else:
-				res[i.order_number] += ((i.product_id, i.quantity), )
+				res[i.order_number][4] += [[i.product_id, i.quantity], ]
 		
-		for i in res:
-			print(res[i])
-		# print(res[3])
-		#переделать вывод в html, теперь заказ норм формируется
+		
 		context["order_list"] = res
+
+		org = Organization.objects.all()
+		if org:
+			context['org'] = org[0]
 
 		return context
 
-# <h3>{{ i.fio }}</h3>
-# <h3>{{ i.phone }}</h3>
-# <h3>{{ i.quantity}}</h3>
-# <h3>{{ i.delivery_address }}</h3>
-
-
+#получение списка заказов
 def synchronization(request):
 	rq = requests.get("http://127.0.0.1:8000/checkout_list/orders/all/")
 	res = rq.json()
@@ -81,16 +86,89 @@ def synchronization(request):
 	return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
-class Order_list_view(APIView):
+# class Order_list_view(APIView):
+
+# 	def get(self, request):
+# 		db_order = Order_list_bought.objects.all()
+
+# 		return render(request, "shop/checkout_list.html", context=db_order)
+
+
+# 	def post(self, request):
+# 		pass
+
+
+
+class Goods_list(ListView):
+    paginate_by = 11
+    model = Goods
+    template_name = 'shop/good.html'
+    context_object_name = 'gd'
+
+
+    def get_queryset(self):#этот get_queryset для поиска товаров, товар ищется по названию всегда во всем каталоге, даже если зайти в группу то поиск будет также по всему каталогу. Потом доделать
+        return Goods.objects.filter(name_product__icontains=self.request.GET.get('q', ''))
+    
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        org = Organization.objects.all()
+        
+        if org:
+            context['org'] = org[0]
+        
+
+        
+        return context
+
+
+#для получения списка товаров в витрине
+class Get_good(APIView):
 
 	def get(self, request):
-		db_order = Order_list_bought.objects.all()
+		good = Goods.objects.all()
+		# good = Goods.objects.all().values()
+		# return Response({"good": list(good)})
+		# return Response({"good": GoodsSerializer(good, many=True).data})
+		
+		return Response(GoodsSerializer(instance=good, many=True).data)
 
-		return render(request, "shop/checkout_list.html", context=db_order)
 
 
-	def post(self, request):
-		pass
+# def get_good(request):
+# 	good = Goods.objects.all().values()
+# 	return Response({"request": request, "good": list(good)})
+
+
+
+
+class GroupShow(ListView):
+    paginate_by = 10
+    model = Goods
+    template_name = 'showcase/good.html'
+    context_object_name = 'goods'
+    allow_empty = True
+
+    def get_queryset(self):
+        # q_set = Goods.objects.filter(group__slug=self.kwargs['group_slug'])
+        # if q_set == []:
+        #     return ["Пусто"]
+        # else:
+        return Goods.objects.filter(group__slug=self.kwargs['group_slug'])
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        if len(context['goods']) == 0:
+            context['title'] = 'Группа - ' + "Пусто"
+        else:
+            context['title'] = 'Группа - ' + str(context['goods'][0].group)
+
+        org = Organization.objects.all()
+        if org:
+            context['org'] = org[0]
+        context['form'] = AddGoodForm()
+
+        return context
 
 
 

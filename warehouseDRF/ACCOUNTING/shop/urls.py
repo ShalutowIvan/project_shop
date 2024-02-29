@@ -18,9 +18,14 @@ urlpatterns = [
 
     # path('group/<str:name_product>/', add_in_basket, name='add_in_basket'),
     # path('product/<slug:product_slug>/', show_product, name='product')
-    path('', ShopHome.as_view(), name='home'),
+    path('', Home.as_view(), name='start'),
+    path('order_list/', Order_list.as_view(), name='order_list'),
     path('synchronization_order/', synchronization, name='synchronization'),
-    path('order/list/', Order_list_view.as_view(), name='order_list'),
-    path('order/list/<int:pk>', Order_list_view.as_view(), name='order_list_c'),
+    path('good_list/', Goods_list.as_view(), name='goods_list'),
+    path('group/<slug:group_slug>/', GroupShow.as_view(), name='group'),
+    # path('order/list/', Order_list_view.as_view(), name='order_list'),
+    # path('order/list/<int:pk>', Order_list_view.as_view(), name='order_list_c'),
 
+    path('api/get_good/', Get_good.as_view(), name='get_good'),
+    # path('api/get_good2/', get_good, name='get_good2'),
     ]

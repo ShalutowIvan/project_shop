@@ -1,8 +1,29 @@
-{% extends 'showcase/start.html' %}
+{% extends 'shop/start.html' %}
 
 
 {% block content %}
 
+{% for i, j in order_list.items %}
+
+<div id="orders">
+
+<h3>Номер заказа: {{ i }}</h3>
+
+<h3>{{ j.0 }}</h3>
+<h3>{{ j.1 }}</h3>
+<h3>{{ j.2 }}</h3>
+<h3>{{ j.3 }}</h3>
+
+{% for k in j.4 %}
+
+<h3>Товар: {{ k.0 }}</h3>
+<h3>Количество: {{ k.1 }}</h3>
+
+{% endfor %}
+</div>
+
+
+{% endfor %}
 
 
 

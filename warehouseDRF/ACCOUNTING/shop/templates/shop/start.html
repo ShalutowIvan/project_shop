@@ -18,7 +18,7 @@
 <!--панель сверху - шапка. -->
 <header>
 	<img src="{% static 'shop/images/logo.jpg' %}" alt="Лого">
-	<!-- <h1>{{ org.name_org }}</h1> -->
+	<h1>{{ org.name_org }}</h1>
 	
 	
 
@@ -33,6 +33,10 @@
 	<a href="{% url 'regusers:register' %}"><p>Регистрация</p></a> -->
 				{% endif %}
 <a href="{% url 'synchronization' %}"><button class="synchro">Синхронизация</button></a>
+
+<a href="{% url 'order_list' %}"><h1>Список заказов</h1></a>
+<br>
+<a href="{% url 'goods_list' %}"><h1>Список товаров</h1></a>
 
 </header>
 
@@ -59,23 +63,7 @@
 
 
 <br>
-{% for i in order_list %}
 
-<div id="orders">
-
-<h3>Номер заказа: {{ i }}</h3>
-
-<!-- i это ключ словаря, а нужен эелмент словаря то есть значение словаря -->
-
-{% for j in i %}
-
-<h3>{{ j }}</h3>
-
-</div>
-{% endfor %}
-
-
-{% endfor %}
 
 
 	{% endblock %}

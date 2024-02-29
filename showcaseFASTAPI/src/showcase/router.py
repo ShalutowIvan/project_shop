@@ -17,7 +17,7 @@ from src.regusers.secure import test_token_expire, access_token_decode
 
 from jose.exceptions import ExpiredSignatureError
 
-
+import requests
 
 
 
@@ -369,34 +369,27 @@ async def checkout_list(request: Request, session: AsyncSession = Depends(get_as
     return response
 
 
-#пробный гет урл для запроса во второе приложение############################################
+#ТУТ РОУТЕРЫ для API с учетной системой
 
 @router_showcase.get("/checkout_list/orders/all/")
 async def synchronization(request: Request, session: AsyncSession = Depends(get_async_session)):    
     
-    query = select(Order_list)
-    # .options(joinedload(Order_list.product))
+    query = select(Order_list)    
     order_list = await session.scalars(query)    
     
     context = order_list.all()
-    #нужно чтобы в запросе были: наименование товара, фио заказчика, номер телефона заказчика, номер заказа, колво, время заказа
-    
-    # order_number = None
-    # res = {}
-    # for i in context:
-    #     if res.get(i.order_number) == None:
-    #         res[i.order_number] = ((i.product.name_product, i.quantity, i.time_create, i.product.price, i.delivery_address, i.fio, i.phone), )
-    #         order_number = int(i.order_number)
-    #     else:
-    #         res[i.order_number] += ((i.product.name_product, i.quantity, i.time_create, i.product.price, i.delivery_address, i.fio, i.phone), )
-    
+        
     res = ({"fio": i.fio, "phone": i.phone, "product_id": i.product_id, "quantity": i.quantity, "order_number": i.order_number, "time_create": i.time_create, "delivery_address": i.delivery_address} for i in context)
-    # for i in context:
-    #     del i["id"]
-    #     del i["user_id"]
-    # print(context)
-    # for i in context:
-    #     print(i.__dict__)
+    
+    return res
+
+
+@router_showcase.get("/query_api/get/good/")
+async def get_good(request: Request, session: AsyncSession = Depends(get_async_session)):
+    rq = requests.get("http://127.0.0.1:9999/api/get_good/")
+    res = rq.json()
+    print("!!!!!!!!!!!!!!!!!!!!!!!!")
+    print(res)
 
     return res
 

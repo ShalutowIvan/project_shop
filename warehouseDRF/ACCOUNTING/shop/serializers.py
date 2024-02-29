@@ -92,8 +92,20 @@ class OrderSerializer(serializers.ModelSerializer):
         #сериализация с фото не работает почему то
 
         
+# class GoodsSerializer(serializers.ModelSerializer):
+class GoodsSerializer(serializers.Serializer):
 
+    # class Meta:
+    #     model = Goods
+    #     fields = ('name_product', 'slug', 'vendor_code', 'price', 'photo', 'stock', 'group')
+    #     # fields = "__all__"
     
-
-
+    name_product = serializers.CharField(max_length=255)
+    slug = serializers.CharField(max_length=255)
+    vendor_code = serializers.CharField(max_length=255, read_only=True)
+    price = serializers.DecimalField(max_digits=19, decimal_places=2)
+    photo = serializers.CharField()
+    stock = serializers.FloatField()
+    availability = serializers.BooleanField(default=True)
+    group_id = serializers.IntegerField()
 
