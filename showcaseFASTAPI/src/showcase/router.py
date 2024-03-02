@@ -30,7 +30,7 @@ router_showcase = APIRouter(
 
 #функция для формирования контекста страницы
 async def base_requisites(db, request, check=[False, None, " "]):#db - сессия, check - результат дешифровки аксес токена, request - Request
-    org = await db.execute(select(Organization))    
+    org = await db.execute(select(Organization))  
     group = await db.execute(select(Group))    
 
     if check[1] != None and check[1] != False:       
@@ -388,10 +388,36 @@ async def synchronization(request: Request, session: AsyncSession = Depends(get_
 async def get_good(request: Request, session: AsyncSession = Depends(get_async_session)):
     rq = requests.get("http://127.0.0.1:9999/api/get_good/")
     res = rq.json()
-    print("!!!!!!!!!!!!!!!!!!!!!!!!")
-    print(res)
+    
+        # product = Basket(product_id=good_id, quantity=1, user_id=int(check[1]))
+        # session.add(product)
+        # await session.commit()    
+    
+    # [{'name_product': 'Зубная паста', 'slug': 'zubnaya-pasta', 'vendor_code': '_', 'price': '111.00', 'photo': 'photos/2024/02/29/400.jpg', 'stock': 4.0, 'availability': True, 'group_id': 2}, {'name_product': 'Хлеб', 'slug': 'hleb', 'vendor_code': 'qwe123', 'price': '22.00', 'photo': 'photos/2024/02/29/хлеб.png', 'stock': 22.0, 'availability': True, 'group_id': 1}, {'name_product': 'Молоко', 'slug': 'milk', 'vendor_code': 'asd123', 'price': '55.00', 'photo': 'photos/2024/02/29/молоко.jpg', 'stock': 32.0, 'availability': True, 'group_id': 1}]    
+    query_good = await session.scalars(select(Goods))
+    good_list = query_good.all()#тут список объектов из таблицы товаров
+    # print(good_list[0].vendor_code)
+    # print("тут из рес")
+    # print(res[0]['vendor_code'])
+    vendors = (i.vendor_code for i in good_list)
+    for i in good_list:
+        for j in res:
+            if j["vendor_code"] in vendors:
+                if i.stock == j["stock"]:
+                    continue
+                else:
+                    i.stock = j["stock"]
+                    session.add(i)
+                    await session.commit()
+            else:
+                product = Goods(name_product=j["name_product"], price=float(j["price"]), vendor_code=j["vendor_code"], stock=float(j["stock"]), slug=j["slug"], photo=j["photo"], availability=True, group_id=int(j["group_id"]))
+                session.add(product)
+                await session.commit()
 
-    return res
+    
+    # кривой алогоритм, если товара нет в базе вообще цикл не запускается. И далее товары дублируются тупо, условие не срабатывает if j["vendor_code"] in vendors:
+
+    return RedirectResponse("/")
 
 #####################################################################################
 
