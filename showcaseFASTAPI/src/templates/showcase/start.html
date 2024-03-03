@@ -20,7 +20,7 @@
 	<h1>{{ org.name_org }}</h1>
 	
 <!-- <a href="{{ url_for('file_get') }}" ><h1>Файл</h1></a> -->
-
+<a href="{{ url_for('get_good') }}"><h1>СИНХРО</h1></a>
 	
 <div class="cap">
 
@@ -91,7 +91,9 @@
 {% endif %}
 	<h1> {{j.name_product}}</h1>
 <p> Цена {{j.price}}</p>
-<p> Доступна для продажи {{j.availability}}</p>
+<p> Остаток {{j.stock}}</p>
+
+
 <a href="{{ url_for('add_in_basket', good_id=j.id) }}"><button>Добавить в корзину</button></a>
 
 
@@ -103,9 +105,6 @@
 </div>	
 
 	{% endblock %}
-
-
-
 
 
 </main>

@@ -393,29 +393,72 @@ async def get_good(request: Request, session: AsyncSession = Depends(get_async_s
         # session.add(product)
         # await session.commit()    
     
-    # [{'name_product': 'Зубная паста', 'slug': 'zubnaya-pasta', 'vendor_code': '_', 'price': '111.00', 'photo': 'photos/2024/02/29/400.jpg', 'stock': 4.0, 'availability': True, 'group_id': 2}, {'name_product': 'Хлеб', 'slug': 'hleb', 'vendor_code': 'qwe123', 'price': '22.00', 'photo': 'photos/2024/02/29/хлеб.png', 'stock': 22.0, 'availability': True, 'group_id': 1}, {'name_product': 'Молоко', 'slug': 'milk', 'vendor_code': 'asd123', 'price': '55.00', 'photo': 'photos/2024/02/29/молоко.jpg', 'stock': 32.0, 'availability': True, 'group_id': 1}]    
+    # [{'name_product': 'Зубная паста', 'slug': 'zubnaya-pasta', 'vendor_code': '_', 'price': '111.00', 'photo': 'photos/2024/02/29/400.jpg', 'stock': 4.0, 'availability': True, 'group_id': 2}, {'name_product': 'Хлеб', 'slug': 'hleb', 'vendor_code': 'qwe123', 'price': '22.00', 'photo': 'photos/2024/02/29/хлеб.png', 'stock': 22.0, 'availability': True, 'group_id': 1}, {'name_product': 'Молоко', 'slug': 'milk', 'vendor_code': 'asd123', 'price': '55.00', 'photo': 'photos/2024/02/29/молоко.jpg', 'stock': 32.0, 'availability': True, 'group_id': 1}]    - это возвращается из запроса из апи дрф
     query_good = await session.scalars(select(Goods))
     good_list = query_good.all()#тут список объектов из таблицы товаров
-    # print(good_list[0].vendor_code)
-    # print("тут из рес")
+    # print("тут гуд лист!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    # print(good_list)
+    # [<src.showcase.models.Goods object at 0x0000015E9DFF7FD0>, <src.showcase.models.Goods object at 0x0000015E9DFF7E80>, <src.showcase.models.Goods object at 0x0000015E9DFF7E50>, <src.showcase.models.Goods object at 0x0000015E9DFF7E20>, <src.showcase.models.Goods object at 0x0000015E9DFF7DF0>]
+
+    # print("тут из рес!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     # print(res[0]['vendor_code'])
-    vendors = (i.vendor_code for i in good_list)
-    for i in good_list:
+    vendors = {i.vendor_code: i for i in good_list}
+    res_with_keys = {i["vendor_code"]: i for i in res}
+    # {'123zzzzzzzzzz': {'name_product': 'Булочка', 'slug': 'bulochka', 'vendor_code': '123zzzzzzzzzz', 'price': '22.00', 'photo': 'photos/2024/03/03/images.jpg', 'stock': 4.0, 'availability': True, 'group_id': 1}, '_': {'name_product': 'Зубная паста', 'slug': 'zubnaya-pasta', 'vendor_code': '_', 'price': '111.00', 'photo': 'photos/2024/02/29/400.jpg', 'stock': 6.0, 'availability': True, 'group_id': 2}, '000000000': {'name_product': 'Унитаз', 'slug': 'unitaz', 'vendor_code': '000000000', 'price': '3333.00', 'photo': 'photos/2024/03/03/унитаз_XB8d3Z5.jpg', 'stock': 11.0, 'availability': True, 'group_id': 2}, 'qwe123': {'name_product': 'Хлеб', 'slug': 'hleb', 'vendor_code': 'qwe123', 'price': '22.00', 'photo': 'photos/2024/02/29/хлеб.png', 'stock': 25.0, 'availability': True, 'group_id': 1}, 'asd123': {'name_product': 'Молоко', 'slug': 'milk', 'vendor_code': 'asd123', 'price': '55.00', 'photo': 'photos/2024/02/29/молоко.jpg', 'stock': 29.0, 'availability': True, 'group_id': 1}}
+
+
+    # print("req!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    # print(res_with_keys)
+    # print(vendors["_"].name_product)
+    # {'123zzzzzzzzzz': <src.showcase.models.Goods object at 0x0000015E9DFF7FD0>, 'asd123': <src.showcase.models.Goods object at 0x0000015E9DFF7E80>, 'qwe123': <src.showcase.models.Goods object at 0x0000015E9DFF7E50>, '_': <src.showcase.models.Goods object at 0x0000015E9DFF7E20>, '000000000': <src.showcase.models.Goods object at 0x0000015E9DFF7DF0>}
+
+    if good_list == []:
+        for k in res:
+            product = Goods(name_product=k["name_product"], price=float(k["price"]), vendor_code=k["vendor_code"], stock=float(k["stock"]), slug=k["slug"], photo=k["photo"], availability=True, group_id=int(k["group_id"]))
+            session.add(product)
+            # await session.commit()
+    
+    elif good_list != []:        
         for j in res:
             if j["vendor_code"] in vendors:
-                if i.stock == j["stock"]:
+                if vendors[j["vendor_code"]].stock == j["stock"]:
                     continue
                 else:
-                    i.stock = j["stock"]
-                    session.add(i)
-                    await session.commit()
+                    vendors[j["vendor_code"]].stock = j["stock"]
+                    session.add(vendors[j["vendor_code"]])
+                    # await session.commit()
             else:
                 product = Goods(name_product=j["name_product"], price=float(j["price"]), vendor_code=j["vendor_code"], stock=float(j["stock"]), slug=j["slug"], photo=j["photo"], availability=True, group_id=int(j["group_id"]))
                 session.add(product)
-                await session.commit()
+                # await session.commit()
 
+    # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    # print(good_list[-1].name_product)
+
+
+
+    for i in good_list:
+        if res_with_keys.get(i.vendor_code):
+            continue
+        else:
+            # good_list.remove(i)
+            await session.delete(i)
     
-    # кривой алогоритм, если товара нет в базе вообще цикл не запускается. И далее товары дублируются тупо, условие не срабатывает if j["vendor_code"] in vendors:
+
+    await session.commit()    
+
+
+    # session.add_all(good_list)
+    # await session.commit()
+
+
+    # print(good_list[-1].name_product)
+
+
+
+
+
+    # сделать удаление элемента, желательно чтобы было все в одном цикле, но пока не получается.
 
     return RedirectResponse("/")
 

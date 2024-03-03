@@ -20,11 +20,11 @@
 
 
 
-import requests
-
-rq = requests.get("http://127.0.0.1:9999/api/get_good/")
-res = rq.json()
-print("!!!!!!!!!!!!!!!!!!!!!!!!")
-print(res)
+a = {"asd": 1, "zxc": 2, "qwe": 3}
+if a.get(2):
+    print(1)
+else:
+    print(2)
+    
 
 
