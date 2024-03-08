@@ -1,6 +1,7 @@
 from django.shortcuts import render, HttpResponseRedirect, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.views.generic import ListView, DetailView, CreateView
+from django.urls import reverse_lazy
 
 from rest_framework import generics, viewsets, mixins
 from .models import *
@@ -121,7 +122,7 @@ class Goods_list(ListView):
         return context
 
 
-#для получения списка товаров в витрине
+#для получения списка товаров в витрине это для апи
 class Get_good(APIView):
 
 	def get(self, request):
@@ -133,6 +134,36 @@ class Get_good(APIView):
 		return Response(GoodsSerializer(instance=good, many=True).data)
 
 
+#добавление товара
+class Goods_add(CreateView):
+    form_class = Goods_add_form
+    template_name = 'shop/good_add.html'
+    success_url = reverse_lazy('goods_list')
+    login_url = reverse_lazy('start')
+
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        org = Organization.objects.all()
+        
+        if org:
+            context['org'] = org[0]
+        
+        return context
+    
+    #передача юзера в форму автоматом от залогининного пользователя. В самой форме юзер не заполняется
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.user = self.request.user
+        self.object.save()
+        # возвращаем form_valid предка
+        return super().form_valid(form)
+
+
+
+
+
+
 
 # def get_good(request):
 # 	good = Goods.objects.all().values()
@@ -141,34 +172,34 @@ class Get_good(APIView):
 
 
 
-class GroupShow(ListView):
-    paginate_by = 10
-    model = Goods
-    template_name = 'showcase/good.html'
-    context_object_name = 'goods'
-    allow_empty = True
+# class GroupShow(ListView):
+#     paginate_by = 10
+#     model = Goods
+#     # template_name = 'shop/good.html'
+#     context_object_name = 'goods'
+#     allow_empty = True
 
-    def get_queryset(self):
-        # q_set = Goods.objects.filter(group__slug=self.kwargs['group_slug'])
-        # if q_set == []:
-        #     return ["Пусто"]
-        # else:
-        return Goods.objects.filter(group__slug=self.kwargs['group_slug'])
+#     def get_queryset(self):
+#         # q_set = Goods.objects.filter(group__slug=self.kwargs['group_slug'])
+#         # if q_set == []:
+#         #     return ["Пусто"]
+#         # else:
+#         return Goods.objects.filter(group__slug=self.kwargs['group_slug'])
 
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
+#     def get_context_data(self, *, object_list=None, **kwargs):
+#         context = super().get_context_data(**kwargs)
         
-        if len(context['goods']) == 0:
-            context['title'] = 'Группа - ' + "Пусто"
-        else:
-            context['title'] = 'Группа - ' + str(context['goods'][0].group)
+#         if len(context['goods']) == 0:
+#             context['title'] = 'Группа - ' + "Пусто"
+#         else:
+#             context['title'] = 'Группа - ' + str(context['goods'][0].group)
 
-        org = Organization.objects.all()
-        if org:
-            context['org'] = org[0]
-        context['form'] = AddGoodForm()
+#         org = Organization.objects.all()
+#         if org:
+#             context['org'] = org[0]
+#         context['form'] = AddGoodForm()
 
-        return context
+#         return context
 
 
 

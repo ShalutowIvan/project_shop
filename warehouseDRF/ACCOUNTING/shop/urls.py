@@ -22,7 +22,8 @@ urlpatterns = [
     path('order_list/', Order_list.as_view(), name='order_list'),
     path('synchronization_order/', synchronization, name='synchronization'),
     path('good_list/', Goods_list.as_view(), name='goods_list'),
-    path('group/<slug:group_slug>/', GroupShow.as_view(), name='group'),
+    path('good_list/add/', Goods_add.as_view(), name='goods_add'),
+    # path('group/<slug:group_slug>/', GroupShow.as_view(), name='group'),
     # path('order/list/', Order_list_view.as_view(), name='order_list'),
     # path('order/list/<int:pk>', Order_list_view.as_view(), name='order_list_c'),
 
