@@ -13,20 +13,22 @@ class Goods_add_form(forms.ModelForm):
         fields = ['name_product', 'slug', 'vendor_code', 'price', 'photo', 'stock', 'group', ]
 
 
-    def clean_title(self):
-        fio = self.cleaned_data['fio']
-        if len(fio) > 200:
-            raise ValidationError('Длина превышает 200 символов')
+    # def clean_title(self):
+    #     fio = self.cleaned_data['fio']
+    #     if len(fio) > 200:
+    #         raise ValidationError('Длина превышает 200 символов')
 
-        return fio
+    #     return fio
 
 
-# class Url_form(forms.ModelForm):
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
+class Receipt_document_form(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-#     class Meta:
-#         model = Url_list
-#         fields = ['url', ]
+    class Meta:
+        model = Goods
+        fields = ['name_product', 'slug', 'vendor_code', 'price', 'photo', 'stock', 'group', ]
+
+
 
 

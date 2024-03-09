@@ -160,8 +160,30 @@ class Goods_add(CreateView):
         return super().form_valid(form)
 
 
+#приходный документ
+class Receipt_document(CreateView):
+    form_class = Receipt_document_form
+    template_name = 'shop/receipt_document.html'
+    success_url = reverse_lazy('goods_list')#тут остановился!!!!!!!!!!!!!!!
+    login_url = reverse_lazy('start')
 
 
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        org = Organization.objects.all()
+        
+        if org:
+            context['org'] = org[0]
+        
+        return context
+    
+    #передача юзера в форму автоматом от залогининного пользователя. В самой форме юзер не заполняется
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.user = self.request.user
+        self.object.save()
+        # возвращаем form_valid предка
+        return super().form_valid(form)
 
 
 
