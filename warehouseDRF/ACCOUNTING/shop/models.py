@@ -84,18 +84,30 @@ class Order_list_bought(models.Model):
 
 
 	class Meta:
-		verbose_name = "История покупок"
-		verbose_name_plural = "Истории покупок"
+		verbose_name = "Список заказов"
+		verbose_name_plural = "Списки заказов"
 		ordering = ['time_create', 'product_id']
 
 
-# class Url_list(models.Model):
-# 	url = models.CharField(max_length=255, default='_', verbose_name="Ссылка")
-	
-# 	def __str__(self):
-# 		return self.url
+class Receipt_list(models.Model):
+	time_create = models.DateTimeField(auto_now_add=True)
+	product = models.ForeignKey(to=Goods, on_delete=models.CASCADE, verbose_name="Товар")
+	quantity = models.FloatField(default=0, verbose_name="Количество")
+	state = models.BooleanField(default=True, verbose_name="состояние")
+	user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Пользователь")
 
-# 	class Meta:
-# 		verbose_name = "Ссылка"
-# 		verbose_name_plural = "Ссылки"
-# 		# ordering = ['time_create', 'name_product']
+	def __str__(self):
+		return f"Товар: {self.product}, Количество: {self.quantity}"
+
+
+	class Meta:
+		verbose_name = "Список приходных документов"
+		verbose_name_plural = "Списки приходных документов"
+		ordering = ['time_create', 'product']
+
+
+
+
+
+
+

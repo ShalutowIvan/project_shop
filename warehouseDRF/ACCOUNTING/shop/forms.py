@@ -26,8 +26,8 @@ class Receipt_document_form(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
     class Meta:
-        model = Goods
-        fields = ['name_product', 'slug', 'vendor_code', 'price', 'photo', 'stock', 'group', ]
+        model = Receipt_list
+        fields = ['product', 'quantity', ]
 
 
 

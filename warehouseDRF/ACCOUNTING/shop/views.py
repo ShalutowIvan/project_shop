@@ -2,6 +2,7 @@ from django.shortcuts import render, HttpResponseRedirect, redirect, get_object_
 from django.http import HttpResponse
 from django.views.generic import ListView, DetailView, CreateView
 from django.urls import reverse_lazy
+from django.contrib.auth.decorators import login_required
 
 from rest_framework import generics, viewsets, mixins
 from .models import *
@@ -101,7 +102,7 @@ def synchronization(request):
 
 
 class Goods_list(ListView):
-    paginate_by = 11
+    paginate_by = 10
     model = Goods
     template_name = 'shop/good.html'
     context_object_name = 'gd'
@@ -164,7 +165,7 @@ class Goods_add(CreateView):
 class Receipt_document(CreateView):
     form_class = Receipt_document_form
     template_name = 'shop/receipt_document.html'
-    success_url = reverse_lazy('goods_list')#тут остановился!!!!!!!!!!!!!!!
+    success_url = reverse_lazy('receipt_list')#после сохранения или проведения накладной, должен быть переход в список накладных
     login_url = reverse_lazy('start')
 
 
@@ -184,6 +185,28 @@ class Receipt_document(CreateView):
         self.object.save()
         # возвращаем form_valid предка
         return super().form_valid(form)
+
+
+#список накладных
+class Receipt_list(ListView):
+	template_name = 'shop/receipt_list.html'
+	paginate_by = 10
+    model = Receipt_list    
+    context_object_name = 'receipt_list_view'
+
+    def get_queryset(self):
+		return
+        
+	def get_context_data(self, *, object_list=None, **kwargs):
+		context = super().get_context_data(**kwargs)		       		
+		org = Organization.objects.all()
+		if org:
+			context['org'] = org[0]
+
+		return context
+
+
+
 
 
 
