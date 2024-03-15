@@ -117,7 +117,6 @@ class Goods_list(ListView):
         
         if org:
             context['org'] = org[0]
-        
 
         
         return context
@@ -128,10 +127,7 @@ class Get_good(APIView):
 
 	def get(self, request):
 		good = Goods.objects.all()
-		# good = Goods.objects.all().values()
-		# return Response({"good": list(good)})
-		# return Response({"good": GoodsSerializer(good, many=True).data})
-		
+
 		return Response(GoodsSerializer(instance=good, many=True).data)
 
 
@@ -199,6 +195,12 @@ class Receipt_document(CreateView):
 
 def activate_document(request, activate):#нужно понять как сделать активацию конкретного документа, пока не срабатывает такая логика, потому что урл идет на кнопке, а на форме другой урл и срабатывает тот урл который на форме в html. Есть мысль, сделать сохранение обязательным перед проведением, и потом кнопка проведение будет просто менять статус накладной state на True. В случае если нужно отредачить документ, нужно сделать возможность редактирования
 	doc = Receipt_list.objects.get(id=activate)
+	goods = Goods.objects.get(id=doc.product.id)
+
+	if doc.state != True:
+		goods.stock += doc.quantity
+		goods.save()
+	print(doc.state)
 	doc.state = True
 	doc.save()
 
