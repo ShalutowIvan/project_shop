@@ -93,7 +93,7 @@ class Receipt_list(models.Model):
 	time_create = models.DateTimeField(auto_now_add=True)
 	product = models.ForeignKey(to=Goods, on_delete=models.CASCADE, verbose_name="Товар")
 	quantity = models.FloatField(default=0, verbose_name="Количество")
-	state = models.BooleanField(default=True, verbose_name="состояние")
+	state = models.BooleanField(default=False, verbose_name="состояние")
 	user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Пользователь")
 
 	def __str__(self):

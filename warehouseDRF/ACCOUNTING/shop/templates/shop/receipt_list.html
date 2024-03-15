@@ -3,14 +3,18 @@
 
 {% block content %}
 
-{% for j in receipt_list_view %}
 
-	
+<br><br><br><br>
+<a href="{% url 'receipt_document' %}"><h2>Добавить документ</h2></a>
+
+
+{% for j in receipt_list_view %}
 
 	<h1> Номер {{j.id}}</h1>
 <p> Дата {{j.time_create}}</p>
 <p> Статус {{j.state}}</p>
 
+<a href="{% url 'activate_document' j.id %}"><button class="add_rec">Провести документ</button></a>
 
 
 {% endfor %}

@@ -152,10 +152,21 @@ class Goods_add(CreateView):
         
         return context
     
+    # def get_form_kwargs(self):
+    #     """Return the keyword arguments for instantiating the form."""
+    #     kwargs = super().get_form_kwargs()
+    #     print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    #     print(kwargs)
+
+    #     if hasattr(self, "object"):
+    #         kwargs.update({"instance": self.object})
+    #     return kwargs
+
+
     #передача юзера в форму автоматом от залогининного пользователя. В самой форме юзер не заполняется
     def form_valid(self, form):
         self.object = form.save(commit=False)
-        self.object.user = self.request.user
+        self.object.user = self.request.user        
         self.object.save()
         # возвращаем form_valid предка
         return super().form_valid(form)
@@ -178,32 +189,56 @@ class Receipt_document(CreateView):
         
         return context
     
-    #передача юзера в форму автоматом от залогининного пользователя. В самой форме юзер не заполняется
-    def form_valid(self, form):
+
+    def form_valid(self, form):#тут заполняются данные для таблицы из формы и потом идет коммит в базу из формы
         self.object = form.save(commit=False)
         self.object.user = self.request.user
-        self.object.save()
-        # возвращаем form_valid предка
-        return super().form_valid(form)
+        self.object.save()        
+        return super().form_valid(form)#после заполнения формы документ просто сохраняется как черновик. Для актицаии отдельная урл ниже
+
+
+def activate_document(request, activate):#нужно понять как сделать активацию конкретного документа, пока не срабатывает такая логика, потому что урл идет на кнопке, а на форме другой урл и срабатывает тот урл который на форме в html. Есть мысль, сделать сохранение обязательным перед проведением, и потом кнопка проведение будет просто менять статус накладной state на True. В случае если нужно отредачить документ, нужно сделать возможность редактирования
+	doc = Receipt_list.objects.get(id=activate)
+	doc.state = True
+	doc.save()
+
+
+	return redirect('receipt_list')
+	# тут остановился
+
+
 
 
 #список накладных
-class Receipt_list(ListView):
-	template_name = 'shop/receipt_list.html'
-	paginate_by = 10
-    model = Receipt_list    
-    context_object_name = 'receipt_list_view'
+@login_required
+def receipt_list(request):
+	rec_list = Receipt_list.objects.all()
+	context = {"receipt_list_view": rec_list}
 
-    def get_queryset(self):
-		return
+	org = Organization.objects.all()
+	if org:
+		context['org'] = org[0]
+
+	return render(request, "shop/receipt_list.html", context=context)
+
+
+
+# class Receipt_list(ListView):
+# 	template_name = 'shop/receipt_list.html'
+# 	paginate_by = 10
+# 	model = Receipt_list 
+# 	context_object_name = 'receipt_list_view'
+
+# 	def get_queryset(self):
+# 		return
         
-	def get_context_data(self, *, object_list=None, **kwargs):
-		context = super().get_context_data(**kwargs)		       		
-		org = Organization.objects.all()
-		if org:
-			context['org'] = org[0]
+# 	def get_context_data(self, *, object_list=None, **kwargs):
+# 		context = super().get_context_data(**kwargs)		       		
+# 		org = Organization.objects.all()
+# 		if org:
+# 			context['org'] = org[0]
 
-		return context
+# 		return context
 
 
 
