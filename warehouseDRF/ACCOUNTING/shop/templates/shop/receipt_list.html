@@ -4,19 +4,16 @@
 {% block content %}
 
 
-<br><br><br><br>
-<a href="{% url 'receipt_document' %}"><h2>Добавить документ</h2></a>
+<br><br><br>
+<a href="{% url 'receipt_document_create' %}"><h1>Добавить документ</h1></a>
 
 
 {% for j in receipt_list_view %}
 
-	<h1> Номер {{j.id}}</h1>
-<h1> Название {{j.product.name_product}}</h1>
-<p> Дата {{j.time_create}}</p>
-<p> Статус {{j.state}}</p>
+<h1> Номер: {{j.id}} || Дата: {{j.time_create}} || <a href="{% url 'receipt_document_open' j.id %}"><button class="open_receipt">Открыть документ</button></a></h1>
 
-<a href="{% url 'activate_document' j.id %}"><button class="add_rec">Провести документ</button></a>
-
+<h3>Комментарий: {{j.comment}}</h3>
+<p>__________________________________________________</p>
 
 {% endfor %}
 

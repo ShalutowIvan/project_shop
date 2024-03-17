@@ -89,12 +89,32 @@ class Order_list_bought(models.Model):
 		ordering = ['time_create', 'product_id']
 
 
-class Receipt_list(models.Model):
+class Receipt_number(models.Model):
+	comment = models.CharField(max_length=255, default='_', verbose_name="Комментарий")
 	time_create = models.DateTimeField(auto_now_add=True)
+	state = models.BooleanField(default=False, verbose_name="состояние")	
+
+#тут по идее связь 1 ко многим, в одной накладной много товаров, то есть много товаров с одинаковым номером накладной. Либо наоборот, думать надо
+#кажется 1 ко многим не очень
+#для удаления будет отдельная урл. и там отдельный запрос. 
+
+	def __str__(self):
+		return f"Номер= {self.pk} Дата= {self.time_create} Комментарий= {self.comment}"
+
+
+	class Meta:
+		verbose_name = "Номер накладной"
+		verbose_name_plural = "Номера накладных"
+		ordering = ['time_create']
+
+
+
+
+class Receipt_list(models.Model):
 	product = models.ForeignKey(to=Goods, on_delete=models.CASCADE, verbose_name="Товар")
-	quantity = models.FloatField(default=0, verbose_name="Количество")
-	state = models.BooleanField(default=False, verbose_name="состояние")
-	user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Пользователь")
+	number_receipt = models.IntegerField(default=0, verbose_name="Номер накладной")#этот номер берется из id таблицы Receipt_number
+	quantity = models.FloatField(default=0, verbose_name="Количество")	
+	user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Пользователь")	
 
 	def __str__(self):
 		return f"Товар: {self.product}, Количество: {self.quantity}"
@@ -103,7 +123,7 @@ class Receipt_list(models.Model):
 	class Meta:
 		verbose_name = "Список приходных документов"
 		verbose_name_plural = "Списки приходных документов"
-		ordering = ['time_create', 'product']
+		ordering = ['product']
 
 
 

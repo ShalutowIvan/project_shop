@@ -21,14 +21,30 @@ class Goods_add_form(forms.ModelForm):
     #     return fio
 
 
-class Receipt_document_form(forms.ModelForm):
+# class Receipt_document_form(forms.ModelForm):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+
+#     class Meta:
+#         model = Receipt_list
+#         fields = ['product', 'quantity', ]
+
+
+class Receipt_number_form(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+
+    class Meta:
+        model = Receipt_number
+        fields = ['comment',]
+
+
+class Receipt_add_goods_form(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
 
     class Meta:
         model = Receipt_list
         fields = ['product', 'quantity', ]
-
-
-
-

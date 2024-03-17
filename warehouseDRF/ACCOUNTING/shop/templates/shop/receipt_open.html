@@ -1,0 +1,28 @@
+{% extends 'shop/start.html' %}
+
+
+{% block content %}
+
+
+<br><br><br><br>
+
+
+<h1> Номер {{ number }} </h1>
+<h1> Номер {{ date }} </h1>
+
+
+{% for i in receipt_good_list %}
+
+<p>{{ i.product }} </p>
+<p>{{ i.quantity }} </p>
+
+{% endfor %}
+
+<!-- номер документа прокидывается как параметр в функцию для добавления товара ниже -->
+<a href="{% url 'receipt_add_goods' number %}"><h3>Добавить позицию товара</h3></a>
+
+
+
+{% endblock %}
+
+

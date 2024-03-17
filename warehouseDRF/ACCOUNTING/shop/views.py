@@ -147,17 +147,6 @@ class Goods_add(CreateView):
             context['org'] = org[0]
         
         return context
-    
-    # def get_form_kwargs(self):
-    #     """Return the keyword arguments for instantiating the form."""
-    #     kwargs = super().get_form_kwargs()
-    #     print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    #     print(kwargs)
-
-    #     if hasattr(self, "object"):
-    #         kwargs.update({"instance": self.object})
-    #     return kwargs
-
 
     #передача юзера в форму автоматом от залогининного пользователя. В самой форме юзер не заполняется
     def form_valid(self, form):
@@ -168,53 +157,11 @@ class Goods_add(CreateView):
         return super().form_valid(form)
 
 
-#приходный документ
-class Receipt_document(CreateView):
-    form_class = Receipt_document_form
-    template_name = 'shop/receipt_document.html'
-    success_url = reverse_lazy('receipt_list')#после сохранения или проведения накладной, должен быть переход в список накладных
-    login_url = reverse_lazy('start')
-
-
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
-        org = Organization.objects.all()
-        
-        if org:
-            context['org'] = org[0]
-        
-        return context
-    
-
-    def form_valid(self, form):#тут заполняются данные для таблицы из формы и потом идет коммит в базу из формы
-        self.object = form.save(commit=False)
-        self.object.user = self.request.user
-        self.object.save()        
-        return super().form_valid(form)#после заполнения формы документ просто сохраняется как черновик. Для актицаии отдельная урл ниже
-
-
-def activate_document(request, activate):#нужно понять как сделать активацию конкретного документа, пока не срабатывает такая логика, потому что урл идет на кнопке, а на форме другой урл и срабатывает тот урл который на форме в html. Есть мысль, сделать сохранение обязательным перед проведением, и потом кнопка проведение будет просто менять статус накладной state на True. В случае если нужно отредачить документ, нужно сделать возможность редактирования
-	doc = Receipt_list.objects.get(id=activate)
-	goods = Goods.objects.get(id=doc.product.id)
-
-	if doc.state != True:
-		goods.stock += doc.quantity
-		goods.save()
-	print(doc.state)
-	doc.state = True
-	doc.save()
-
-
-	return redirect('receipt_list')
-	# тут остановился
-
-
-
-
-#список накладных
+#список накладных просто вывод
 @login_required
 def receipt_list(request):
-	rec_list = Receipt_list.objects.all()
+	rec_list = Receipt_number.objects.all()
+	
 	context = {"receipt_list_view": rec_list}
 
 	org = Organization.objects.all()
@@ -222,6 +169,93 @@ def receipt_list(request):
 		context['org'] = org[0]
 
 	return render(request, "shop/receipt_list.html", context=context)
+
+
+#создание документа - добавить документ с добавлением коммента. После создания документа он сразу открывается - редирект на урл receipt_document_open
+@login_required
+def receipt_document_create(request):
+	if request.method == 'POST':
+		form = Receipt_number_form(data=request.POST)
+		if form.is_valid():
+			comm = form.save(commit=False)
+			comm.save()
+
+			return redirect('receipt_document_open', comm.id)
+
+	else:
+		form = Receipt_number_form()
+
+	context = {'form': form}
+
+	return render(request, 'shop/receipt_create.html', context=context)    
+
+	
+
+#приходный документ - открытие
+@login_required
+def receipt_document_open(request, open_receipt):
+	receipt_open = Receipt_number.objects.get(id=open_receipt)
+	receipt_good_list = Receipt_list.objects.filter(number_receipt=open_receipt)
+	context = {"number": open_receipt, 'receipt_good_list': receipt_good_list, "date": receipt_open.time_create}
+
+	org = Organization.objects.all()
+        
+	if org:
+		context['org'] = org[0]
+
+	return render(request, "shop/receipt_open.html", context=context)
+
+
+#добавление товара - в открытом документе. number_doc берется из номера открытого документа, который мы открыли функцией receipt_document_open он прокидывается в html.
+#тут ошибка, что-то не так
+@login_required
+def receipt_add_goods(request, number_doc):
+	if request.method == 'POST':
+		form = Receipt_add_goods_form(data=request.POST)
+		if form.is_valid():
+			good = form.save(commit=False)
+			good.number_receipt = number_doc
+			good.user = request.user
+			good.save()
+
+			return redirect('receipt_document_open', number_doc)
+
+	else:
+		form = Receipt_add_goods_form()
+
+	context = {'form': form, "number_doc": number_doc}
+
+
+
+	return render(request, "receipt_goods_add.html", context=context)
+
+
+
+
+
+
+
+
+
+# def activate_document(request, activate):#Есть мысль, сделать сохранение обязательным перед проведением, и потом кнопка проведение будет просто менять статус накладной state на True. В случае если нужно отредачить документ, нужно сделать возможность редактирования
+# 	doc = Receipt_list.objects.get(id=activate)
+# 	goods = Goods.objects.get(id=doc.product.id)
+
+# 	if doc.state != True:
+# 		goods.stock += doc.quantity
+# 		goods.save()
+# 	print(doc.state)
+# 	doc.state = True
+# 	doc.save()
+
+
+# 	return redirect('receipt_list')
+	# тут остановился
+
+# <a href="{% url 'activate_document' j.id %}"><button class="add_rec">Провести документ</button></a>
+
+
+#список накладных
 
 
 
@@ -309,13 +343,13 @@ def receipt_list(request):
 # 		pass
 
 
-class GoodsViewSet(mixins.CreateModelMixin,
-                   mixins.RetrieveModelMixin,
-                   mixins.UpdateModelMixin,
-                   mixins.DestroyModelMixin,
-                   mixins.ListModelMixin,
-                   viewsets.GenericViewSet):
-	pass
+# class GoodsViewSet(mixins.CreateModelMixin,
+#                    mixins.RetrieveModelMixin,
+#                    mixins.UpdateModelMixin,
+#                    mixins.DestroyModelMixin,
+#                    mixins.ListModelMixin,
+#                    viewsets.GenericViewSet):
+# 	pass
 
 
 # спланировать какой будет функционал в учетной системе и как все будет выглядеть
