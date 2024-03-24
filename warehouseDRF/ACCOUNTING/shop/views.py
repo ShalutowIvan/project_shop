@@ -225,11 +225,15 @@ def receipt_add_goods(request, number_doc):
 
 	context = {'form': form, "number_doc": number_doc}
 
+	return render(request, "shop/receipt_goods_add.html", context=context)
 
 
-	return render(request, "receipt_goods_add.html", context=context)
-
-
+#удаление товара из накладной
+@login_required
+def receipt_delete_goods(request, number_delete_good):
+	list_delete = Receipt_list.objects.get(id=number_delete_good)
+	list_delete.delete()
+	return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
 

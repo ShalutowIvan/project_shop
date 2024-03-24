@@ -10,11 +10,12 @@
 <h1> Номер {{ number }} </h1>
 <h1> Номер {{ date }} </h1>
 
-
+<h3>Название товара | Количество</h3>
+<!--тут отрисовка списка товаров-->
 {% for i in receipt_good_list %}
 
-<p>{{ i.product }} </p>
-<p>{{ i.quantity }} </p>
+<h3>{{ i.product }} | {{ i.quantity }} <a href="{% url 'receipt_delete_goods' i.id %}"><button class="delete_receipt">Удалить товар</button></a></h3>
+
 
 {% endfor %}
 

@@ -27,6 +27,7 @@ urlpatterns = [
     path('receipt/list/view/create/', receipt_document_create, name='receipt_document_create'),
     path('receipt/list/view/open/<int:open_receipt>/', receipt_document_open, name='receipt_document_open'),
     path('receipt/list/view/open/add_goods/<int:number_doc>/', receipt_add_goods, name='receipt_add_goods'),
+    path('receipt/list/view/open/delete_goods/<int:number_delete_good>/', receipt_delete_goods, name='receipt_delete_goods'),
 
 
     # path('receipt/list/view/add/activate/<int:activate>/', activate_document, name='activate_document'),
