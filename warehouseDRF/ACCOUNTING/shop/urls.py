@@ -25,12 +25,15 @@ urlpatterns = [
     path('good_list/add/', Goods_add.as_view(), name='goods_add'),
     path('receipt/list/view/', receipt_list, name='receipt_list'),
     path('receipt/list/view/create/', receipt_document_create, name='receipt_document_create'),
+    path('receipt/list/view/delete/<int:number_delete_receipt>/', receipt_document_delete, name='receipt_document_delete'),
+
     path('receipt/list/view/open/<int:open_receipt>/', receipt_document_open, name='receipt_document_open'),
     path('receipt/list/view/open/add_goods/<int:number_doc>/', receipt_add_goods, name='receipt_add_goods'),
     path('receipt/list/view/open/delete_goods/<int:number_delete_good>/', receipt_delete_goods, name='receipt_delete_goods'),
 
+    path('receipt/list/view/open/activate/<int:receipt_activate>/', receipt_document_activate, name='receipt_document_activate'),
 
-    # path('receipt/list/view/add/activate/<int:activate>/', activate_document, name='activate_document'),
+    
     # path('group/<slug:group_slug>/', GroupShow.as_view(), name='group'),
     # path('order/list/', Order_list_view.as_view(), name='order_list'),
     # path('order/list/<int:pk>', Order_list_view.as_view(), name='order_list_c'),

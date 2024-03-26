@@ -206,8 +206,73 @@ def receipt_document_open(request, open_receipt):
 	return render(request, "shop/receipt_open.html", context=context)
 
 
+#проведение документа - то функция после которой меняется статус документа и добавляется товар на остаток на основании документа
+@login_required
+def receipt_document_activate(request, receipt_activate):
+	doc = Receipt_number.objects.get(id=receipt_activate)
+	if doc.state == False:
+		list_goods_to_add = Receipt_list.objects.filter(number_receipt=receipt_activate)
+		gen_list = [i.product.id for i in list_goods_to_add]
+
+		list_good = Goods.objects.filter(pk__in=gen_list)#не понятно почему, но тут список объектов получается неизменяемый, у них нельзя записать новые значения
+
+		list_good = list(list_good)
+		
+		for i in range(len(gen_list)):
+			
+			list_good[i].stock += 10
+			
+			print(list_good[i].stock)
+
+			# list_good[i].save()
+			
+		# list_good.update()
+		# goods = Goods.objects.bulk_update(objs=list(list_good), fields=["stock",])
+		# print(goods)
+
+	return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+
+
+
+
+
+
+# def activate_document(request, activate):
+# 	doc = Receipt_list.objects.get(id=activate)
+# 	goods = Goods.objects.get(id=doc.product.id)
+
+# 	if doc.state != True:
+# 		goods.stock += doc.quantity
+# 		goods.save()
+# 	print(doc.state)
+# 	doc.state = True
+# 	doc.save()
+
+
+# 	return redirect('receipt_list')
+	# тут остановился
+
+
+
+
+#приходный документ - удаление, удаляется и сам номер документа и товары с этим же номером документа
+@login_required
+def receipt_document_delete(request, number_delete_receipt):
+	rec = Receipt_number.objects.get(id=number_delete_receipt)
+	good_list_delete = Receipt_list.objects.filter(number_receipt=number_delete_receipt)
+	
+	rec.delete()
+	good_list_delete.delete()
+	return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+
+
+
+
+
+
 #добавление товара - в открытом документе. number_doc берется из номера открытого документа, который мы открыли функцией receipt_document_open он прокидывается в html.
-#тут ошибка, что-то не так
 @login_required
 def receipt_add_goods(request, number_doc):
 	if request.method == 'POST':
@@ -241,22 +306,8 @@ def receipt_delete_goods(request, number_delete_good):
 
 
 
-# def activate_document(request, activate):#Есть мысль, сделать сохранение обязательным перед проведением, и потом кнопка проведение будет просто менять статус накладной state на True. В случае если нужно отредачить документ, нужно сделать возможность редактирования
-# 	doc = Receipt_list.objects.get(id=activate)
-# 	goods = Goods.objects.get(id=doc.product.id)
-
-# 	if doc.state != True:
-# 		goods.stock += doc.quantity
-# 		goods.save()
-# 	print(doc.state)
-# 	doc.state = True
-# 	doc.save()
 
 
-# 	return redirect('receipt_list')
-	# тут остановился
-
-# <a href="{% url 'activate_document' j.id %}"><button class="add_rec">Провести документ</button></a>
 
 
 #список накладных

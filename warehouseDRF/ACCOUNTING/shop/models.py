@@ -9,18 +9,17 @@ class Goods(models.Model):
 	photo = models.ImageField(upload_to="photos/%Y/%m/%d/", verbose_name="Фото")
 	stock = models.FloatField(verbose_name="Остаток")
 	availability = models.BooleanField(default=True, verbose_name="Доступность")
-	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара", null=True)#миграцию пока не делал с null
-	user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь",)# сделал поле юзера, чтобы было видно кто товар создал. Будет конечно 1 пользак, но лучше все же слелать ограничение. 
+	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара", null=True)
+	user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь",)
 
 	def __str__(self):
 		return self.name_product
 
-	# def get_absolute_url(self):
-	# 	return reverse('post', kwargs={'post_slug': self.slug})
+	
 
-	class Meta:#прописали внутренний мета класс для указания названия приложения в админке
+	class Meta:
 		verbose_name = "Товар"
-		verbose_name_plural = "Товары"#это для множественного числа, чтобы буква s не дописывалась автоматом
+		verbose_name_plural = "Товары"
 		ordering = ['stock', 'name_product']
 		index_together = (('id', 'slug'),)
 

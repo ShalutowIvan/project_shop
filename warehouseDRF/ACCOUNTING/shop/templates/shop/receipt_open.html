@@ -22,7 +22,7 @@
 <!-- номер документа прокидывается как параметр в функцию для добавления товара ниже -->
 <a href="{% url 'receipt_add_goods' number %}"><h3>Добавить позицию товара</h3></a>
 
-
+<a href="{% url 'receipt_document_activate' number %}"><button class="activate_receipt">Провести документ</button></a>
 
 {% endblock %}
 
