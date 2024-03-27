@@ -1,4 +1,3 @@
-a = {"asd": 1, "qwe": 2, "zxc": 3, "dsa": 4}
+import requests
 
-for i in a:
-	print(i)
+rq = requests.get("http://127.0.0.1:8000/checkout_list/orders/all/")

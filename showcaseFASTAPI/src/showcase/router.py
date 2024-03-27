@@ -371,27 +371,28 @@ async def checkout_list(request: Request, session: AsyncSession = Depends(get_as
 
 #ТУТ РОУТЕРЫ для API с учетной системой
 
+#это роутер для того чтобы учетная система обратилась по ссылке и получила заказы
 @router_showcase.get("/checkout_list/orders/all/")
 async def synchronization(request: Request, session: AsyncSession = Depends(get_async_session)):    
     
-    query = select(Order_list)    
+    query = select(Order_list).options(joinedload(Order_list.product))#для обращения к связанному полю товара сделал связанный select, и потом обратился к артикулу и его выгружаем.
     order_list = await session.scalars(query)    
     
     context = order_list.all()
         
-    res = ({"fio": i.fio, "phone": i.phone, "product_id": i.product_id, "quantity": i.quantity, "order_number": i.order_number, "time_create": i.time_create, "delivery_address": i.delivery_address} for i in context)
-    
+    res = ({"fio": i.fio, "phone": i.phone, "product_id": i.product.vendor_code, "quantity": i.quantity, "order_number": i.order_number, "time_create": i.time_create, "delivery_address": i.delivery_address} for i in context)
+    #product_id - это артикул тут, потом я по нему ищу товары, пока так. id товаров не совпадают.
     return res
 
 
+
+
+#получение списка товаров из учетной системы, это кнопка в самом проекте фастапи
 @router_showcase.get("/query_api/get/good/")
 async def get_good(request: Request, session: AsyncSession = Depends(get_async_session)):
     rq = requests.get("http://127.0.0.1:9999/api/get_good/")
     res = rq.json()
     
-        # product = Basket(product_id=good_id, quantity=1, user_id=int(check[1]))
-        # session.add(product)
-        # await session.commit()    
     
     # [{'name_product': 'Зубная паста', 'slug': 'zubnaya-pasta', 'vendor_code': '_', 'price': '111.00', 'photo': 'photos/2024/02/29/400.jpg', 'stock': 4.0, 'availability': True, 'group_id': 2}, {'name_product': 'Хлеб', 'slug': 'hleb', 'vendor_code': 'qwe123', 'price': '22.00', 'photo': 'photos/2024/02/29/хлеб.png', 'stock': 22.0, 'availability': True, 'group_id': 1}, {'name_product': 'Молоко', 'slug': 'milk', 'vendor_code': 'asd123', 'price': '55.00', 'photo': 'photos/2024/02/29/молоко.jpg', 'stock': 32.0, 'availability': True, 'group_id': 1}]    - это возвращается из запроса из апи дрф
     query_good = await session.scalars(select(Goods))
@@ -455,9 +456,6 @@ async def get_good(request: Request, session: AsyncSession = Depends(get_async_s
     # print(good_list[-1].name_product)
 
 
-
-
-
     # сделать удаление элемента, желательно чтобы было все в одном цикле, но пока не получается.
 
     return RedirectResponse("/")
@@ -466,49 +464,49 @@ async def get_good(request: Request, session: AsyncSession = Depends(get_async_s
 
 
 
-from fastapi import UploadFile, File
-import shutil
+# from fastapi import UploadFile, File
+# import shutil
 
 
-@router_showcase.get("/load_files/file/", response_class=HTMLResponse)
-async def file_get(request: Request):
-    context = {"request": request}
+# @router_showcase.get("/load_files/file/", response_class=HTMLResponse)
+# async def file_get(request: Request):
+#     context = {"request": request}
 
-    response = templates.TemplateResponse("showcase/upload_file.html", context)
+#     response = templates.TemplateResponse("showcase/upload_file.html", context)
 
-    return response
+#     return response
 
 
 #загрузка фото в базу товаров, это чтобы как то проверить как работать с фото
-@router_showcase.post("/load_files/file/", response_class=HTMLResponse)
-async def file_post(request: Request, foto: UploadFile = File()):
+# @router_showcase.post("/load_files/file/", response_class=HTMLResponse)
+# async def file_post(request: Request, foto: UploadFile = File()):
 
-    # check = await access_token_decode(acces_token=Authorization)
+#     # check = await access_token_decode(acces_token=Authorization)
 
-    # flag = False
-    # if type(check[0]) == ExpiredSignatureError:   
-    #     tokens = await test_token_expire(RT=RT, db=session)        
-    #     check = tokens[2]
-    #     flag = True
+#     # flag = False
+#     # if type(check[0]) == ExpiredSignatureError:   
+#     #     tokens = await test_token_expire(RT=RT, db=session)        
+#     #     check = tokens[2]
+#     #     flag = True
 
-    # foto: UploadFile = File(...) - это параметр в функции для загрузки файла
-
-
-
-    with open(f'fotos/{foto.filename}', 'wb') as buffer:#открываем тестовый файл как буфер и загружаем в него файл
-        shutil.copyfileobj(foto.file, buffer)#тут будет создан файл который запишется на диск
+#     # foto: UploadFile = File(...) - это параметр в функции для загрузки файла
 
 
-    # context = {"request": request}
-    # context = await base_requisites(db=session, check=check, request=request)
-    # response = templates.TemplateResponse("showcase/upload_file.html", context)
 
-    # if flag:
-    #     response.set_cookie(key="RT", value=tokens[0])
-    #     response.set_cookie(key="Authorization", value=tokens[1])
+#     with open(f'fotos/{foto.filename}', 'wb') as buffer:#открываем тестовый файл как буфер и загружаем в него файл
+#         shutil.copyfileobj(foto.file, buffer)#тут будет создан файл который запишется на диск
 
-    # return response
-    return RedirectResponse("/")
+
+#     # context = {"request": request}
+#     # context = await base_requisites(db=session, check=check, request=request)
+#     # response = templates.TemplateResponse("showcase/upload_file.html", context)
+
+#     # if flag:
+#     #     response.set_cookie(key="RT", value=tokens[0])
+#     #     response.set_cookie(key="Authorization", value=tokens[1])
+
+#     # return response
+#     return RedirectResponse("/")
 
 #видос про загрузку файлов
 # https://www.youtube.com/watch?v=kANFWfgTZT8&ab_channel=FastAPIChannel

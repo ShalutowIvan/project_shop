@@ -76,6 +76,7 @@ class Order_list_bought(models.Model):
 	order_number = models.IntegerField(verbose_name="Номер заказа")
 	time_create = models.DateTimeField(verbose_name="Время создания")#время создания заказа покупателем
 	delivery_address = models.CharField(max_length=255, default='_', verbose_name="Адрес организации")
+	state_order = models.BooleanField(default=False, verbose_name="состояние заказа")
 
 
 	def __str__(self):
@@ -88,6 +89,11 @@ class Order_list_bought(models.Model):
 		ordering = ['time_create', 'product_id']
 
 
+
+
+
+
+#таблица с номерами приходных документов
 class Receipt_number(models.Model):
 	comment = models.CharField(max_length=255, default='_', verbose_name="Комментарий")
 	time_create = models.DateTimeField(auto_now_add=True)
@@ -106,9 +112,7 @@ class Receipt_number(models.Model):
 		verbose_name_plural = "Номера накладных"
 		ordering = ['time_create']
 
-
-
-
+#таблица с товарами из приходных документов с номерами документов
 class Receipt_list(models.Model):
 	product = models.ForeignKey(to=Goods, on_delete=models.CASCADE, verbose_name="Товар")
 	number_receipt = models.IntegerField(default=0, verbose_name="Номер накладной")#этот номер берется из id таблицы Receipt_number

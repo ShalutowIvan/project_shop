@@ -6,22 +6,26 @@
 
 <br><br><br><br>
 
+<h1> Номер заказа {{ order_number }} </h1>
+<h3> ФИО {{ goods_in_order.0.fio }} </h3>
+<h3> Дата {{ goods_in_order.0.time_create }} </h3>
+<h3> Телефон {{ goods_in_order.0.phone }} </h3>
+<h3> Адрес доставки {{ goods_in_order.0.delivery_address }} </h3>
 
-<h1> Номер {{ number }} </h1>
-<h1> Дата {{ receipt_doc.time_create }} </h1>
+
 
 <h3>Название товара | Количество</h3>
 <!--тут отрисовка списка товаров-->
-{% for i in receipt_good_list %}
 
-<h3>{{ i.product }} | {{ i.quantity }}  {% if receipt_doc.state == False %} <a href="{% url 'receipt_delete_goods' i.id %}"><button class="delete_receipt">Удалить товар</button></a> {% endif %} </h3>
+{% for i in goods_in_order %}
+
+<h3>{{ i.product_id }} | {{ i.quantity }}   </h3>
 
 
 {% endfor %}
 
 <!-- номер документа прокидывается как параметр в функцию для добавления товара ниже -->
 {% if receipt_doc.state == False %}
-<a href="{% url 'receipt_add_goods' number %}"><h3>Добавить позицию товара</h3></a>
 
 <a href="{% url 'receipt_document_activate' number %}"><button class="activate_receipt">Провести документ</button></a>
 
@@ -30,6 +34,8 @@
 <a href="{% url 'receipt_document_deactivate' number %}"><button class="deactivate_receipt">Отмена проведения документа</button></a>
 
 {% endif %}
+
+
 
 
 {% endblock %}

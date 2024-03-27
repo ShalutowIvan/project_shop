@@ -43,6 +43,35 @@ class Home(ListView):
 		return context
 
 
+
+#получение списка заказов с сайта витрины, поиск идет по артикулу, то есть в номере заказа идет артикул. Если ID совпадать в базах не будут ничего страшного, главное чтобы совпадали артикулы.
+def synchronization(request):
+	try:
+		rq = requests.get("http://127.0.0.1:8000/checkout_list/orders/all/")
+		res = rq.json()
+		db_order = Order_list_bought.objects.all()
+		order_number_list = list(i.order_number for i in db_order)		
+
+		for i in res:
+			if i["order_number"] not in order_number_list:
+				vendor = i['product_id']
+				i['product_id'] = Goods.objects.get(vendor_code=vendor).id
+
+				serializer = OrderSerializer(data=i)
+				serializer.is_valid(raise_exception=True)
+				serializer.save()
+
+		return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+	except Exception as ex:
+		context = {"error": ex}
+		org = Organization.objects.all()
+		if org:
+			context['org'] = org[0]
+
+		return render(request, "shop/synchro.html", context=context )
+
+
 class Order_list(ListView):
     # paginate_by = 11
     # model = Goods
@@ -57,13 +86,16 @@ class Order_list(ListView):
 		db_order = Order_list_bought.objects.all()
         		
 		res = {}
+		# for i in db_order:
+		# 	if res.get(i.order_number) == None:
+		# 		res[i.order_number] = [i.fio, i.phone, i.time_create, i.delivery_address, [[i.product_id, i.quantity], ] ]
+		# 	else:
+		# 		res[i.order_number][4] += [[i.product_id, i.quantity], ]
+
 		for i in db_order:
 			if res.get(i.order_number) == None:
-				res[i.order_number] = [i.fio, i.phone, i.time_create, i.delivery_address, [[i.product_id, i.quantity], ] ]
-			else:
-				res[i.order_number][4] += [[i.product_id, i.quantity], ]
-		
-		
+				res[i.order_number] = [i.fio, i.phone, i.time_create]
+			
 		context["order_list"] = res
 
 		org = Organization.objects.all()
@@ -72,20 +104,21 @@ class Order_list(ListView):
 
 		return context
 
-#получение списка заказов
-def synchronization(request):
-	rq = requests.get("http://127.0.0.1:8000/checkout_list/orders/all/")
-	res = rq.json()
-	db_order = Order_list_bought.objects.all()
-	order_number_list = (i.order_number for i in db_order)
-	
-	for i in res:
-		if i["order_number"] not in order_number_list:			
-			serializer = OrderSerializer(data=i)
-			serializer.is_valid(raise_exception=True)
-			serializer.save()
 
-	return HttpResponseRedirect(request.META['HTTP_REFERER'])
+#функция открыть заказ. 
+@login_required
+def order_list_open(request, order_number):
+	goods_in_order = Order_list_bought.Order_list_bought.filter(order_number=order_number)#тут список, queryset
+	
+	context = {"goods_in_order": goods_in_order, "order_number": order_number}
+
+	org = Organization.objects.all()
+	if org:
+		context['org'] = org[0]
+
+	return render(request, "shop/order_list_open.html", context=context)
+
+#ост тут, в html тоже много еще редачить, order_list_open.html и order_list.html
 
 
 # class Order_list_view(APIView):
@@ -196,7 +229,7 @@ def receipt_document_create(request):
 def receipt_document_open(request, open_receipt):
 	receipt_open = Receipt_number.objects.get(id=open_receipt)
 	receipt_good_list = Receipt_list.objects.filter(number_receipt=open_receipt)
-	context = {"number": open_receipt, 'receipt_good_list': receipt_good_list, "date": receipt_open.time_create}
+	context = {"number": open_receipt, 'receipt_good_list': receipt_good_list, "receipt_doc": receipt_open}
 
 	org = Organization.objects.all()
         
@@ -214,49 +247,50 @@ def receipt_document_activate(request, receipt_activate):
 		list_goods_to_add = Receipt_list.objects.filter(number_receipt=receipt_activate)
 		gen_list = [i.product.id for i in list_goods_to_add]
 
-		list_good = Goods.objects.filter(pk__in=gen_list)#не понятно почему, но тут список объектов получается неизменяемый, у них нельзя записать новые значения
+		list_good = Goods.objects.filter(pk__in=gen_list)#не понятно почему, но тут список объектов получается неизменяемый, у них нельзя записать новые значения. Сделал queryset типом list, и все норм. Теперь значения полей объектов стали меняться.
 
 		list_good = list(list_good)
 		
 		for i in range(len(gen_list)):
 			
-			list_good[i].stock += 10
+			list_good[i].stock += list_goods_to_add[i].quantity
 			
-			print(list_good[i].stock)
+			# print(list_good[i].stock)
 
-			# list_good[i].save()
-			
-		# list_good.update()
-		# goods = Goods.objects.bulk_update(objs=list(list_good), fields=["stock",])
-		# print(goods)
+		goods = Goods.objects.bulk_update(objs=list_good, fields=["stock",])
+
+		doc.state = True
+		doc.save()		
 
 	return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
+#отмена проведения документа
+@login_required
+def receipt_document_deactivate(request, receipt_deactivate):
+	doc = Receipt_number.objects.get(id=receipt_deactivate)
+
+	if doc.state == True:
+		list_goods_to_add = Receipt_list.objects.filter(number_receipt=receipt_deactivate)
+		gen_list = [i.product.id for i in list_goods_to_add]
+
+		list_good = Goods.objects.filter(pk__in=gen_list)
+
+		list_good = list(list_good)
+		
+		for i in range(len(gen_list)):
+			
+			list_good[i].stock -= list_goods_to_add[i].quantity			
+
+		goods = Goods.objects.bulk_update(objs=list_good, fields=["stock",])
+
+		doc.state = False
+		doc.save()	
+
+	return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
-
-
-
-# def activate_document(request, activate):
-# 	doc = Receipt_list.objects.get(id=activate)
-# 	goods = Goods.objects.get(id=doc.product.id)
-
-# 	if doc.state != True:
-# 		goods.stock += doc.quantity
-# 		goods.save()
-# 	print(doc.state)
-# 	doc.state = True
-# 	doc.save()
-
-
-# 	return redirect('receipt_list')
-	# тут остановился
-
-
-
-
-#приходный документ - удаление, удаляется и сам номер документа и товары с этим же номером документа
+#приходный документ - удаление, удаляется и таблица с номером документа и товары с этим же номером документа
 @login_required
 def receipt_document_delete(request, number_delete_receipt):
 	rec = Receipt_number.objects.get(id=number_delete_receipt)
@@ -265,11 +299,6 @@ def receipt_document_delete(request, number_delete_receipt):
 	rec.delete()
 	good_list_delete.delete()
 	return HttpResponseRedirect(request.META['HTTP_REFERER'])
-
-
-
-
-
 
 
 #добавление товара - в открытом документе. number_doc берется из номера открытого документа, который мы открыли функцией receipt_document_open он прокидывается в html.
@@ -299,38 +328,6 @@ def receipt_delete_goods(request, number_delete_good):
 	list_delete = Receipt_list.objects.get(id=number_delete_good)
 	list_delete.delete()
 	return HttpResponseRedirect(request.META['HTTP_REFERER'])
-
-
-
-
-
-
-
-
-
-
-
-#список накладных
-
-
-
-# class Receipt_list(ListView):
-# 	template_name = 'shop/receipt_list.html'
-# 	paginate_by = 10
-# 	model = Receipt_list 
-# 	context_object_name = 'receipt_list_view'
-
-# 	def get_queryset(self):
-# 		return
-        
-# 	def get_context_data(self, *, object_list=None, **kwargs):
-# 		context = super().get_context_data(**kwargs)		       		
-# 		org = Organization.objects.all()
-# 		if org:
-# 			context['org'] = org[0]
-
-# 		return context
-
 
 
 
@@ -405,16 +402,6 @@ def receipt_delete_goods(request, number_delete_good):
 #                    mixins.ListModelMixin,
 #                    viewsets.GenericViewSet):
 # 	pass
-
-
-# спланировать какой будет функционал в учетной системе и как все будет выглядеть
-# сделать список заказов
-
-
-
-
-
-
 
 
 

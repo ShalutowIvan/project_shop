@@ -12,14 +12,12 @@
 <h3>{{ j.0 }}</h3>
 <h3>{{ j.1 }}</h3>
 <h3>{{ j.2 }}</h3>
-<h3>{{ j.3 }}</h3>
 
-{% for k in j.4 %}
 
-<h3>Товар: {{ k.0 }}</h3>
-<h3>Количество: {{ k.1 }}</h3>
 
-{% endfor %}
+<a href="{% url 'order_list_open' i %}"><button class="open_order">Открыть заказ</button></a> 
+
+
 </div>
 
 

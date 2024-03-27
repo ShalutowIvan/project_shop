@@ -19,20 +19,22 @@ urlpatterns = [
     # path('group/<str:name_product>/', add_in_basket, name='add_in_basket'),
     # path('product/<slug:product_slug>/', show_product, name='product')
     path('', Home.as_view(), name='start'),
-    path('order_list/', Order_list.as_view(), name='order_list'),
     path('synchronization_order/', synchronization, name='synchronization'),
+    path('order_list/', Order_list.as_view(), name='order_list'),
+    path('order_list/open/<int:order_number>/', order_list_open, name='order_list_open'),
+
+
+    
     path('good_list/', Goods_list.as_view(), name='goods_list'),
     path('good_list/add/', Goods_add.as_view(), name='goods_add'),
     path('receipt/list/view/', receipt_list, name='receipt_list'),
     path('receipt/list/view/create/', receipt_document_create, name='receipt_document_create'),
     path('receipt/list/view/delete/<int:number_delete_receipt>/', receipt_document_delete, name='receipt_document_delete'),
-
     path('receipt/list/view/open/<int:open_receipt>/', receipt_document_open, name='receipt_document_open'),
     path('receipt/list/view/open/add_goods/<int:number_doc>/', receipt_add_goods, name='receipt_add_goods'),
     path('receipt/list/view/open/delete_goods/<int:number_delete_good>/', receipt_delete_goods, name='receipt_delete_goods'),
-
     path('receipt/list/view/open/activate/<int:receipt_activate>/', receipt_document_activate, name='receipt_document_activate'),
-
+    path('receipt/list/view/open/deactivate/<int:receipt_deactivate>/', receipt_document_deactivate, name='receipt_document_deactivate'),
     
     # path('group/<slug:group_slug>/', GroupShow.as_view(), name='group'),
     # path('order/list/', Order_list_view.as_view(), name='order_list'),
