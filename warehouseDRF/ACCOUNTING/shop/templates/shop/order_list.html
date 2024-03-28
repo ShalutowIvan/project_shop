@@ -13,7 +13,15 @@
 <h3>{{ j.1 }}</h3>
 <h3>{{ j.2 }}</h3>
 
+{% if j.3 == True %}
 
+<h3>Статус: Проведен</h3>
+
+{% else %}
+
+<h3>Статус: Не проведен</h3>
+
+{% endif %}
 
 <a href="{% url 'order_list_open' i %}"><button class="open_order">Открыть заказ</button></a> 
 

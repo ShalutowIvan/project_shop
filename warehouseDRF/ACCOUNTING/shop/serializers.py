@@ -93,7 +93,7 @@ class OrderSerializer(serializers.ModelSerializer):
         # fields = ('fio', 'phone', 'quantity', 'order_number', 'time_create', 'delivery_address')#product_id не стал записывать с ним проблема, так как он не совпадает с id товаров из фастапи
 
         
-# class GoodsSerializer(serializers.ModelSerializer):
+
 #сериализатор для получения списка товаров витриной, но не для добавления товаров
 class GoodsSerializer(serializers.Serializer):
 
@@ -110,4 +110,12 @@ class GoodsSerializer(serializers.Serializer):
     stock = serializers.FloatField()
     availability = serializers.BooleanField(default=True)
     group_id = serializers.IntegerField()
+
+
+class GroupSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name_group = serializers.CharField(max_length=255)
+    slug = serializers.CharField(max_length=255)
+    
+
 

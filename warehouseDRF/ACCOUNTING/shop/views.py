@@ -94,7 +94,7 @@ class Order_list(ListView):
 
 		for i in db_order:
 			if res.get(i.order_number) == None:
-				res[i.order_number] = [i.fio, i.phone, i.time_create]
+				res[i.order_number] = [i.fio, i.phone, i.time_create, i.state_order]
 			
 		context["order_list"] = res
 
@@ -108,7 +108,7 @@ class Order_list(ListView):
 #функция открыть заказ. 
 @login_required
 def order_list_open(request, order_number):
-	goods_in_order = Order_list_bought.Order_list_bought.filter(order_number=order_number)#тут список, queryset
+	goods_in_order = Order_list_bought.objects.filter(order_number=order_number)#тут список, queryset
 	
 	context = {"goods_in_order": goods_in_order, "order_number": order_number}
 
@@ -118,7 +118,58 @@ def order_list_open(request, order_number):
 
 	return render(request, "shop/order_list_open.html", context=context)
 
-#ост тут, в html тоже много еще редачить, order_list_open.html и order_list.html
+
+#функция проведения заказа
+@login_required
+def order_list_activate(request, order_activate):
+	order = Order_list_bought.objects.filter(order_number=order_activate)#запросили список товаров из заказа по номеру заказа
+
+
+	if order[0].state_order == False:
+		
+		gen_list = [i.product_id.id for i in order]
+
+		list_good = Goods.objects.filter(pk__in=gen_list)#не понятно почему, но тут список объектов получается неизменяемый, у них нельзя записать новые значения. Сделал queryset типом list, и все норм. Теперь значения полей объектов стали меняться.
+
+		list_good = list(list_good)
+		
+		for i in range(len(gen_list)):
+			
+			list_good[i].stock -= order[i].quantity			
+			order[i].state_order = True
+			order[i].save()
+
+		goods = Goods.objects.bulk_update(objs=list_good, fields=["stock",])
+			
+
+	return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+
+#отмена проведения заказа
+@login_required
+def order_list_deactivate(request, order_deactivate):
+	order = Order_list_bought.objects.filter(order_number=order_deactivate)#запросили список товаров из заказа по номеру заказа
+
+
+	if order[0].state_order == True:
+		
+		gen_list = [i.product_id.id for i in order]
+
+		list_good = Goods.objects.filter(pk__in=gen_list)#не понятно почему, но тут список объектов получается неизменяемый, у них нельзя записать новые значения. Сделал queryset типом list, и все норм. Теперь значения полей объектов стали меняться.
+
+		list_good = list(list_good)
+		
+		for i in range(len(gen_list)):
+			
+			list_good[i].stock += order[i].quantity	
+			order[i].state_order = False
+			order[i].save()
+
+		goods = Goods.objects.bulk_update(objs=list_good, fields=["stock",])
+			
+
+	return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
 
 
 # class Order_list_view(APIView):
@@ -133,7 +184,7 @@ def order_list_open(request, order_number):
 # 		pass
 
 
-
+#отображение списка товаров
 class Goods_list(ListView):
     paginate_by = 10
     model = Goods
@@ -164,6 +215,42 @@ class Get_good(APIView):
 		return Response(GoodsSerializer(instance=good, many=True).data)
 
 
+# для получения списка групп в витрине для апи
+class Get_group(APIView):
+
+	def get(self, request):
+		group = Group.objects.all()
+
+		return Response(GroupSerializer(instance=group, many=True).data)
+		
+
+#добавление группы товаров
+class Group_add(CreateView):
+    form_class = Group_add_form
+    template_name = 'shop/group_add.html'
+    success_url = reverse_lazy('goods_list')
+    login_url = reverse_lazy('start')
+
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        org = Organization.objects.all()
+        
+        if org:
+            context['org'] = org[0]
+        
+        return context
+
+    #передача юзера в форму автоматом от залогининного пользователя. В самой форме юзер не заполняется
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.user = self.request.user        
+        self.object.save()
+        # возвращаем form_valid предка
+        return super().form_valid(form)
+
+
+
 #добавление товара
 class Goods_add(CreateView):
     form_class = Goods_add_form
@@ -188,6 +275,11 @@ class Goods_add(CreateView):
         self.object.save()
         # возвращаем form_valid предка
         return super().form_valid(form)
+
+
+
+
+
 
 
 #список накладных просто вывод

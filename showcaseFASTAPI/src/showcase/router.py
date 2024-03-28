@@ -253,7 +253,7 @@ async def contacts(request: Request, session: AsyncSession = Depends(get_async_s
 
     return response
 
-# import uuid
+
 #заготовка для формы запроса контактов из формы регистрации, переделать под запрос контактов
 @router_showcase.post("/basket/contacts/", response_model=None, status_code=201)#response_model это валидация для запроса
 async def contacts_form(request: Request, session: AsyncSession = Depends(get_async_session), fio: str = Form(), phone: str = Form(), delivery_address: str = Form(), pay: int = Form(), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
@@ -304,35 +304,8 @@ async def contacts_form(request: Request, session: AsyncSession = Depends(get_as
     # return RedirectResponse("/", status_code=303)#после оформления переходим на стартовую
     return response
 
-#роутер для кнопки оформления заказа после ввода контактов. Он оказался не нужен
-# @router_showcase.get("/basket/contacts/checkout/", response_class=HTMLResponse)
-# async def checkout(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None)):
-    
-#     check = await access_token_decode(acces_token=Authorization)
-#     #фильтруем корзину по юзеру
 
-#     # query = select(Basket).options(joinedload(Basket.product)).where(Basket.user_id == int(check_id[1]))    
-#     # basket = await session.scalars(query)
-
-#     pay_goods = await session.scalars(select(Basket).where(Basket.user_id == int(check[1])))
-#     contacts = await session.scalars(select(Contacts).where(Contacts.user_id == int(check[1])))
-#     id_contact = contacts.all()[-1].id
-
-#     res = [Order_list(product_id=i.product_id, quantity=i.quantity, order_number=id_contact, user_id=int(check[1])) for i in pay_goods.all()]
-    
-#     session.add_all(res)
-
-#     #удаление всех записей в корзине с фильтром по пользаку
-#     await session.execute(text(f"DELETE FROM basket WHERE user_id = {check[1]};"))    
-        
-#     await session.commit()
-
-#     return RedirectResponse("/", status_code=303)
-
-
-
-
-
+#для просмотра списка покупок
 @router_showcase.get("/checkout_list/orders/", response_class=HTMLResponse)
 async def checkout_list(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
     
@@ -385,81 +358,100 @@ async def synchronization(request: Request, session: AsyncSession = Depends(get_
     return res
 
 
-
-
 #получение списка товаров из учетной системы, это кнопка в самом проекте фастапи
 @router_showcase.get("/query_api/get/good/")
 async def get_good(request: Request, session: AsyncSession = Depends(get_async_session)):
     rq = requests.get("http://127.0.0.1:9999/api/get_good/")
-    res = rq.json()
+    res = rq.json()    
     
-    
-    # [{'name_product': 'Зубная паста', 'slug': 'zubnaya-pasta', 'vendor_code': '_', 'price': '111.00', 'photo': 'photos/2024/02/29/400.jpg', 'stock': 4.0, 'availability': True, 'group_id': 2}, {'name_product': 'Хлеб', 'slug': 'hleb', 'vendor_code': 'qwe123', 'price': '22.00', 'photo': 'photos/2024/02/29/хлеб.png', 'stock': 22.0, 'availability': True, 'group_id': 1}, {'name_product': 'Молоко', 'slug': 'milk', 'vendor_code': 'asd123', 'price': '55.00', 'photo': 'photos/2024/02/29/молоко.jpg', 'stock': 32.0, 'availability': True, 'group_id': 1}]    - это возвращается из запроса из апи дрф
     query_good = await session.scalars(select(Goods))
     good_list = query_good.all()#тут список объектов из таблицы товаров
-    # print("тут гуд лист!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    # print(good_list)
-    # [<src.showcase.models.Goods object at 0x0000015E9DFF7FD0>, <src.showcase.models.Goods object at 0x0000015E9DFF7E80>, <src.showcase.models.Goods object at 0x0000015E9DFF7E50>, <src.showcase.models.Goods object at 0x0000015E9DFF7E20>, <src.showcase.models.Goods object at 0x0000015E9DFF7DF0>]
+    
+    vendors = {i.vendor_code: i for i in good_list}#выборка артикулов товаров которые есть в базе товаров витрины в виде словаря с ключом артикул товара
+    res_with_keys = {i["vendor_code"]: i for i in res}#список артикулов из апи запроса
+    
 
-    # print("тут из рес!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    # print(res[0]['vendor_code'])
-    vendors = {i.vendor_code: i for i in good_list}
-    res_with_keys = {i["vendor_code"]: i for i in res}
-    # {'123zzzzzzzzzz': {'name_product': 'Булочка', 'slug': 'bulochka', 'vendor_code': '123zzzzzzzzzz', 'price': '22.00', 'photo': 'photos/2024/03/03/images.jpg', 'stock': 4.0, 'availability': True, 'group_id': 1}, '_': {'name_product': 'Зубная паста', 'slug': 'zubnaya-pasta', 'vendor_code': '_', 'price': '111.00', 'photo': 'photos/2024/02/29/400.jpg', 'stock': 6.0, 'availability': True, 'group_id': 2}, '000000000': {'name_product': 'Унитаз', 'slug': 'unitaz', 'vendor_code': '000000000', 'price': '3333.00', 'photo': 'photos/2024/03/03/унитаз_XB8d3Z5.jpg', 'stock': 11.0, 'availability': True, 'group_id': 2}, 'qwe123': {'name_product': 'Хлеб', 'slug': 'hleb', 'vendor_code': 'qwe123', 'price': '22.00', 'photo': 'photos/2024/02/29/хлеб.png', 'stock': 25.0, 'availability': True, 'group_id': 1}, 'asd123': {'name_product': 'Молоко', 'slug': 'milk', 'vendor_code': 'asd123', 'price': '55.00', 'photo': 'photos/2024/02/29/молоко.jpg', 'stock': 29.0, 'availability': True, 'group_id': 1}}
-
-
-    # print("req!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    # print(res_with_keys)
-    # print(vendors["_"].name_product)
-    # {'123zzzzzzzzzz': <src.showcase.models.Goods object at 0x0000015E9DFF7FD0>, 'asd123': <src.showcase.models.Goods object at 0x0000015E9DFF7E80>, 'qwe123': <src.showcase.models.Goods object at 0x0000015E9DFF7E50>, '_': <src.showcase.models.Goods object at 0x0000015E9DFF7E20>, '000000000': <src.showcase.models.Goods object at 0x0000015E9DFF7DF0>}
-
-    if good_list == []:
+    if good_list == []:#если список полностью пустой, то просто добавляем все товары
         for k in res:
             product = Goods(name_product=k["name_product"], price=float(k["price"]), vendor_code=k["vendor_code"], stock=float(k["stock"]), slug=k["slug"], photo=k["photo"], availability=True, group_id=int(k["group_id"]))
-            session.add(product)
-            # await session.commit()
+            session.add(product)            
     
-    elif good_list != []:        
+    elif good_list != []:#иначе если не пустой
         for j in res:
-            if j["vendor_code"] in vendors:
+            if j["vendor_code"] in vendors:#если товар из запроса уже есть в витрине, то сравниваем остаток и если не равны остатки, то меняем остаток
                 if vendors[j["vendor_code"]].stock == j["stock"]:
                     continue
                 else:
                     vendors[j["vendor_code"]].stock = j["stock"]
-                    session.add(vendors[j["vendor_code"]])
-                    # await session.commit()
-            else:
+                    session.add(vendors[j["vendor_code"]])                    
+            else:#если товара из запроса нет в витрине, то добавляем товар
                 product = Goods(name_product=j["name_product"], price=float(j["price"]), vendor_code=j["vendor_code"], stock=float(j["stock"]), slug=j["slug"], photo=j["photo"], availability=True, group_id=int(j["group_id"]))
                 session.add(product)
-                # await session.commit()
-
-    # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    # print(good_list[-1].name_product)
-
-
-
+    
+    #ниже цикл для удаления товара с витрины в случае если его нет в запросе из учетной системы
     for i in good_list:
         if res_with_keys.get(i.vendor_code):
             continue
-        else:
-            # good_list.remove(i)
+        else:            
             await session.delete(i)
+
     
 
-    await session.commit()    
+    await session.commit()#коммит в самом конце после всех действий, только 1 коммит
 
 
-    # session.add_all(good_list)
+    #ниже начал решать проблему с удаленными товарами в заказах
+    # query_order = await session.scalars(select(Order_list))
+    # order_list = query_order.all()#тут список объектов из таблицы заказов
+
+    # for q in order_list:
+    #     if q.product_id == None:
+    #         q.product_id = "Нет товара"
+
     # await session.commit()
 
 
-    # print(good_list[-1].name_product)
+    return RedirectResponse("/")
 
 
-    # сделать удаление элемента, желательно чтобы было все в одном цикле, но пока не получается.
+#роутер для получения групп товаров
+@router_showcase.get("/query_api/get/group/")
+async def get_group(request: Request, session: AsyncSession = Depends(get_async_session)):
+    rq = requests.get("http://127.0.0.1:9999/api/get_group/")
+    res = rq.json()
+    # [{'name_group': 'Компы', 'slug': 'comp'}, {'name_group': 'Молочка', 'slug': 'molochka'}, {'name_group': 'Сантехника', 'slug': 'santehnika'}, {'name_group': 'Химия', 'slug': 'himiya'}, {'name_group': 'Хлеб', 'slug': 'hleb'}, {'name_group': 'Электроника', 'slug': 'elektronika'}]
+
+    query_group = await session.scalars(select(Group))
+    group_list = query_group.all()#тут список объектов из таблицы групп
+
+    id_group_in_showcase = {i.id: i for i in group_list}
+    res_with_keys = {i["id"]: i for i in res}
+
+    if group_list == []:
+        for k in res:
+            group = Group(id=int(k["id"]), name_group=k["name_group"], slug=k["slug"])
+            session.add(group)
+
+    elif group_list != []:#иначе если не пустой
+        for j in res:
+            if j["id"] not in id_group_in_showcase:            
+                group = Group(id=int(j["id"]), name_group=j["name_group"], slug=j["slug"])
+                session.add(group)
+
+
+    for i in group_list:
+        if res_with_keys.get(i.id):
+            continue
+        else:            
+            await session.delete(i)
+
+    await session.commit()
 
     return RedirectResponse("/")
 
+
+
+#конец роутеров для апи с учетной системой
 #####################################################################################
 
 

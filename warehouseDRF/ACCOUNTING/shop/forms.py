@@ -13,21 +13,15 @@ class Goods_add_form(forms.ModelForm):
         fields = ['name_product', 'slug', 'vendor_code', 'price', 'photo', 'stock', 'group', ]
 
 
-    # def clean_title(self):
-    #     fio = self.cleaned_data['fio']
-    #     if len(fio) > 200:
-    #         raise ValidationError('Длина превышает 200 символов')
+class Group_add_form(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    #     return fio
+    class Meta:
+        model = Group
+        fields = ['name_group', 'slug']
+ 
 
-
-# class Receipt_document_form(forms.ModelForm):
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-
-#     class Meta:
-#         model = Receipt_list
-#         fields = ['product', 'quantity', ]
 
 
 class Receipt_number_form(forms.ModelForm):

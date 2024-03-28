@@ -22,11 +22,14 @@ urlpatterns = [
     path('synchronization_order/', synchronization, name='synchronization'),
     path('order_list/', Order_list.as_view(), name='order_list'),
     path('order_list/open/<int:order_number>/', order_list_open, name='order_list_open'),
+    path('order_list/open/activate/<int:order_activate>/', order_list_activate, name='order_list_activate'),
+    path('order_list/open/deactivate/<int:order_deactivate>/', order_list_deactivate, name='order_list_deactivate'),
 
 
     
     path('good_list/', Goods_list.as_view(), name='goods_list'),
     path('good_list/add/', Goods_add.as_view(), name='goods_add'),
+    path('good_list/add_group/', Group_add.as_view(), name='group_add'),
     path('receipt/list/view/', receipt_list, name='receipt_list'),
     path('receipt/list/view/create/', receipt_document_create, name='receipt_document_create'),
     path('receipt/list/view/delete/<int:number_delete_receipt>/', receipt_document_delete, name='receipt_document_delete'),
@@ -41,5 +44,6 @@ urlpatterns = [
     # path('order/list/<int:pk>', Order_list_view.as_view(), name='order_list_c'),
 
     path('api/get_good/', Get_good.as_view(), name='get_good'),
-    # path('api/get_good2/', get_good, name='get_good2'),
+    path('api/get_group/', Get_group.as_view(), name='get_group'),
+
     ]

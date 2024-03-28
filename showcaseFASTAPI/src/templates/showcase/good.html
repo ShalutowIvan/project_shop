@@ -18,9 +18,9 @@
 {% endif %}
 
 <p> Цена {{ g.price }}</p>
-<p> Доступна для продажи {{ g.availability }}</p>
+<p> Остаток {{ g.stock }}</p>
 
-
+<a href="{{ url_for('add_in_basket', good_id=g.id) }}"><button>Добавить в корзину</button></a>
 
 {% endfor %}
 

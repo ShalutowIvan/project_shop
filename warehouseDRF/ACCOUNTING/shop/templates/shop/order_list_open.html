@@ -4,20 +4,20 @@
 {% block content %}
 
 
-<br><br><br><br>
+<br><br>
 
-<h1> Номер заказа {{ order_number }} </h1>
-<h3> ФИО {{ goods_in_order.0.fio }} </h3>
+<h1> Номер заказа {{ order_number }} || ФИО {{ goods_in_order.0.fio }}</h1>
 <h3> Дата {{ goods_in_order.0.time_create }} </h3>
 <h3> Телефон {{ goods_in_order.0.phone }} </h3>
 <h3> Адрес доставки {{ goods_in_order.0.delivery_address }} </h3>
 
-
+<p>_____________________________________________________________</p>
 
 <h3>Название товара | Количество</h3>
 <!--тут отрисовка списка товаров-->
 
 {% for i in goods_in_order %}
+
 
 <h3>{{ i.product_id }} | {{ i.quantity }}   </h3>
 
@@ -25,13 +25,13 @@
 {% endfor %}
 
 <!-- номер документа прокидывается как параметр в функцию для добавления товара ниже -->
-{% if receipt_doc.state == False %}
+{% if goods_in_order.0.state_order == False %}
 
-<a href="{% url 'receipt_document_activate' number %}"><button class="activate_receipt">Провести документ</button></a>
+<a href="{% url 'order_list_activate' order_number %}"><button class="activate_order">Провести заказ</button></a>
 
 {% else %}
 
-<a href="{% url 'receipt_document_deactivate' number %}"><button class="deactivate_receipt">Отмена проведения документа</button></a>
+<a href="{% url 'order_list_deactivate' order_number %}"><button class="deactivate_order">Отмена проведения заказа</button></a>
 
 {% endif %}
 
