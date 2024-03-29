@@ -349,9 +349,12 @@ async def checkout_list(request: Request, session: AsyncSession = Depends(get_as
 async def synchronization(request: Request, session: AsyncSession = Depends(get_async_session)):    
     
     query = select(Order_list).options(joinedload(Order_list.product))#для обращения к связанному полю товара сделал связанный select, и потом обратился к артикулу и его выгружаем.
+    # query = select(Order_list)
     order_list = await session.scalars(query)    
     
     context = order_list.all()
+
+    # query_goods = 
         
     res = ({"fio": i.fio, "phone": i.phone, "product_id": i.product.vendor_code, "quantity": i.quantity, "order_number": i.order_number, "time_create": i.time_create, "delivery_address": i.delivery_address} for i in context)
     #product_id - это артикул тут, потом я по нему ищу товары, пока так. id товаров не совпадают.
@@ -360,94 +363,114 @@ async def synchronization(request: Request, session: AsyncSession = Depends(get_
 
 #получение списка товаров из учетной системы, это кнопка в самом проекте фастапи
 @router_showcase.get("/query_api/get/good/")
-async def get_good(request: Request, session: AsyncSession = Depends(get_async_session)):
-    rq = requests.get("http://127.0.0.1:9999/api/get_good/")
-    res = rq.json()    
+async def get_good(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
+    try:
+        rq = requests.get("http://127.0.0.1:9999/api/get_good/")
+        res = rq.json()    
     
-    query_good = await session.scalars(select(Goods))
-    good_list = query_good.all()#тут список объектов из таблицы товаров
+        query_good = await session.scalars(select(Goods))
+        good_list = query_good.all()#тут список объектов из таблицы товаров
     
-    vendors = {i.vendor_code: i for i in good_list}#выборка артикулов товаров которые есть в базе товаров витрины в виде словаря с ключом артикул товара
-    res_with_keys = {i["vendor_code"]: i for i in res}#список артикулов из апи запроса
+        vendors = {i.vendor_code: i for i in good_list}#выборка артикулов товаров которые есть в базе товаров витрины в виде словаря с ключом артикул товара
+        res_with_keys = {i["vendor_code"]: i for i in res}#список артикулов из апи запроса
     
 
-    if good_list == []:#если список полностью пустой, то просто добавляем все товары
-        for k in res:
-            product = Goods(name_product=k["name_product"], price=float(k["price"]), vendor_code=k["vendor_code"], stock=float(k["stock"]), slug=k["slug"], photo=k["photo"], availability=True, group_id=int(k["group_id"]))
-            session.add(product)            
+        if good_list == []:#если список полностью пустой, то просто добавляем все товары
+            for k in res:
+                product = Goods(name_product=k["name_product"], price=float(k["price"]), vendor_code=k["vendor_code"], stock=float(k["stock"]), slug=k["slug"], photo=k["photo"], availability=True, group_id=int(k["group_id"]))
+                session.add(product)            
     
-    elif good_list != []:#иначе если не пустой
-        for j in res:
-            if j["vendor_code"] in vendors:#если товар из запроса уже есть в витрине, то сравниваем остаток и если не равны остатки, то меняем остаток
-                if vendors[j["vendor_code"]].stock == j["stock"]:
-                    continue
-                else:
-                    vendors[j["vendor_code"]].stock = j["stock"]
-                    session.add(vendors[j["vendor_code"]])                    
-            else:#если товара из запроса нет в витрине, то добавляем товар
-                product = Goods(name_product=j["name_product"], price=float(j["price"]), vendor_code=j["vendor_code"], stock=float(j["stock"]), slug=j["slug"], photo=j["photo"], availability=True, group_id=int(j["group_id"]))
-                session.add(product)
+        elif good_list != []:#иначе если не пустой
+            for j in res:
+                if j["vendor_code"] in vendors:#если товар из запроса уже есть в витрине, то сравниваем остаток и если не равны остатки, то меняем остаток
+                    if vendors[j["vendor_code"]].stock == j["stock"]:
+                        continue
+                    else:
+                        vendors[j["vendor_code"]].stock = j["stock"]
+                        session.add(vendors[j["vendor_code"]])                    
+                else:#если товара из запроса нет в витрине, то добавляем товар
+                    product = Goods(name_product=j["name_product"], price=float(j["price"]), vendor_code=j["vendor_code"], stock=float(j["stock"]), slug=j["slug"], photo=j["photo"], availability=True, group_id=int(j["group_id"]))
+                    session.add(product)
     
     #ниже цикл для удаления товара с витрины в случае если его нет в запросе из учетной системы
-    for i in good_list:
-        if res_with_keys.get(i.vendor_code):
-            continue
-        else:            
-            await session.delete(i)
+        for i in good_list:
+            if res_with_keys.get(i.vendor_code):
+                continue
+            else:            
+                await session.delete(i)
 
     
 
-    await session.commit()#коммит в самом конце после всех действий, только 1 коммит
+        await session.commit()#коммит в самом конце после всех действий, только 1 коммит
 
 
-    #ниже начал решать проблему с удаленными товарами в заказах
-    # query_order = await session.scalars(select(Order_list))
-    # order_list = query_order.all()#тут список объектов из таблицы заказов
+    
+        #ниже начал решать проблему с удаленными товарами в заказах
+        # query_order = await session.scalars(select(Order_list))
+        # order_list = query_order.all()#тут список объектов из таблицы заказов
 
-    # for q in order_list:
-    #     if q.product_id == None:
-    #         q.product_id = "Нет товара"
+        # for q in order_list:
+        #     if q.product_id == None:
+        #         q.product_id = "Нет товара"
 
-    # await session.commit()
+        # await session.commit()
 
 
-    return RedirectResponse("/")
+        return RedirectResponse("/")
+    
+    except Exception as ex:
+        check = await access_token_decode(acces_token=Authorization)
+
+        context = await base_requisites(db=session, check=check, request=request)
+        context['error'] = ex
+
+        return templates.TemplateResponse("showcase/if_shop_not_work.html", context)
 
 
 #роутер для получения групп товаров
 @router_showcase.get("/query_api/get/group/")
-async def get_group(request: Request, session: AsyncSession = Depends(get_async_session)):
-    rq = requests.get("http://127.0.0.1:9999/api/get_group/")
-    res = rq.json()
-    # [{'name_group': 'Компы', 'slug': 'comp'}, {'name_group': 'Молочка', 'slug': 'molochka'}, {'name_group': 'Сантехника', 'slug': 'santehnika'}, {'name_group': 'Химия', 'slug': 'himiya'}, {'name_group': 'Хлеб', 'slug': 'hleb'}, {'name_group': 'Электроника', 'slug': 'elektronika'}]
+async def get_group(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
+    try:
 
-    query_group = await session.scalars(select(Group))
-    group_list = query_group.all()#тут список объектов из таблицы групп
+        rq = requests.get("http://127.0.0.1:9999/api/get_group/")
+        res = rq.json()
+    
 
-    id_group_in_showcase = {i.id: i for i in group_list}
-    res_with_keys = {i["id"]: i for i in res}
+        query_group = await session.scalars(select(Group))
+        group_list = query_group.all()#тут список объектов из таблицы групп
 
-    if group_list == []:
-        for k in res:
-            group = Group(id=int(k["id"]), name_group=k["name_group"], slug=k["slug"])
-            session.add(group)
+        id_group_in_showcase = {i.id: i for i in group_list}
+        res_with_keys = {i["id"]: i for i in res}
 
-    elif group_list != []:#иначе если не пустой
-        for j in res:
-            if j["id"] not in id_group_in_showcase:            
-                group = Group(id=int(j["id"]), name_group=j["name_group"], slug=j["slug"])
+        if group_list == []:
+            for k in res:
+                group = Group(id=int(k["id"]), name_group=k["name_group"], slug=k["slug"])
                 session.add(group)
 
+        elif group_list != []:#иначе если не пустой
+            for j in res:
+                if j["id"] not in id_group_in_showcase:            
+                    group = Group(id=int(j["id"]), name_group=j["name_group"], slug=j["slug"])
+                    session.add(group)
 
-    for i in group_list:
-        if res_with_keys.get(i.id):
-            continue
-        else:            
-            await session.delete(i)
 
-    await session.commit()
+        for i in group_list:
+            if res_with_keys.get(i.id):
+                continue
+            else:            
+                await session.delete(i)
 
-    return RedirectResponse("/")
+        await session.commit()
+
+        return RedirectResponse("/")
+    except Exception as ex:
+        check = await access_token_decode(acces_token=Authorization)
+
+        context = await base_requisites(db=session, check=check, request=request)
+        context['error'] = ex
+
+        return templates.TemplateResponse("showcase/if_shop_not_work.html", context)
+
 
 
 

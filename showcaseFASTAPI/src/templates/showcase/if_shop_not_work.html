@@ -1,0 +1,14 @@
+{% extends 'showcase/start.html' %}
+
+
+{% block content %}
+
+
+<h1>НЕ ПОЛУЧИЛОСЬ!!! Что-то не так с учетной системой!</h1>
+<h3>Ошибка: {{ error }}</h3>
+<br>
+
+<a href="{{ url_for('home') }}" ><h3>Ссылка на главную страницу</h3></a>
+
+
+{% endblock %}
