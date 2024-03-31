@@ -48,7 +48,7 @@ class Goods(Base):
     group: Mapped["Group"] = relationship(back_populates="goods")#тут деалем связь с таблицей групп, чтобы можно было через поле name_group обратиться к объекту группы. То есть чтобы у нас появилась такая связь, чтобы у нас name_group была объектом класса Group, то есть строкой таблицы group, нам нужно прописать relationship(back_populates="groups"), groups это название параметра из таблицы групп, Mapped["Group"] тут Group это класс таблицы группы.
     # и обязательно также указать Column(Integer, ForeignKey("group.id")), то есть нужен вторичный ключ ForeignKey с названием первичного ключа из таблицы групп, в енашем случае это id.
     basket: Mapped["Basket"] = relationship(back_populates="product")
-    # order_list: Mapped["Order_list"] = relationship(back_populates="product")
+    order_list: Mapped["Order_list"] = relationship(back_populates="product")
 
 
 class Basket(Base):
@@ -105,15 +105,6 @@ class Order_counter(Base):
     __tablename__ = "order_counter"
     id: Mapped[int] = mapped_column(primary_key=True)    
     user_id: Mapped[int] = mapped_column(nullable=False)
-    
-
-    # user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
-    # user: Mapped["User"] = relationship(back_populates="order_counter")
-
-    # pay_id: Mapped[int] = mapped_column(ForeignKey("payment.id", ondelete="CASCADE"))
-    # payment: Mapped["Payment"] = relationship(back_populates="contacts")
-
-    # order_list: Mapped["Order_list"] = relationship(back_populates="order")
 
 
 class Order_list(Base):
@@ -139,7 +130,7 @@ class Order_list(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
     user: Mapped["User"] = relationship(back_populates="order_list")
     
-
+    state: Mapped[bool] = mapped_column(default=True)
     
 
 

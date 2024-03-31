@@ -54,8 +54,11 @@ def synchronization(request):
 
 		for i in res:
 			if i["order_number"] not in order_number_list:
-				vendor = i['product_id']
-				i['product_id'] = Goods.objects.get(vendor_code=vendor).id
+				# vendor = i['product_id']
+				# i['product_id'] = Goods.objects.get(vendor_code=vendor).id
+				#сделать проверку на state, если фолз, то пропускаем или что то еще
+				if i["state"] == False:
+					continue
 
 				serializer = OrderSerializer(data=i)
 				serializer.is_valid(raise_exception=True)
@@ -69,7 +72,7 @@ def synchronization(request):
 		if org:
 			context['org'] = org[0]
 
-		return render(request, "shop/synchro.html", context=context )
+		return render(request, "shop/synchro_error.html", context=context )
 
 
 class Order_list(ListView):

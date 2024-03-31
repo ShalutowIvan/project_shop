@@ -101,7 +101,7 @@ class GoodsSerializer(serializers.Serializer):
     #     model = Goods
     #     fields = ('name_product', 'slug', 'vendor_code', 'price', 'photo', 'stock', 'group')
     #     # fields = "__all__"
-    
+    id = serializers.IntegerField()
     name_product = serializers.CharField(max_length=255)
     slug = serializers.CharField(max_length=255)
     vendor_code = serializers.CharField(max_length=255, read_only=True)

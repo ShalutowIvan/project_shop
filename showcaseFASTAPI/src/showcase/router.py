@@ -356,7 +356,9 @@ async def synchronization(request: Request, session: AsyncSession = Depends(get_
 
     # query_goods = 
         
-    res = ({"fio": i.fio, "phone": i.phone, "product_id": i.product.vendor_code, "quantity": i.quantity, "order_number": i.order_number, "time_create": i.time_create, "delivery_address": i.delivery_address} for i in context)
+    res = ({"fio": i.fio, "phone": i.phone, "product_id": i.product_id, "quantity": i.quantity, "order_number": i.order_number, "time_create": i.time_create, "delivery_address": i.delivery_address, "state": i.state} for i in context)
+    
+    # res = ({"fio": i.fio, "phone": i.phone, "product_id": i.product.vendor_code, "quantity": i.quantity, "order_number": i.order_number, "time_create": i.time_create, "delivery_address": i.delivery_address} for i in context)
     #product_id - это артикул тут, потом я по нему ищу товары, пока так. id товаров не совпадают.
     return res
 
@@ -377,7 +379,7 @@ async def get_good(request: Request, session: AsyncSession = Depends(get_async_s
 
         if good_list == []:#если список полностью пустой, то просто добавляем все товары
             for k in res:
-                product = Goods(name_product=k["name_product"], price=float(k["price"]), vendor_code=k["vendor_code"], stock=float(k["stock"]), slug=k["slug"], photo=k["photo"], availability=True, group_id=int(k["group_id"]))
+                product = Goods(id=k["id"], name_product=k["name_product"], price=float(k["price"]), vendor_code=k["vendor_code"], stock=float(k["stock"]), slug=k["slug"], photo=k["photo"], availability=True, group_id=int(k["group_id"]))
                 session.add(product)            
     
         elif good_list != []:#иначе если не пустой
@@ -389,7 +391,7 @@ async def get_good(request: Request, session: AsyncSession = Depends(get_async_s
                         vendors[j["vendor_code"]].stock = j["stock"]
                         session.add(vendors[j["vendor_code"]])                    
                 else:#если товара из запроса нет в витрине, то добавляем товар
-                    product = Goods(name_product=j["name_product"], price=float(j["price"]), vendor_code=j["vendor_code"], stock=float(j["stock"]), slug=j["slug"], photo=j["photo"], availability=True, group_id=int(j["group_id"]))
+                    product = Goods(id=j["id"], name_product=j["name_product"], price=float(j["price"]), vendor_code=j["vendor_code"], stock=float(j["stock"]), slug=j["slug"], photo=j["photo"], availability=True, group_id=int(j["group_id"]))
                     session.add(product)
     
     #ниже цикл для удаления товара с витрины в случае если его нет в запросе из учетной системы
@@ -406,14 +408,14 @@ async def get_good(request: Request, session: AsyncSession = Depends(get_async_s
 
     
         #ниже начал решать проблему с удаленными товарами в заказах
-        # query_order = await session.scalars(select(Order_list))
-        # order_list = query_order.all()#тут список объектов из таблицы заказов
+        query_order = await session.scalars(select(Order_list))
+        order_list = query_order.all()#тут список объектов из таблицы заказов
 
-        # for q in order_list:
-        #     if q.product_id == None:
-        #         q.product_id = "Нет товара"
+        for q in order_list:
+            if q.product_id == None:
+                q.state = False
 
-        # await session.commit()
+        await session.commit()
 
 
         return RedirectResponse("/")
