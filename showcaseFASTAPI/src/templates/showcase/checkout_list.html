@@ -15,10 +15,17 @@
 
 {% if i.order_number == j.id %}
 
-<p> Название товара {{ i.product.name_product }}</p>
-<p> Количество {{ i.quantity }}</p>
-<p> Цена {{ i.product.price }}</p>
-<p> Время создания {{ i.time_create }}</p>
+{% if i.state == True %}
+
+<h4> Название товара: {{ i.product.name_product }} || Количество: {{ i.quantity }} || Цена: {{ i.product.price }} || Время создания: {{ i.time_create }}</h4>
+
+{% else %}
+
+<h4>Товар удален! Закажите другой.</h4>
+
+{% endif %}
+
+
 
 {% endif %}
 

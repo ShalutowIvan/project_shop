@@ -403,17 +403,18 @@ async def get_good(request: Request, session: AsyncSession = Depends(get_async_s
 
     
 
-        await session.commit()#коммит в самом конце после всех действий, только 1 коммит
+        # await session.commit()#коммит в самом конце после всех действий, только 1 коммит
 
 
     
-        #ниже начал решать проблему с удаленными товарами в заказах
+        #в случае если товар удален, то в заказе будет вместо ид товара None, и тогда статус заказа присываивается False. 
         query_order = await session.scalars(select(Order_list))
         order_list = query_order.all()#тут список объектов из таблицы заказов
 
         for q in order_list:
             if q.product_id == None:
                 q.state = False
+            
 
         await session.commit()
 
