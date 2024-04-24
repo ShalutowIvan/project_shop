@@ -254,7 +254,7 @@ async def contacts(request: Request, session: AsyncSession = Depends(get_async_s
     return response
 
 
-#заготовка для формы запроса контактов из формы регистрации, переделать под запрос контактов
+
 @router_showcase.post("/basket/contacts/", response_model=None, status_code=201)#response_model это валидация для запроса
 async def contacts_form(request: Request, session: AsyncSession = Depends(get_async_session), fio: str = Form(), phone: str = Form(), delivery_address: str = Form(), pay: int = Form(), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
     #дешифровка jwt аксес
@@ -281,7 +281,7 @@ async def contacts_form(request: Request, session: AsyncSession = Depends(get_as
     order_number = await session.scalars(select(Order_counter).where(Order_counter.user_id == int(check[1])))
     id_order_number = order_number.all()[-1].id#берем последний в списке номер, это будет номер заказа, таблицу контактов запрашиваю для указания номера заказа
     #формируем генератор списка товаров из корзины
-    res = [Order_list(order_number=id_order_number, fio=fio, delivery_address=delivery_address, phone=phone, product_id=i.product_id, quantity=i.quantity, user_id=int(check[1])) for i in pay_goods.all()]
+    res = [Order_list(order_number=id_order_number, fio=fio, delivery_address=delivery_address, phone=phone, product_id=i.product_id, quantity=i.quantity, user_id=int(check[1]), state_order="not_received") for i in pay_goods.all()]
             
     session.add_all(res)
 
@@ -331,6 +331,7 @@ async def checkout_list(request: Request, session: AsyncSession = Depends(get_as
     context["order_list"] = order_list.all()
     context["count_order"] = kount.all()
 
+    
     #решить что делать с таблицей контактов и с таблицей заказов, они будут очень сильно разрастаться и тормозить потом
 
     response = templates.TemplateResponse("showcase/checkout_list.html", context)
@@ -401,12 +402,7 @@ async def get_good(request: Request, session: AsyncSession = Depends(get_async_s
             else:            
                 await session.delete(i)
 
-    
-
-        # await session.commit()#коммит в самом конце после всех действий, только 1 коммит
-
-
-    
+        
         #в случае если товар удален, то в заказе будет вместо ид товара None, и тогда статус заказа присываивается False. 
         query_order = await session.scalars(select(Order_list))
         order_list = query_order.all()#тут список объектов из таблицы заказов
@@ -467,6 +463,41 @@ async def get_group(request: Request, session: AsyncSession = Depends(get_async_
 
         return RedirectResponse("/")
     except Exception as ex:
+        check = await access_token_decode(acces_token=Authorization)
+
+        context = await base_requisites(db=session, check=check, request=request)
+        context['error'] = ex
+
+        return templates.TemplateResponse("showcase/if_shop_not_work.html", context)
+
+
+@router_showcase.get("/query_api/get/order/")
+async def get_order_status(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
+    try:
+
+        rq = requests.get("http://127.0.0.1:9999/api/get_order/")
+        res = rq.json()
+        #тут сделать логику по смене статуса у заказов. Сделать сравнение по номеру заказов и если заказ в res тру, то ставить его получен received в витрине. 
+        # print(res)
+
+        query_order = await session.scalars(select(Order_list))
+        order_list = query_order.all()
+        # print("!!!!!!!!!!!!!!!!!!!!!")
+        # print(order_list[0].order_number)
+        for i in range(len(res)):
+            if res[i]["order_number"] == order_list[i].order_number:
+                if res[i]["state_order"] == True:
+                    order_list[i].state_order = "received"
+                elif res[i]["state_order"] == False:
+                    order_list[i].state_order = "not_received"
+
+
+        await session.commit()
+
+        return RedirectResponse("/")
+        
+    except Exception as ex:
+
         check = await access_token_decode(acces_token=Authorization)
 
         context = await base_requisites(db=session, check=check, request=request)
@@ -596,7 +627,6 @@ async def get_group(request: Request, session: AsyncSession = Depends(get_async_
 
 #     {% endif %}
 # <!--конец форма -->
-
 
 
 

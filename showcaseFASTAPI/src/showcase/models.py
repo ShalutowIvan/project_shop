@@ -2,7 +2,7 @@
 # from typing import List, Optional
 import enum
 
-from sqlalchemy import Integer, String, TIMESTAMP, ForeignKey, Float, Boolean, Text, Table, Column, JSON, text
+from sqlalchemy import Integer, String, TIMESTAMP, ForeignKey, Float, Boolean, Text, Table, Column, JSON, text, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import Annotated, Optional
 from datetime import datetime
@@ -86,9 +86,11 @@ class Organization(Base):
     whatsApp: Mapped[str] = mapped_column(default="_")
 
 
-class Pay(enum.Enum):
-    cash = "Наличные"
-    non_cash = "Безналичные"
+# class Pay(enum.Enum):
+#     cash = "Наличные"
+#     non_cash = "Безналичные"
+
+
 
 
 #способ оплаты
@@ -105,6 +107,11 @@ class Order_counter(Base):
     __tablename__ = "order_counter"
     id: Mapped[int] = mapped_column(primary_key=True)    
     user_id: Mapped[int] = mapped_column(nullable=False)
+
+
+class State_order(enum.Enum):
+    received = "Получен"
+    not_received = "Не получен"
 
 
 class Order_list(Base):
@@ -130,8 +137,17 @@ class Order_list(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
     user: Mapped["User"] = relationship(back_populates="order_list")
     
-    state: Mapped[bool] = mapped_column(default=True)
+    state: Mapped[bool] = mapped_column(default=True)#это параметр для отображения актуальности заказа. Например если товар удален, то заказ этого товара будет не актуален
+
+    state_order: Mapped[State_order]#этот параметр для отображения получен ли заказ. Класс перечислений enum выше. 
     
+
+
+# class Prof_enum(Base):
+#     __tablename__ = "test_enum2"
+#     id: Mapped[int] = mapped_column(primary_key=True)
+#     state_enum: Mapped[State_order] = mapped_column(Enum(State_order), default="Не получен")
+
 
 
 # памятка для миграций БД

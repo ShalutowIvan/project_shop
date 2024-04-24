@@ -17,7 +17,7 @@
 
 {% if i.state == True %}
 
-<h4> Название товара: {{ i.product.name_product }} || Количество: {{ i.quantity }} || Цена: {{ i.product.price }} || Время создания: {{ i.time_create }}</h4>
+<h4> Название товара: {{ i.product.name_product }} || Количество: {{ i.quantity }} || Цена: {{ i.product.price }} || Время создания: {{ i.time_create }} || Состояние: {{ i.state_order.value }} </h4>
 
 {% else %}
 

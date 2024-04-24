@@ -45,5 +45,6 @@ urlpatterns = [
 
     path('api/get_good/', Get_good.as_view(), name='get_good'),
     path('api/get_group/', Get_group.as_view(), name='get_group'),
+    path('api/get_order/', Get_order.as_view(), name='get_order'),
 
     ]

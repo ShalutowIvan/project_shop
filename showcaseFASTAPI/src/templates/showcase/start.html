@@ -20,13 +20,14 @@
 	<h1>{{ org.name_org }}</h1>
 	
 
-<a href="{{ url_for('get_good') }}"><h1>СИНХРО ДЛЯ ТОВАРОВ</h1></a>
+<a href="{{ url_for('get_good') }}"><p>СИНХРО ДЛЯ ТОВАРОВ</p></a>
 
-<a href="{{ url_for('get_group') }}"><h1>СИНХРО ДЛЯ ГРУПП ТОВАРОВ</h1></a>
+<a href="{{ url_for('get_group') }}"><p>СИНХРО ДЛЯ ГРУПП ТОВАРОВ</p></a>
+<a href="{{ url_for('get_order_status') }}"><p>СИНХРО ДЛЯ заказов</p></a>
 	
 <div class="cap">
 
-	<br>
+	
 
 {% if check %}
 	<p>Здравствуйте {{ user_name }}</p>
@@ -38,7 +39,7 @@
 	<a href="{{ url_for('basket_view') }}">Корзина</a>
 	<br><br>
 	<a href="{{ url_for('checkout_list') }}">Мои покупки</a>
-	<br><br>
+	<br>
 
 {% if check != True %}
 	<a href="{{ url_for('auth_get') }}">Войти</a>

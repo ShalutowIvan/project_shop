@@ -110,7 +110,8 @@ class Order_list(ListView):
 
 #функция открыть заказ. 
 @login_required
-def order_list_open(request, order_number):
+def order_list_open(request, order_number):	
+
 	goods_in_order = Order_list_bought.objects.filter(order_number=order_number)#тут список, queryset
 	
 	context = {"goods_in_order": goods_in_order, "order_number": order_number}
@@ -120,6 +121,8 @@ def order_list_open(request, order_number):
 		context['org'] = org[0]
 
 	return render(request, "shop/order_list_open.html", context=context)
+	
+# Нужно еще сделать оповещение на сайте витрины на странице заказов
 
 
 #функция проведения заказа
@@ -226,6 +229,18 @@ class Get_group(APIView):
 
 		return Response(GroupSerializer(instance=group, many=True).data)
 		
+
+
+class Get_order(APIView):
+
+	def get(self, request):
+		order = Order_list_bought.objects.all()
+
+		return Response(Order_get_Serializer(instance=order, many=True).data)
+		
+
+
+
 
 #добавление группы товаров
 class Group_add(CreateView):
@@ -499,7 +514,3 @@ def receipt_delete_goods(request, number_delete_good):
 # 	pass
 
 
-
-#в таком виде сейчас возвращается
-# {"1":[["Хлеб",1.0,"2024-02-16T02:13:59.166505",44.0,"домой","Вася","89998887766"]],"2":[["Хлеб",2.0,"2024-02-16T02:19:42.964451",44.0,"домой","Jhon","89998887766"]]}
-#ключ словаря это номер заказа, далее в значении ключа инфа о заказе

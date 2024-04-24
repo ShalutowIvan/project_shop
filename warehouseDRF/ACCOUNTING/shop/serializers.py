@@ -96,11 +96,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
 #сериализатор для получения списка товаров витриной, но не для добавления товаров
 class GoodsSerializer(serializers.Serializer):
-
-    # class Meta:
-    #     model = Goods
-    #     fields = ('name_product', 'slug', 'vendor_code', 'price', 'photo', 'stock', 'group')
-    #     # fields = "__all__"
+    
     id = serializers.IntegerField()
     name_product = serializers.CharField(max_length=255)
     slug = serializers.CharField(max_length=255)
@@ -118,4 +114,13 @@ class GroupSerializer(serializers.Serializer):
     slug = serializers.CharField(max_length=255)
     
 
-
+class Order_get_Serializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    fio = serializers.CharField(max_length=255)
+    phone = serializers.CharField(max_length=255)   
+    product_id_id = serializers.IntegerField()#тут связанное поле, там индекс типа инт
+    quantity = serializers.FloatField()  
+    order_number = serializers.IntegerField()
+    # time_create = serializers.DateTimeField()#время создания заказа покупателем
+    delivery_address = serializers.CharField(max_length=255)
+    state_order = serializers.BooleanField()
