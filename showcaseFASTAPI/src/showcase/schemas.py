@@ -12,15 +12,35 @@ class Group(BaseModel):
 
 
 class Goods(BaseModel):
-	id: int
-	name_product: str = Field(max_length=255)
-	vendor_code: str = Field(max_length=20)
-	stock: float	
-	price: float = Field(ge=0)
-	slug: str = Field(max_length=255)
-	photo: str
-	availability: bool
-	group: Optional[list[Group]] = []
+    id: int
+    name_product: str = Field(max_length=255)
+    vendor_code: str = Field(max_length=20)
+    stock: float	
+	
+    price: float
+    slug: str = Field(max_length=255)
+    photo: str
+    availability: bool
+    group: Optional[list[Group]] = []
+
+    class Config:
+        from_attributes = True
+
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return False
+        for attr in ["title", "state", "owner"]:
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+        return True
+
+
+    def to_dict_wo_id(self) -> dict:
+        return self.model_dump(exclude={"id"})
+
+
+
 
 
 class Basket(BaseModel):    
@@ -52,7 +72,7 @@ class Order_list_bought(BaseModel):
     name_product: int
     quantity: float
     order_number: int
-    time_create datetime
+    time_create: datetime
     user: int
 
 

@@ -388,9 +388,8 @@ async def create_product(session, product_in: ProductCreate):#ProductCreate - э
 
 
 
-
-
-
+# команда генерации секретного ключа: 
+# openssl rand -hex 32
 
 
 
