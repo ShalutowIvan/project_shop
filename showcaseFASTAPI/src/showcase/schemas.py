@@ -10,34 +10,39 @@ class Group(BaseModel):
 	name_group: str = Field(max_length=255)
 	slug: str = Field(max_length=255)
 
+    # class Config:
+    #     from_attributes = True
 
-class Goods(BaseModel):
-    id: int
+
+class GoodsShema(BaseModel):
+    # id: int
+    id: Optional[int] = Field(default=1)
     name_product: str = Field(max_length=255)
     vendor_code: str = Field(max_length=20)
     stock: float	
-	
     price: float
     slug: str = Field(max_length=255)
     photo: str
     availability: bool
-    group: Optional[list[Group]] = []
+    # group: Optional[list[Group]] = []
+    group_id: int
+    # time_create: datetime
 
     class Config:
         from_attributes = True
 
 
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return False
-        for attr in ["title", "state", "owner"]:
-            if getattr(self, attr) != getattr(other, attr):
-                return False
-        return True
+    # def __eq__(self, other):
+    #     if not isinstance(other, type(self)):
+    #         return False
+    #     for attr in ["title", "state", "owner"]:
+    #         if getattr(self, attr) != getattr(other, attr):
+    #             return False
+    #     return True
 
 
-    def to_dict_wo_id(self) -> dict:
-        return self.model_dump(exclude={"id"})
+    # def to_dict_wo_id(self) -> dict:
+    #     return self.model_dump(exclude={"id"})
 
 
 
@@ -46,7 +51,7 @@ class Goods(BaseModel):
 class Basket(BaseModel):    
     id: int
     user: int
-    product: list[Goods] = []
+    product: list[GoodsShema] = []
     quantity: float
     created_timestamp: datetime
 

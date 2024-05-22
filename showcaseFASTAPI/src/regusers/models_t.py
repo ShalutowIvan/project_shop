@@ -8,7 +8,7 @@ from src.db_t import Base
 
 
 class User(Base):
-    __tablename__ = "user"    
+    __tablename__ = "user"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(256))
     time_create_user: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))

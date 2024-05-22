@@ -1,6 +1,12 @@
 import pytest
 from src.showcase.schemas import *
-from src.db_t.database import Session as session
+from src.showcase.models_t import *
+
+# from src.db_t.database import Session as session
+from src.db_t.database import engine
+from sqlalchemy.orm import Session
+from datetime import datetime
+
 # from contextlib import nullcontext as does_not_raise#nullcontext означет что нет ошибки исключения с контекстом
 
 # class TestCalculator:
@@ -27,17 +33,28 @@ from src.db_t.database import Session as session
 # 			assert Calculator().add(x, y) == res
 
 
-
+# from sqlalchemy import text
+# text("TIMEZONE('utc', now())")
 
 @pytest.fixture
 def goods():
+    # str(datetime.now())
+    # "2024-10-10"
+    # dt = datetime.strptime(str(datetime.now()), '%Y-%m-%d').date()
+    # print("!!!!!!!!!!!!!!!!!!!!!!!!!", type(dt))
+    dt = datetime.now()
+    # goods = [
+    #     GoodsShema(name_product="Хлеб", vendor_code="qwe-123", stock=10, price=30, slug="hleb", photo="tut", availability=True, group_id=1, time_create=dt),
+    #     GoodsShema(name_product="Масло", vendor_code="asd-123", stock=11, price=150, slug="maslo", photo="tut2", availability=True, group_id=1, time_create=dt),
+    #     GoodsShema(name_product="Молоко", vendor_code="zxc-123", stock=12, price=55, slug="milk", photo="tut3", availability=True, group_id=1, time_create=dt),
+    # ]
     goods = [
-        Goods(name_product="Хлеб", vendor_code="qwe-123", stock=10, price=30, slug="hleb", photo="tut", availability=True, group=1),
-        Goods(name_product="Масло", vendor_code="asd-123", stock=11, price=150, slug="maslo", photo="tut2", availability=True, group=1),
-        Goods(name_product="Молоко", vendor_code="zxc-123", stock=12, price=55, slug="milk", photo="tut3", availability=True, group=1),
+        Goods(name_product="Хлеб", vendor_code="qwe-123", stock=10, price=30, slug="hleb", photo="tut", availability=True, group_id=1),
+        Goods(name_product="Масло", vendor_code="asd-123", stock=11, price=150, slug="maslo", photo="tut2", availability=True, group_id=1),
+        Goods(name_product="Молоко", vendor_code="zxc-123", stock=12, price=55, slug="milk", photo="tut3", availability=True, group_id=1)
     ]
     return goods
-
+# #косяк с датой, валидацию не проходит
 
 
 # @pytest.mark.usefixtures("empty_goods")
@@ -50,13 +67,22 @@ class TestGoods:
     #     assert CandiesService.count() == 3
 
 
-    def test_list_candies(self, goods):
-        # for i in goods:
-        #     Goods.add(i)
-        session.add_all(goods)
+    def test_list_goods(self, goods):
+        
+        with Session(autoflush=False, bind=engine) as db:
+            for i in goods:
+                db.add(i)
 
-        session.commit()
+            db.commit()
+        #поменял вместо pydentic модели обычную орм модель, сработало, то есть передаю без валидации
+        
+
+        # session.add_all(goods)
+        
 
         # all_candies = CandiesService.list()
         # for added_candy in all_candies:
         #     assert added_candy in candies
+
+
+
