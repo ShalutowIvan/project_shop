@@ -8,8 +8,7 @@ from starlette.status import HTTP_404_NOT_FOUND
 from starlette.status import HTTP_400_BAD_REQUEST
 
 from .models import User, Token
-from .schemas import UserCreate, MailBody
-from .schemas import UserCreate, MailBody
+
 
 from fastapi.security import APIKeyHeader, APIKeyCookie, OAuth2PasswordBearer
 from passlib.context import CryptContext

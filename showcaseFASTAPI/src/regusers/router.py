@@ -51,8 +51,8 @@ async def registration_get(request: Request, session: AsyncSession = Depends(get
 
 
 
-@router_reg.post("/registration", response_model=None, status_code=201)#response_model это валидация для запроса
-async def registration_post(request: Request, session: AsyncSession = Depends(get_async_session), name: str = Form(), email: str = Form(), password1: str = Form(), password2: str = Form()):
+@router_reg.post("/registration", response_model=UserReg, status_code=201)#response_model это валидация для запроса
+async def registration_post(request: Request, session: AsyncSession = Depends(get_async_session), name: str = Form(default="Empty"), email: EmailStr = Form(default="Empty"), password1: str = Form(default="Empty"), password2: str = Form(default="Empty")):
     
     #тут добавить проверку сложности пароля!
     

@@ -1,64 +1,39 @@
 import pytest
 from src.showcase.schemas import *
-from src.showcase.models_t import *
+from src.showcase.models import *
 
 # from src.db_t.database import Session as session
-from src.db_t.database import engine
+from tests.conftest import engine_test
 from sqlalchemy.orm import Session
 from datetime import datetime
 
 # from contextlib import nullcontext as does_not_raise#nullcontext означет что нет ошибки исключения с контекстом
+from conftest import client, async_session_maker_test
 
-# class TestCalculator:
-# 	@pytest.mark.parametrize(
-# 	"x, y, res, expectation",
-# 	[(1, 2, 0.5, does_not_raise()),
-# 	(5, -1, -5, does_not_raise()),
-# 	(5, "1", -5, pytest.raises(TypeError)),
-# 	(5, 0, -5, pytest.raises(ZeroDivisionError))]
-# 	)
-# 	def test_divide(self, x, y, res, expectation):#4-ый параметр нужно указывать в кортежах с параметрами
-# 		with expectation:#теперь мы прописали тесты и указали где будет ошибка, а где нет. И должно все отловиться. Это как бы мы ожидаем что программа так отработает, и она так и отработает. 
-# 			assert Calculator().divide(x, y) == res
-
-
-# 	@pytest.mark.parametrize(
-# 	"x, y, res, expectation",
-# 	[(1, 2, 3, does_not_raise()),
-# 	(5, -1, 4, does_not_raise()),
-# 	(5, "-1", 4, pytest.raises(TypeError))]
-# 	)
-# 	def test_add(self, x, y, res, expectation):
-# 		with expectation:#4-ый параметр нужно указывать в кортежах с параметрами. тут мы ожидали ошибку с типами в третьем тесте, так и было, и pytest ошибок не выдал
-# 			assert Calculator().add(x, y) == res
-
-
-# from sqlalchemy import text
-# text("TIMEZONE('utc', now())")
 
 @pytest.fixture
 def goods():
-    # str(datetime.now())
-    # "2024-10-10"
-    # dt = datetime.strptime(str(datetime.now()), '%Y-%m-%d').date()
-    # print("!!!!!!!!!!!!!!!!!!!!!!!!!", type(dt))
-    dt = datetime.now()
-    # goods = [
-    #     GoodsShema(name_product="Хлеб", vendor_code="qwe-123", stock=10, price=30, slug="hleb", photo="tut", availability=True, group_id=1, time_create=dt),
-    #     GoodsShema(name_product="Масло", vendor_code="asd-123", stock=11, price=150, slug="maslo", photo="tut2", availability=True, group_id=1, time_create=dt),
-    #     GoodsShema(name_product="Молоко", vendor_code="zxc-123", stock=12, price=55, slug="milk", photo="tut3", availability=True, group_id=1, time_create=dt),
-    # ]
+    
     goods = [
         Goods(name_product="Хлеб", vendor_code="qwe-123", stock=10, price=30, slug="hleb", photo="tut", availability=True, group_id=1),
-        Goods(name_product="Масло", vendor_code="asd-123", stock=11, price=150, slug="maslo", photo="tut2", availability=True, group_id=1),
-        Goods(name_product="Молоко", vendor_code="zxc-123", stock=12, price=55, slug="milk", photo="tut3", availability=True, group_id=1)
+        Goods(name_product="Масло", vendor_code="asd-123", stock=11, price=150, slug="maslo", photo="tut2", availability=True, group_id=2),
+        Goods(name_product="Молоко", vendor_code="zxc-123", stock=12, price=55, slug="milk", photo="tut3", availability=True, group_id=2)
     ]
     return goods
-# #косяк с датой, валидацию не проходит
+
+
+@pytest.fixture
+def group():
+    group = [
+    Group(name_group="Хлеб", slug="hleb"),
+    Group(name_group="Молоко", slug="milk")
+    ]
+    return group
+
 
 
 # @pytest.mark.usefixtures("empty_goods")
-class TestGoods:
+# class TestGoods:
 
 	# def test_count_goods(self, goods):
     #     for i in goods:
@@ -66,23 +41,54 @@ class TestGoods:
 
     #     assert CandiesService.count() == 3
 
+    # @pytest.mark.usefixtures("group")
+    # def test_add_group(self, group):
+    #     with Session(autoflush=False, bind=engine_test) as db:
+    #         for i in group:
+    #             db.add(i)
 
-    def test_list_goods(self, goods):
+    #         db.commit()
+
+
+    # @pytest.mark.usefixtures("goods")
+    # def test_list_goods(self, goods):
         
-        with Session(autoflush=False, bind=engine) as db:
-            for i in goods:
-                db.add(i)
+    #     with Session(autoflush=False, bind=engine_test) as db:
+    #         for i in goods:
+    #             db.add(i)
 
-            db.commit()
+    #         db.commit()
+
+
+
+
         #поменял вместо pydentic модели обычную орм модель, сработало, то есть передаю без валидации
         
+    
 
-        # session.add_all(goods)
+
+
+@pytest.mark.usefixtures("group")
+async def test_add_group(group):
+    async with async_session_maker_test() as session:
+        for i in group:
+            session.add(i)
+
+        await session.commit()
+
+
+@pytest.mark.usefixtures("goods")
+async def test_list_goods(goods):
         
+    async with async_session_maker_test() as session:
+        for i in goods:
+            session.add(i)
 
-        # all_candies = CandiesService.list()
-        # for added_candy in all_candies:
-        #     assert added_candy in candies
+        await session.commit()
 
 
 
+
+
+
+        

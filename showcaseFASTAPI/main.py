@@ -20,7 +20,7 @@ from src.showcase.router import router_showcase
 # from fastapi.responses import JSONResponse
 
 
-app = FastAPI(title="Склад интернет магазина", debug=True)#debug=True это для того чтобы в документации выводилсь ошибки как в консоли. 
+app = FastAPI(title="Витрина интернет магазина", debug=True)#debug=True это для того чтобы в документации выводилсь ошибки как в консоли. 
 
 
 app.mount("/static", StaticFiles(directory="src/static"), name="static")

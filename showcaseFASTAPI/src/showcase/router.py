@@ -267,8 +267,7 @@ async def contacts_form(request: Request, session: AsyncSession = Depends(get_as
         check = tokens[2]
         flag = True    
     
-    #создаем объект в таблице контактов
-    # kontakt = Contacts(fio=fio, phone=phone, delivery_address=delivery_address, pay_id=pay, user_id=int(check[1]))
+    #создаем объект в таблице счетчика заказов    
     order_counter = Order_counter(user_id=int(check[1]))
 
     session.add(order_counter)
@@ -469,6 +468,7 @@ async def get_group(request: Request, session: AsyncSession = Depends(get_async_
         context['error'] = ex
 
         return templates.TemplateResponse("showcase/if_shop_not_work.html", context)
+
 
 
 @router_showcase.get("/query_api/get/order/")
