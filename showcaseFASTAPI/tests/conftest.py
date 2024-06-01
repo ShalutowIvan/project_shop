@@ -1,4 +1,5 @@
 import pytest
+import asyncio
 from typing import AsyncGenerator
 
 from src.db import Base
@@ -16,11 +17,11 @@ from fastapi.testclient import TestClient
 from httpx import AsyncClient
 
 from main import app
-#тестовые креды для ДБ, пока тяну из основного файла конфига
+#тестовые креды для ДБ
 from tests.settings import DB_HOST_TEST, DB_NAME_TEST, DB_PASS_TEST, DB_PORT_TEST, DB_USER_TEST, MODE
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
-from sqlalchemy import create_engine
+# from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 
@@ -49,7 +50,7 @@ app.dependency_overrides[get_async_session] = override_get_async_session
 @pytest.fixture(autouse=True, scope='session')
 async def prepare_database():
     async with engine_test.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)#удаляются таблицы   ошибка тут не добавляется товары потому что база удалена     
+        await conn.run_sync(Base.metadata.drop_all)#удаляются таблицы   ошибка тут не добавляется товары потому что база удалена
         await conn.run_sync(Base.metadata.create_all)#создаются таблицы
     yield#отдается доступ фастапи
     # async with engine_test.begin() as conn:
@@ -61,12 +62,12 @@ async def prepare_database():
 
 
 # # SETUP - зачем она нужна не понятно, но нужно ее создавать для асинхронных сессий
-# @pytest.fixture(scope='session')
-# def event_loop(request):
-#     """Create an instance of the default event loop for each test case."""
-#     loop = asyncio.get_event_loop_policy().new_event_loop()
-#     yield loop
-#     loop.close()
+@pytest.fixture(scope='session')
+def event_loop(request):
+    """Create an instance of the default event loop for each test case."""
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
 
 
 #создаем клиента. С ним можно юхзать post get запросы и тд. это синхронный клиент

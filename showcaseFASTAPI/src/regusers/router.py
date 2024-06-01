@@ -54,28 +54,32 @@ async def registration_get(request: Request, session: AsyncSession = Depends(get
 @router_reg.post("/registration", response_model=UserReg, status_code=201)#response_model это валидация для запроса
 async def registration_post(request: Request, session: AsyncSession = Depends(get_async_session), name: str = Form(default="Empty"), email: EmailStr = Form(default="Empty"), password1: str = Form(default="Empty"), password2: str = Form(default="Empty")):
     
-    #тут добавить проверку сложности пароля!
-    
-    if password1 != password2:
+    #подумать что делать с валидацией почты
+    try:
+        if password1 != password2:
+            context = await base_requisites(db=session, request=request)
+            context["password_mismatch"] = "Пароли не совпадают!"
+            response = templates.TemplateResponse("regusers/register.html", context)
+            return response
+
+        if len(password1) < 8 or password1.lower() == password1 or password1.upper() == password1 or not any(i.isdigit() for i in password1) or all(i.isdigit() for i in password1):
+            context = await base_requisites(db=session, request=request)
+            context["password_not_strong"] = "Пароль должен быть не менее 8 символов и должен содержать заглавные, строчные буквы и цифры!"
+            response = templates.TemplateResponse("regusers/register.html", context)
+            return response
+
+        user = User(name=name, email=email, hashed_password=pwd_context.hash(password1))
+
+        session.add(user)
+        await session.commit()
+
+        await send_email_verify(user=user)#в этой функции нужно зашифровать пользака и потом дешифровать
+
+        return RedirectResponse("/regusers/verification/check/", status_code=303)
+    except Exception as ex:
+        print("ОШИБКА ТУТ!!!!!!!!!!!!!!!!!!!!!!! - :", ex)
         context = await base_requisites(db=session, request=request)
-        context["password_mismatch"] = "Пароли не совпадают!"
-        response = templates.TemplateResponse("regusers/register.html", context)
-        return response
-
-    if len(password1) < 8 or password1.lower() == password1 or password1.upper() == password1 or not any(i.isdigit() for i in password1) or all(i.isdigit() for i in password1):
-        context = await base_requisites(db=session, request=request)
-        context["password_not_strong"] = "Пароль должен быть не менее 8 символов и должен содержать заглавные, строчные буквы и цифры!"
-        response = templates.TemplateResponse("regusers/register.html", context)
-        return response
-
-    user = User(name=name, email=email, hashed_password=pwd_context.hash(password1))
-    
-    session.add(user)
-    await session.commit()    
-
-    await send_email_verify(user=user)#в этой функции нужно зашифровать пользака и потом дешифровать
-
-    return RedirectResponse("/regusers/verification/check/", status_code=303)
+        return templates.TemplateResponse("showcase/user_not_found.html", context)
 
 
 #это просто подсказка, о том что нужно зайти на почту и перейти по ссылке
@@ -132,7 +136,7 @@ async def forgot_password_get(request: Request, session: AsyncSession = Depends(
 
 #функция post для страницы забыли пароль
 @router_reg.post("/forgot_password/", response_model=None, response_class=HTMLResponse)
-async def forgot_password_post(request: Request, session: AsyncSession = Depends(get_async_session), email: EmailStr = Form()):
+async def forgot_password_post(request: Request, session: AsyncSession = Depends(get_async_session), email: EmailStr = Form(default="Empty")):
     user = await session.scalar(select(User).where(User.email == email))
 
     if user is None:
@@ -172,7 +176,7 @@ async def restore_password_user_get(request: Request, token: str, session: Async
 
 #функция для обработки ссылки из письма для сброса пароля. token автоматом закидывается в форму, и поле с токеном в html сделал невидимым
 @router_reg.post("/restore/password_user/")
-async def restore_password_user(request: Request, session: AsyncSession = Depends(get_async_session), password1: str = Form(), password2: str = Form(), token: str = Form()):
+async def restore_password_user(request: Request, session: AsyncSession = Depends(get_async_session), password1: str = Form(default="Empty"), password2: str = Form(default="Empty"), token: str = Form(default="Empty")):
 
     try:
         payload = jwt.decode(token, KEY4, algorithms=[ALG])
@@ -224,7 +228,7 @@ async def auth_get(request: Request, session: AsyncSession = Depends(get_async_s
 
 #функция post авторизации
 @router_reg.post("/auth", response_model=None, response_class=HTMLResponse)
-async def auth_user(request: Request, session: AsyncSession = Depends(get_async_session), email: EmailStr = Form(), password: str = Form()):
+async def auth_user(request: Request, session: AsyncSession = Depends(get_async_session), email: EmailStr = Form(default="Empty"), password: str = Form(default="Empty")):
 
     user: User = await session.scalar(select(User).where(User.email == email))#ищем пользователя по емейл
     

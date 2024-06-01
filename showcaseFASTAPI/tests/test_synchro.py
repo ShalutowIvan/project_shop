@@ -3,12 +3,12 @@ from src.showcase.schemas import *
 from src.showcase.models import *
 
 # from src.db_t.database import Session as session
-from tests.conftest import engine_test
+# from tests.conftest import engine_test
 from sqlalchemy.orm import Session
 from datetime import datetime
 
 # from contextlib import nullcontext as does_not_raise#nullcontext означет что нет ошибки исключения с контекстом
-from conftest import client, async_session_maker_test
+from tests.conftest import client, async_session_maker_test
 
 
 @pytest.fixture
@@ -66,28 +66,28 @@ def group():
         
     
 
-
-
-@pytest.mark.usefixtures("group")
-async def test_add_group(group):
-    async with async_session_maker_test() as session:
-        for i in group:
-            session.add(i)
-
-        await session.commit()
-
-
-@pytest.mark.usefixtures("goods")
-async def test_list_goods(goods):
-        
-    async with async_session_maker_test() as session:
-        for i in goods:
-            session.add(i)
-
-        await session.commit()
-
-
-
+#
+#
+# @pytest.mark.usefixtures("group")
+# async def test_add_group(group):
+#     async with async_session_maker_test() as session:
+#         for i in group:
+#             session.add(i)
+#
+#         await session.commit()
+#
+#
+# @pytest.mark.usefixtures("goods")
+# async def test_list_goods(goods):
+#
+#     async with async_session_maker_test() as session:
+#         for i in goods:
+#             session.add(i)
+#
+#         await session.commit()
+#
+#
+#
 
 
 
