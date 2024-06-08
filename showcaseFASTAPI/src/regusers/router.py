@@ -210,6 +210,13 @@ async def restore_password_user(request: Request, session: AsyncSession = Depend
         return response
 
     user = await session.scalar(select(User).where(User.id == int(user_id)))
+    if user is None:
+        context = await base_requisites(db=session, request=request)
+        context["user_not_found"] = "Пользователь не найден! Перейдите по ссылке из письма повторно и повторите попытку ввода нового пароля!"
+        response = templates.TemplateResponse("regusers/new_password.html", context)
+        
+        return response
+
     user.hashed_password = pwd_context.hash(password1)
     session.add(user)
     await session.commit()

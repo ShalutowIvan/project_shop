@@ -50,7 +50,7 @@ app.dependency_overrides[get_async_session] = override_get_async_session
 @pytest.fixture(autouse=True, scope='session')
 async def prepare_database():
     async with engine_test.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)#удаляются таблицы   ошибка тут не добавляется товары потому что база удалена
+        # await conn.run_sync(Base.metadata.drop_all)#удаляются таблицы   ошибка тут не добавляется товары потому что база удалена
         await conn.run_sync(Base.metadata.create_all)#создаются таблицы
     yield#отдается доступ фастапи
     # async with engine_test.begin() as conn:

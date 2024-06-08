@@ -197,7 +197,7 @@ async def send_email_verify(user, use_https=False):
 		server.send_message(email)
 
     
-# сделать токен одноразовым
+# сделать токен одноразовым, пока не сделал
 async def send_email_restore_password(user, use_https=False):
 	email = EmailMessage()
 	email['Subject'] = 'Восстановление пароля'
@@ -208,12 +208,14 @@ async def send_email_restore_password(user, use_https=False):
 
 	token = jwt.encode({"sub": str(user.id)}, KEY4, algorithm=ALG)
 	
-	#параметры из ссылки пойдут при запуске функции activate_user
-	email.set_content(f"<a href={http}://127.0.0.1:8000/regusers/restore/password_user/{token}><h1>ССЫЛКА</h1></a>" , subtype='html')
+	content = f"<a href={http}://127.0.0.1:8000/regusers/restore/password_user/{token}><h1>ССЫЛКА</h1></a>"
+	email.set_content(content , subtype='html')
     
 	with smtplib.SMTP_SSL(HOST, PORT) as server:
 		server.login(HOST_USER, HOST_PASSWORD)
 		server.send_message(email)
+
+	# return content
 
 
 
