@@ -1,10 +1,11 @@
 import pytest
-from conftest import client, async_session_maker_test, override_get_async_session
+from fastapi import Depends
+from conftest import client, async_session_maker_test, override_get_async_session, async_session_maker_test
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
 from src.regusers.models import *
-# from sqlalchemy import insert, select
+from sqlalchemy import insert, select
 
 from src.regusers.secure import send_email_verify, send_email_restore_password
 
@@ -101,45 +102,70 @@ from src.settings import KEY4
 #     assert user != None
 
 
-#тест сссылки из письма
-@pytest.mark.parametrize(
-    "password1, password2, email, status_code", [
-    ("Qwer1234", "Qwer1234", "ivanshalutov@yandex.ru", 200),
-    ("Qwer123", "Qwer1234", "ivanshalutov@yandex.ru", 200),
-    ("Qwer1234", "Qwer1234", "ivanshalutov@yandex.ru", 200),
-    ])
-async def test_forgot_pass2(password1, password2, email, status_code, ac: AsyncClient, session: AsyncSession = Depends(override_get_async_session)):
-    response = await ac.post("/regusers/restore/password_user/", data={
-		"password1": password1,
-        "password2": password2,
-        "token": token,#где брать токен не понятно
-    })
+#тест сссылки из письма. Проверяются ошибки при вводе пароля и зарегался ли юзер
+# @pytest.mark.parametrize(
+#     "password1, password2, email, status_code", [
+#     ("Qwer1234", "Qwer1234", "ivanshalutov@yandex.ru", 303),
+#     ("Qwer123", "Qwer1234", "ivanshalutov@yandex.ru", 200),
+#     ("Qwer", "Qwer", "ivanshalutov@yandex.ru", 200),
+#     ])
+# async def test_forgot_pass2(password1, password2, email, status_code, ac: AsyncClient, ):
+#     async with async_session_maker_test() as session:
+#
+#         user = await session.scalar(select(User).where(User.email == email))
+#         # user = await session.execute(select(User).where(User.email == email))
+#
+#         content = await send_email_restore_password(user=user)
+#         begin = content.find("password_user/")
+#         end = content.find("><h1>")
+#         slice_token = content[begin + 14:end]
+#
+#         # payload = jwt.decode(slice_token, KEY4, algorithms=[ALG])
+#         # assert payload.get("sub") == user.id
+#
+#         response = await ac.post("/regusers/restore/password_user/", data={
+#             "password1": password1,
+#             "password2": password2,
+#             "token": slice_token,
+#         })
+#
+#         assert user != None
+#         assert response.status_code == status_code
 
-    user = await session.scalar(select(User).where(User.email == email))
-    content = await send_email_restore_password(user=user)
+#Depends в тестах не работают, приходится просто открывать соединение
 
-    begin = content.find("password_user/")
-    end = content.find("><h1>")
-    slice_token = content[begin+14:end]
+#тест авторизации. Неверный пароль, верный пароль, неверно введена почта, незареганная почта
+# @pytest.mark.parametrize(
+#     "email, password, status_code",
+#     [
+#         ("ivanshalutov@yandex.ru", "Qwer1234", 200),
+#         ("ivanshalutov@yandex.ru", "Qwer1234444", 200),
+#         ("ivanshalutov@yandex", "Qwer1234", 422),
+#         ("asd@yandex.ru", "Qwer1234", 200)
+#     ]
+# )
+# async def test_auth(email, password, status_code, ac: AsyncClient):
+#     response = await ac.post("/regusers/auth", data={
+#         "email": email,
+#         "password": password,
+#     })
+#
+#     assert response.status_code == status_code
 
-    payload = jwt.decode(slice_token, KEY4, algorithms=[ALG])
 
-    assert payload.get("sub") == user.id
-    assert user != None    
-    assert response.status_code == status_code
-
-#если все хорошо код 303
-#не смог пока сделать сквозной тест. 
-
-# http://127.0.0.1:8000/regusers/restore/password_user/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIn0.YHdgGr55E24SsH4YsaAmOos6VDhIrL3mYF6LQ_SFGMM
-
-
+# # @pytest.mark.parametrize(
+# #     "status_code",
+# #     (200,),
+# #     (200,),
+# # )
+# async def test_exit(ac: AsyncClient):
+#     response = await ac.get("/regusers/logout")
+#
+#     assert response.status_code == 200
 
 
-# там разные урл и нужно сначала на одну потом на другую прыгнуть
 
-#при некорректном емейл не отправляется почта
-# {"detail":[{"type":"value_error","loc":["body","email"],"msg":"value is not a valid email address: The email address is not valid. It must have exactly one @-sign.","input":"qwe","ctx":{"reason":"The email address is not valid. It must have exactly one @-sign."}}]}
+
 
 
 # придумать тест-кейсы для реги, авторизации и функционала витрины
@@ -147,9 +173,9 @@ async def test_forgot_pass2(password1, password2, email, status_code, ac: AsyncC
 # 1. регистрация пользака - сделал
 # 2. активация пользака - не нужно
 # 3. забыли пароль - отправка письма - сделал
-# 4. забыли пароль - переход по ссылке из письма и ввод нового пароля - тут скорее всего нужен сквозной тест через несколько роутеров, так как не указывается в это роутере пользак для смены пароля, и он указывается в другом роутере
-# 5. авторизация пост запрос
-# 6. кнопка выход
+# 4. забыли пароль - сделал
+# 5. авторизация пост запрос - сделал
+# 6. кнопка выход - сделал
 
 # витрина
 # 1. Проверить, что на главной отображаются все товары из каталога

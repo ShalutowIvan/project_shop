@@ -215,7 +215,7 @@ async def send_email_restore_password(user, use_https=False):
 		server.login(HOST_USER, HOST_PASSWORD)
 		server.send_message(email)
 
-	# return content
+	return content
 
 
 
