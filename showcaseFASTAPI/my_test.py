@@ -38,19 +38,43 @@
 # b = set(a)
 # print(b)
 
-import time
+# import time
  
-# начальное время
-start_time = time.time()
+# # начальное время
+# start_time = time.time()
  
-# код, время выполнения которого нужно измерить
-a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1]
-b = set(a)
-res = len(a) - len(b)
+# # код, время выполнения которого нужно измерить
+# a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1]
+# b = set(a)
+# res = len(a) - len(b)
  
-# конечное время
-end_time = time.time()
+# # конечное время
+# end_time = time.time()
  
-# разница между конечным и начальным временем
-elapsed_time = end_time - start_time
-print('Elapsed time: ', elapsed_time)
+# # разница между конечным и начальным временем
+# elapsed_time = end_time - start_time
+# print('Elapsed time: ', elapsed_time)
+
+http = "http"
+token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIn0.D-PUbaFp3o2DYcFpPBVX67syyOoRjKZFAeskKOh5hog"
+content = f"<a href={http}://127.0.0.1:8000/regusers/restore/password_user/{token}><h1>ССЫЛКА</h1></a>"
+begin = content.find("password_user/")
+end = content.find("><h1>")
+
+z = content[begin+14:end]
+
+print(z)
+
+
+
+
+
+
+
+
+
+
+
+
+
+

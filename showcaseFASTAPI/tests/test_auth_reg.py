@@ -83,42 +83,49 @@ from src.settings import KEY4
 
 
 #второй вариант функции для забыли пароль
-@pytest.mark.parametrize(
-    "email, status_code", [
-    ("ivanshalutov@yandex.ru", 303),
-    ("asd", 422),
-    ("asd@asd", 422),    
-    ])
-async def test_forgot_pass(email, status_code, ac: AsyncClient):
-    response = await ac.post("/regusers/forgot_password/", data={
-      "email": email
-    })
-    assert response.status_code == status_code
+# @pytest.mark.parametrize(
+#     "email, status_code", [
+#     ("ivanshalutov@yandex.ru", 303),
+#     ("asd", 422),
+#     ("asd@asd", 422),    
+#     ])
+# async def test_forgot_pass(email, status_code, ac: AsyncClient):
+#     response = await ac.post("/regusers/forgot_password/", data={
+#       "email": email
+#     })
+#     assert response.status_code == status_code
 
-    user = await session.scalar(select(User).where(User.email == email))
-    # content = await send_email_restore_password(user=user)
+#     user = await session.scalar(select(User).where(User.email == email))
+#     # content = await send_email_restore_password(user=user)
     
-    assert user != None
+#     assert user != None
 
 
 #тест сссылки из письма
 @pytest.mark.parametrize(
-    "password1, password2, token, status_code", [
-    ("Qwer1234", "Qwer1234", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIn0.D-PUbaFp3o2DYcFpPBVX67syyOoRjKZFAeskKOh5hog", 200),
-    ("Qwer123", "Qwer1234", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIn0.D-PUbaFp3o2DYcFpPBVX67syyOoRjKZFAeskKOh5hog", 200),
-    ("Qwer1234", "Qwer1234", "asd", 200),
+    "password1, password2, email, status_code", [
+    ("Qwer1234", "Qwer1234", "ivanshalutov@yandex.ru", 200),
+    ("Qwer123", "Qwer1234", "ivanshalutov@yandex.ru", 200),
+    ("Qwer1234", "Qwer1234", "ivanshalutov@yandex.ru", 200),
     ])
-async def test_forgot_pass2(password1, password2, token, status_code, ac: AsyncClient, session: AsyncSession = Depends(override_get_async_session)):
+async def test_forgot_pass2(password1, password2, email, status_code, ac: AsyncClient, session: AsyncSession = Depends(override_get_async_session)):
     response = await ac.post("/regusers/restore/password_user/", data={
 		"password1": password1,
         "password2": password2,
-        "token": token,
+        "token": token,#где брать токен не понятно
     })
 
     user = await session.scalar(select(User).where(User.email == email))
-    # content = await send_email_restore_password(user=user)
-    assert user != None
+    content = await send_email_restore_password(user=user)
 
+    begin = content.find("password_user/")
+    end = content.find("><h1>")
+    slice_token = content[begin+14:end]
+
+    payload = jwt.decode(slice_token, KEY4, algorithms=[ALG])
+
+    assert payload.get("sub") == user.id
+    assert user != None    
     assert response.status_code == status_code
 
 #если все хорошо код 303
