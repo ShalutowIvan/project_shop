@@ -1,6 +1,6 @@
 import pytest
 from fastapi import Depends
-from conftest import client, async_session_maker_test, override_get_async_session, async_session_maker_test
+from conftest import client, async_session_maker_test
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -12,7 +12,7 @@ from src.regusers.secure import send_email_verify, send_email_restore_password
 
 from httpx import AsyncClient
 from contextlib import nullcontext as not_raise
-# async def test_
+
 #райс из smtplib
 from smtplib import SMTPRecipientsRefused
 
@@ -176,19 +176,6 @@ from src.settings import KEY4
 # 4. забыли пароль - сделал
 # 5. авторизация пост запрос - сделал
 # 6. кнопка выход - сделал
-
-# витрина
-# 1. Проверить, что на главной отображаются все товары из каталога
-# 2. проверить что при нажатии на группу выводятся товары из этой группы
-# 3. Проверить добавление товара в корзину, что товар добавился. Тут есть связь с пользаком, заморочка
-# 4. Проверить что корзина отображается по нужному пользаку
-# 5. Проверить удаление из корзины
-# 6. Проверить пост запрос для оформления заказа
-# 7. Проверить что список заказов отображается по нужному пользаку
-# 8. Проверить роутер для получения заказов это гет запрос
-# 9. Проверить получения товаров из учетной системы
-# 10. Проверить получения групп товаров из учетной системы
-# 11. Проверить смену статуса заказов при синхронизации с учетной системой
 
 
 

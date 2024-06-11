@@ -130,7 +130,6 @@ class Order_list(Base):
     product: Mapped["Goods"] = relationship(back_populates="order_list")
     # product_id: Mapped[int] = mapped_column(default=0)
     
-    
     quantity: Mapped[float] = mapped_column(nullable=False)
     time_create: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))
     

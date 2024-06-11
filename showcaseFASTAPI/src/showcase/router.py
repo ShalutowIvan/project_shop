@@ -124,7 +124,7 @@ async def show_group(request: Request, slug: str, session: AsyncSession = Depend
 
 
 @router_showcase.get("/basket/{good_id}")
-async def add_in_basket(request: Request, good_id: int, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None)):
+async def add_in_basket(request: Request, good_id, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None)):
     #подтянул ид пользака из токена
     check = await access_token_decode(acces_token=Authorization)
     
@@ -133,26 +133,34 @@ async def add_in_basket(request: Request, good_id: int, session: AsyncSession = 
 
         return templates.TemplateResponse("showcase/if_not_auth.html", context)
 
+    try:
+        good_id = int(good_id)
+    except Exception as ex:
+        context = await base_requisites(db=session, check=check, request=request)
+        return templates.TemplateResponse("showcase/if_goods_none.html", context)
+
+    # if type(good_id) != int:#решил сделать так вместо анотации типа в роутере
+    good = await session.get(Goods, good_id)
+    if good is None:
+        context = await base_requisites(db=session, check=check, request=request)
+        return templates.TemplateResponse("showcase/if_goods_none.html", context)
 
     query = select(Basket).where(Basket.product_id == good_id, Basket.user_id == int(check[1]))
 
     basket = await session.scalars(query)
     basket = basket.all()
-    
 
-    if basket == []:#если в корзине нет такого товара, то добавляет товар в корзину        
+    if basket == []:#если в корзине нет такого товара, то добавляет товар в корзину
         product = Basket(product_id=good_id, quantity=1, user_id=int(check[1]))
         session.add(product)
         await session.commit()
-    else:        
+    else:
         basket[0].quantity += 1
         await session.commit()
-        
-    
+
     http_referer = request.headers.get('referer')
     return RedirectResponse(http_referer)
-    
-   
+
 
 @router_showcase.get("/basket/goods/", response_class=HTMLResponse)
 async def basket_view(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
@@ -164,13 +172,11 @@ async def basket_view(request: Request, session: AsyncSession = Depends(get_asyn
 
         return templates.TemplateResponse("showcase/if_not_auth.html", context)
 
-
     flag = False
     if type(check[0]) == ExpiredSignatureError:   
         tokens = await test_token_expire(RT=RT, db=session)        
         check = tokens[2]
-        flag = True    
-
+        flag = True
     
     query = select(Basket).options(joinedload(Basket.product)).where(Basket.user_id == int(check[1]))    
     basket = await session.scalars(query)    
@@ -189,9 +195,22 @@ async def basket_view(request: Request, session: AsyncSession = Depends(get_asyn
 
 #удаление товара по коду товара то есть id
 @router_showcase.get("/basket/goods/{basket_id}")
-async def delete_in_basket(request: Request, basket_id: int, session: AsyncSession = Depends(get_async_session)):    
-    
+async def delete_in_basket(request: Request, basket_id, session: AsyncSession = Depends(get_async_session)):
+
+    if type(basket_id) != int:#решил сделать так вместо анотации типа в роутере
+        context = await base_requisites(db=session, request=request)
+        return templates.TemplateResponse("showcase/if_goods_none.html", context)
+
+    good = await session.get(Goods, basket_id)
+    if good is None:
+        context = await base_requisites(db=session, request=request)
+        return templates.TemplateResponse("showcase/if_goods_none.html", context)
+
+
     basket = await session.get(Basket, basket_id)
+    if basket is None:
+        context = await base_requisites(db=session, request=request)
+        return templates.TemplateResponse("showcase/if_goods_none.html", context)
     await session.delete(basket)
     await session.commit()    
     
@@ -256,18 +275,33 @@ async def contacts(request: Request, session: AsyncSession = Depends(get_async_s
 
 
 @router_showcase.post("/basket/contacts/", response_model=None, status_code=201)#response_model это валидация для запроса
-async def contacts_form(request: Request, session: AsyncSession = Depends(get_async_session), fio: str = Form(), phone: str = Form(), delivery_address: str = Form(), pay: int = Form(), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
+async def contacts_form(request: Request, session: AsyncSession = Depends(get_async_session), fio: str = Form(), phone: str = Form(), delivery_address: str = Form(), pay: str = Form(), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
     #дешифровка jwt аксес
     check = await access_token_decode(acces_token=Authorization)
-    
+
     #проверка на истечение токена, в случае если истек обновляем
     flag = False
     if type(check[0]) == ExpiredSignatureError:
         tokens = await test_token_expire(RT=RT, db=session)        
         check = tokens[2]
-        flag = True    
-    
-    #создаем объект в таблице счетчика заказов    
+        flag = True
+
+    try:  # тут передалать так, чтобы в html формы выводились ошибки, то есть прокидывался контекст с ошибкой в форму, как это сделано в реге. Пока просто кидаю ошибку в html форме
+        tel = int(phone)
+        p = int(pay)
+        if pay not in (1, 2):
+            raise Exception("Неверный способ оплаты")
+    except Exception as ex:
+
+        context = await base_requisites(db=session, check=check, request=request)
+        context["error"] = ex
+        response = templates.TemplateResponse("showcase/contacts.html", context)
+        if flag:
+            response.set_cookie(key="RT", value=tokens[0])
+            response.set_cookie(key="Authorization", value=tokens[1])
+        return response
+
+    #создаем объект в таблице счетчика заказов
     order_counter = Order_counter(user_id=int(check[1]))
 
     session.add(order_counter)
@@ -276,7 +310,7 @@ async def contacts_form(request: Request, session: AsyncSession = Depends(get_as
 
     #делаем запрос в таблице корзина с фильтром по пользаку
     pay_goods = await session.scalars(select(Basket).where(Basket.user_id == int(check[1])))
-    #запрос в таблице контактов по пользаку
+    #запрос в таблице счетчика заказов по пользаку
     order_number = await session.scalars(select(Order_counter).where(Order_counter.user_id == int(check[1])))
     id_order_number = order_number.all()[-1].id#берем последний в списке номер, это будет номер заказа, таблицу контактов запрашиваю для указания номера заказа
     #формируем генератор списка товаров из корзины

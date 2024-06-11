@@ -85,5 +85,3 @@
 # #         #     assert added_candy in candies
 
 
-# def test_p():
-#     assert 1 == 1
