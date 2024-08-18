@@ -297,9 +297,6 @@ class Goods_add(CreateView):
 
 
 
-
-
-
 #список накладных просто вывод
 @login_required
 def receipt_list(request):
@@ -438,6 +435,22 @@ def receipt_delete_goods(request, number_delete_good):
 	list_delete = Receipt_list.objects.get(id=number_delete_good)
 	list_delete.delete()
 	return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+
+
+#РАСХОДНЫЙ документ - начало - открытие
+@login_required
+def expense_list(request):
+	expense_list = Expense_number.objects.all()
+	
+	context = {"expense_list_view": expense_list}
+
+	org = Organization.objects.all()
+	if org:
+		context['org'] = org[0]
+
+	return render(request, "shop/expense_list.html", context=context)
+
 
 
 

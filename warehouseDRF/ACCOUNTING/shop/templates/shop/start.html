@@ -25,7 +25,7 @@
 	{% if request.user.is_authenticated %}
 
 	<p>{{user.username}}</p>
-	<a href="{% url 'regusers:logout' %}"><p>Выйти</p></a>	
+	<p><a href="{% url 'regusers:logout' %}">Выйти</a>	</p>
 	
 {% else %}
 
@@ -38,11 +38,13 @@
 
 <a href="{% url 'goods_list' %}"><h2>Список товаров</h2></a>
 
-<a href="{% url 'goods_add' %}"><h2>Добавить товар</h2></a>
+<h2><a href="{% url 'goods_add' %}">Добавить товар</a></h2>
 
-<a href="{% url 'group_add' %}"><h2>Добавить группу товара</h2></a>
+<h2><a href="{% url 'group_add' %}">Добавить группу товара</a></h2>
 
-<a href="{% url 'receipt_list' %}"><h2>Список приходных документов</h2></a>
+<h2><a href="{% url 'receipt_list' %}">Список приходных документов</a></h2>
+
+<h2><a href="{% url 'expense_list' %}">Список расходных документов</a></h2>
 
 </header>
 
