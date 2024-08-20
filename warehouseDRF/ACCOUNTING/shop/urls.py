@@ -28,6 +28,7 @@ urlpatterns = [
 
     
     path('good_list/', Goods_list.as_view(), name='goods_list'),
+    path('good_list/group_show/<slug:group_slug>/', group_show, name='group_show'),
     path('good_list/add/', Goods_add.as_view(), name='goods_add'),
     path('good_list/add_group/', Group_add.as_view(), name='group_add'),
     #приходный документ
@@ -41,6 +42,13 @@ urlpatterns = [
     path('receipt/list/view/open/deactivate/<int:receipt_deactivate>/', receipt_document_deactivate, name='receipt_document_deactivate'),
     #расходный документ
     path('expense/list/view/', expense_list, name='expense_list'),
+    path('expense/list/view/create/', expense_document_create, name='expense_document_create'),
+    path('expense/list/view/delete/<int:number_delete_expense>/', expense_document_delete, name='expense_document_delete'),
+    path('expense/list/view/open/<int:open_expense>/', expense_document_open, name='expense_document_open'),
+    path('expense/list/view/open/add_goods/<int:number_doc>/', expense_add_goods, name='expense_add_goods'),
+    path('expense/list/view/open/delete_goods/<int:number_delete_good>/', expense_delete_goods, name='expense_delete_goods'),
+    path('expense/list/view/open/activate/<int:expense_activate>/', expense_document_activate, name='expense_document_activate'),
+    path('expense/list/view/open/deactivate/<int:expense_deactivate>/', expense_document_deactivate, name='expense_document_deactivate'),
 
     
     # path('group/<slug:group_slug>/', GroupShow.as_view(), name='group'),

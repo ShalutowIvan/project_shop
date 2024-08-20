@@ -19,7 +19,7 @@
 <header>
 	<img src="{% static 'shop/images/logo.jpg' %}" alt="Лого">
 	<h1>{{ org.name_org }}</h1>
-	
+	<h1>Выберите нужный раздел (слева) для ваших целей!</h1>
 	
 
 	{% if request.user.is_authenticated %}
@@ -32,19 +32,7 @@
 <!-- 	<a href="{% url 'regusers:login' %}"><p>Войти</p></a>
 	<a href="{% url 'regusers:register' %}"><p>Регистрация</p></a> -->
 				{% endif %}
-<a href="{% url 'synchronization' %}"><button class="synchro">Синхронизация</button></a>
 
-<a href="{% url 'order_list' %}"><h2>Список заказов</h2></a>
-
-<a href="{% url 'goods_list' %}"><h2>Список товаров</h2></a>
-
-<h2><a href="{% url 'goods_add' %}">Добавить товар</a></h2>
-
-<h2><a href="{% url 'group_add' %}">Добавить группу товара</a></h2>
-
-<h2><a href="{% url 'receipt_list' %}">Список приходных документов</a></h2>
-
-<h2><a href="{% url 'expense_list' %}">Список расходных документов</a></h2>
 
 </header>
 
@@ -54,8 +42,16 @@
 	<aside>
 
 		<!--<span class="logo">Товары</span>-->
-		<br><br><br><br><br><br><br><br><br><br>
-		
+		<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+	<a href="{% url 'synchronization' %}"><button class="synchro">Синхронизация</button></a>
+
+<h2><a href="{% url 'order_list' %}">Список заказов</a></h2>
+
+<h2><a href="{% url 'goods_list' %}">Список товаров</a></h2>
+
+<h2><a href="{% url 'receipt_list' %}">Список приходных документов</a></h2>
+
+<h2><a href="{% url 'expense_list' %}">Список расходных документов</a></h2>	
 			
 
 	</aside>
@@ -82,8 +78,8 @@
 </main>
 
 <div class="footer">
-	<!-- <p>Телефон: {{ org.phone }}</p>
-	<p>Информация о нас: {{ org.about }}</p> -->
+	<p>Телефон: {{ org.phone }}</p>
+	<p>Информация о нас: {{ org.about }}</p>
 
 </div>
 

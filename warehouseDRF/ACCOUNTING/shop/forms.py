@@ -23,7 +23,7 @@ class Group_add_form(forms.ModelForm):
  
 
 
-
+#для приходного документа
 class Receipt_number_form(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -42,3 +42,26 @@ class Receipt_add_goods_form(forms.ModelForm):
     class Meta:
         model = Receipt_list
         fields = ['product', 'quantity', ]
+
+
+#для расходного документа
+class Expense_number_form(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+    class Meta:
+        model = Expense_number
+        fields = ['comment',]
+
+
+class Expense_add_goods_form(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+    class Meta:
+        model = Expense_list
+        fields = ['product', 'quantity', ]
+
+

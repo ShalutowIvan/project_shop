@@ -5,12 +5,12 @@
 
 
 <br><br><br>
-<a href="{% url 'receipt_document_create' %}"><h1>Добавить документ</h1></a>
+<a href="{% url 'expense_document_create' %}"><h1>Добавить акт списания</h1></a>
 
 
 {% for j in expense_list_view %}
 
-<h1> Номер: {{j.id}} || Дата: {{j.time_create}} || <a href="{% url 'receipt_document_open' j.id %}"><button class="open_receipt">Открыть документ</button></a> || {% if j.state == False %} <a href="{% url 'receipt_document_delete' j.id %}"><button class="delete_receipt">Удалить документ</button></a> {% endif %} </h1>
+<h1> Номер: {{j.id}} || Дата: {{j.time_create}} || <a href="{% url 'expense_document_open' j.id %}"><button class="open_expense">Открыть документ</button></a> || {% if j.state == False %} <a href="{% url 'expense_document_delete' j.id %}"><button class="delete_expense">Удалить документ</button></a> {% endif %} </h1>
 
 {% if j.state %}
 <h1>Проведен</h1>

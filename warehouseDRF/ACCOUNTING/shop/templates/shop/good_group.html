@@ -3,23 +3,6 @@
 
 {% block content %}
 
-<aside>
-
-<a href="{% url 'goods_list' %}"><h4>Все группы товаров</h4></a>
-
-{% for i in groups %}
-
-		<li>
-			<a href="{% url 'group_show' i.slug %}">{{ i.name_group }}</a>
-
-		</li>
-		<br>
-
-
-{% endfor %}
-
-</aside>
-
 <br><br>
 
 
@@ -41,7 +24,22 @@
 </form>
 </div>
 
-тут блок контент надо или что-то придумать
+<aside>
+
+<a href="{% url 'goods_list' %}"><h4>Все группы товаров</h4></a>
+
+{% for i in groups %}
+
+		<li>
+			<a href="{% url '' параметр %}">{{ i.name_group }}</a>
+
+		</li>
+		<br>
+
+
+{% endfor %}
+
+</aside>
 
 {% for j in gd %}
 
@@ -60,7 +58,7 @@
 			</nobr>
 
 
-
+	
 
 
 {% endblock %}

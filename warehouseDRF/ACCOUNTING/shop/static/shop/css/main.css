@@ -181,7 +181,7 @@ position: absolute;
 
 .footer {
 
-background: #F0E68C;
+background: darkgreen;
 /* position: sticky;*/
 position: fixed;
 bottom: 0;
@@ -248,29 +248,15 @@ color: black;
 	box-shadow: none; 
 }
 
-
-/*
-position: fixed;
-    right: 0; bottom: 0;
-    padding: 10px; 
-    background: #39b54a; 
-    color: #fff; 
-    width: 100%; 
-*/
+.search_good{
 
 
+/*position: left;*/
+/*bottom: 0;*/
+width: 112vh;
+/*height: 10vh;*/
 
-/*
-	box-sizing: border-box;
 
-	background: #3F4137;
-	padding: 5px;
-	color: #aaa;
-	font-size: 14px;
-	font-family: Verdana, Geneva, Arial, Helvetica;
-	text-align: left;
-	overflow: hidden;
-*/
-
+}
 
 
