@@ -178,18 +178,6 @@ def order_list_deactivate(request, order_deactivate):
 
 
 
-# class Order_list_view(APIView):
-
-# 	def get(self, request):
-# 		db_order = Order_list_bought.objects.all()
-
-# 		return render(request, "shop/checkout_list.html", context=db_order)
-
-
-# 	def post(self, request):
-# 		pass
-
-
 #отображение списка товаров
 class Goods_list(ListView):
     paginate_by = 10
@@ -247,9 +235,10 @@ class Goods_list(ListView):
 
 def group_show(request, group_slug):
 
-	# goods_in_group = Goods.objects.filter(group.slug==order_number)#тут список, queryset
-	
-	context = {}
+	goods_in_group = Goods.objects.filter(group__slug=group_slug)
+	groups = Group.objects.all()
+
+	context = {"goods_in_group": goods_in_group, "groups": groups}
 
 	org = Organization.objects.all()
 	if org:

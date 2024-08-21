@@ -1,47 +1,10 @@
-{% extends 'shop/start.html' %}
+{% extends 'shop/good.html' %}
 
 
-{% block content %}
-
-<br><br>
+{% block goods %}
 
 
-<a href="{% url 'goods_add' %}"><button class="add_good">Добавить товар</button></a>
-
-&nbsp &nbsp
-
-<a href="{% url 'group_add' %}"><button class="add_good">Добавить группу товара</button></a>
-
-<br>
-<br>
-<!-- форма поиска товара -->
-<div class="search_good">
-<form action="{% url 'goods_list' %}" method="get">
-
-	<input type="search" type="text" name='q' placeholder="Введите название товара">
-
-	<button type="submit">Найти</button>
-</form>
-</div>
-
-<aside>
-
-<a href="{% url 'goods_list' %}"><h4>Все группы товаров</h4></a>
-
-{% for i in groups %}
-
-		<li>
-			<a href="{% url '' параметр %}">{{ i.name_group }}</a>
-
-		</li>
-		<br>
-
-
-{% endfor %}
-
-</aside>
-
-{% for j in gd %}
+{% for j in goods_in_group %}
 
 	<div id="goods">
 {% if j.photo %}
