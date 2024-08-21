@@ -49,7 +49,11 @@ urlpatterns = [
     path('expense/list/view/open/delete_goods/<int:number_delete_good>/', expense_delete_goods, name='expense_delete_goods'),
     path('expense/list/view/open/activate/<int:expense_activate>/', expense_document_activate, name='expense_document_activate'),
     path('expense/list/view/open/deactivate/<int:expense_deactivate>/', expense_document_deactivate, name='expense_document_deactivate'),
-
+    #отчеты
+    path('reports/', reports, name='reports'),
+    path('reports/income_report/', income_report, name='income_report'),
+    path('reports/expense_report/', expense_report, name='expense_report'),
+    path('reports/sales_report/', sales_report, name='sales_report'),
     
     # path('group/<slug:group_slug>/', GroupShow.as_view(), name='group'),
     # path('order/list/', Order_list_view.as_view(), name='order_list'),

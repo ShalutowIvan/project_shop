@@ -45,6 +45,7 @@ class Home(ListView):
 
 
 #получение списка заказов с сайта витрины, поиск идет по артикулу, то есть в номере заказа идет артикул. Если ID совпадать в базах не будут ничего страшного, главное чтобы совпадали артикулы.
+@login_required
 def synchronization(request):
 	try:
 		rq = requests.get("http://127.0.0.1:8000/checkout_list/orders/all/")
@@ -179,6 +180,7 @@ def order_list_deactivate(request, order_deactivate):
 
 
 #отображение списка товаров
+
 class Goods_list(ListView):
     paginate_by = 10
     model = Goods
@@ -232,7 +234,7 @@ class Goods_list(ListView):
 
 #         return context
 
-
+@login_required
 def group_show(request, group_slug):
 
 	goods_in_group = Goods.objects.filter(group__slug=group_slug)
@@ -248,12 +250,8 @@ def group_show(request, group_slug):
 
 
 
-
-
-
-
-
 #для получения списка товаров в витрине это для апи
+# @login_required
 class Get_good(APIView):
 
 	def get(self, request):
@@ -263,6 +261,7 @@ class Get_good(APIView):
 
 
 # для получения списка групп в витрине для апи
+# @login_required
 class Get_group(APIView):
 
 	def get(self, request):
@@ -271,7 +270,7 @@ class Get_group(APIView):
 		return Response(GroupSerializer(instance=group, many=True).data)
 		
 
-
+# @login_required
 class Get_order(APIView):
 
 	def get(self, request):
@@ -284,6 +283,7 @@ class Get_order(APIView):
 
 
 #добавление группы товаров
+
 class Group_add(CreateView):
     form_class = Group_add_form
     template_name = 'shop/group_add.html'
@@ -311,6 +311,7 @@ class Group_add(CreateView):
 
 
 #добавление товара
+
 class Goods_add(CreateView):
     form_class = Goods_add_form
     template_name = 'shop/good_add.html'
@@ -623,60 +624,43 @@ def expense_delete_goods(request, number_delete_good):
 #####################################################################################
 
 
+#отчеты!!!!!!!!!!
 
-# class GroupShow(ListView):
-#     paginate_by = 10
-#     model = Goods
-#     # template_name = 'shop/good.html'
-#     context_object_name = 'goods'
-#     allow_empty = True
+def reports(request):
+	context = {}
+	return render(request, "shop/reports.html", context=context)
 
-#     def get_queryset(self):
-#         # q_set = Goods.objects.filter(group__slug=self.kwargs['group_slug'])
-#         # if q_set == []:
-#         #     return ["Пусто"]
-#         # else:
-#         return Goods.objects.filter(group__slug=self.kwargs['group_slug'])
+#отчет по приходу
+@login_required
+def income_report(request):
+	# receipt_open = Receipt_number.objects.get(id=open_receipt)
+	receipt_open = Receipt_number.objects.all()
+	# receipt_good_list = Receipt_list.objects.filter(number_receipt=open_receipt)
+	receipt_good_list = Receipt_list.objects.all()
+	context = {'receipt_good_list': receipt_good_list, "receipt_doc": receipt_open}
 
-#     def get_context_data(self, *, object_list=None, **kwargs):
-#         context = super().get_context_data(**kwargs)
-        
-#         if len(context['goods']) == 0:
-#             context['title'] = 'Группа - ' + "Пусто"
-#         else:
-#             context['title'] = 'Группа - ' + str(context['goods'][0].group)
 
-#         org = Organization.objects.all()
-#         if org:
-#             context['org'] = org[0]
-#         context['form'] = AddGoodForm()
-
-#         return context
+	org = Organization.objects.all()
+	if org:
+		context['org'] = org[0]
 
 
 
-
-# class Asd(RetrieveUpdateDestroyAPIView):
-# 	def get(self, request):
-# 		rq = requests.get("http://127.0.0.1:8000/checkout_list/orders/all/")
-# 		res = rq.text
-		
-# 		return HttpResponse(res)
+	return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
-
-# class Synchronization(APIView):
-
-# 	def get(self, request):
-# 		rq = requests.get("http://127.0.0.1:8000/checkout_list/orders/all/")
-# 		res = rq.text
-		
-# 		return HttpResponse(res)
+#отчет по расходу
+def expense_report(request):
 
 
-# 	def post(self, request):
-# 		# for i 
-# 		pass
+	return
+
+
+def sales_report(request):
+	return
+
+
+
 
 
 # class GoodsViewSet(mixins.CreateModelMixin,
