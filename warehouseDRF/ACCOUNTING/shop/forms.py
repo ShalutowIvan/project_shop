@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 
 from .models import *
 
+from datetime import datetime, date
 
 class Goods_add_form(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -63,5 +64,26 @@ class Expense_add_goods_form(forms.ModelForm):
     class Meta:
         model = Expense_list
         fields = ['product', 'quantity', ]
+
+#форма для даты при формировании отчета по продажам
+class Date_report_income(forms.Form):
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+
+
+    # class Meta:
+    #     model = Receipt_number
+    #     fields = ['time_create',]
+    
+    date_from = models.DateTimeField()
+    date_by = models.DateTimeField()
+
+
+    # date_from = models.CharField()
+    # date_from = datetime(year=1, month=1, day=1)
+    # date_by = models.CharField()
+
+# date(year, month, day)
+# date(year, month, day)
 
 

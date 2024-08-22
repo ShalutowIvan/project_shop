@@ -1,0 +1,47 @@
+{% extends 'shop/start.html' %}
+
+
+{% block content %}
+
+
+<form action="{% url 'income_report' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="form-error">{{ form.non_field_errors }}</div>
+
+<p>Дата с: <input type="date" ></label></p>
+<p>Дата по: <input type="date" for="{{ form.date_by.id_for_label }}"></label></p>
+
+
+    <button type="submit">Сформировать</button>
+
+   
+</form>
+
+
+
+
+
+<!-- {% for i in receipt_open %}
+
+<h3>Номер: {{ i.id }} || Дата: {{ i.time_create }}</h3>
+
+{% for j in receipt_good_list %}
+
+{% if j.number_receipt == i.id %}
+
+<h3>Товар: {{ j.product.name_product }}, Количество: {{ j.quantity }}</h3>
+
+{% endif %}
+
+
+
+
+
+{% endfor %}
+{% endfor %} -->
+
+
+{% endblock %}
+
+

@@ -625,19 +625,60 @@ def expense_delete_goods(request, number_delete_good):
 
 
 #отчеты!!!!!!!!!!
-
+#просто страница с отчетами
 def reports(request):
 	context = {}
+	org = Organization.objects.all()
+	if org:
+		context['org'] = org[0]
 	return render(request, "shop/reports.html", context=context)
 
+
+# <p><input type="date" label class="form-label" for="{{ form.date_by.id_for_label }}">Дата по: </label>{{ form.date_by }}</p>
 #отчет по приходу
 @login_required
 def income_report(request):
-	# receipt_open = Receipt_number.objects.get(id=open_receipt)
-	receipt_open = Receipt_number.objects.all()
-	# receipt_good_list = Receipt_list.objects.filter(number_receipt=open_receipt)
-	receipt_good_list = Receipt_list.objects.all()
-	context = {'receipt_good_list': receipt_good_list, "receipt_doc": receipt_open}
+	
+	if request.method == 'POST':
+		form = Date_report_income(data=request.POST)
+		if form.is_valid():
+			# comm = form.save(commit=False)
+			# comm.save()
+			print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+			print(request.POST)
+
+			
+			return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+	else:
+		form = Date_report_income()
+
+	context = {'form': form}
+
+
+
+	# receipt_open = Receipt_number.objects.all()
+	
+	# receipt_good_list = Receipt_list.objects.all()
+
+	# context = {'receipt_good_list': receipt_good_list, "receipt_open": receipt_open}
+	
+
+
+	# res = [{(i.id, i.time_create): [j for j in receipt_good_list if j.number_receipt == i.id ]} for i in receipt_open if i.state == True]
+	# print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+	# print(res)
+	# res = {}
+	# for i in receipt_open:
+	# 	if i.state == True:
+	# 		for j in receipt_good_list:
+	# 			if j.number_receipt == i.id:
+	# 				if res.get(i) == None:
+	# 					res[i] = j
+	# 				else:
+	# 					res[i] = res[i] + j
+
+
 
 
 	org = Organization.objects.all()
@@ -646,7 +687,7 @@ def income_report(request):
 
 
 
-	return HttpResponseRedirect(request.META['HTTP_REFERER'])
+	return render(request, "shop/reports_income.html", context=context)
 
 
 #отчет по расходу
