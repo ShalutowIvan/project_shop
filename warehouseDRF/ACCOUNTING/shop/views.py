@@ -641,51 +641,27 @@ def income_report(request):
 	
 	if request.method == 'POST':
 		form = Date_report_income(data=request.POST)
-		if form.is_valid():
-			# comm = form.save(commit=False)
-			# comm.save()
-			print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-			print(request.POST)
+		if form.is_valid():			
+			d_from = form.cleaned_data.get("date_from")
+			d_by = form.cleaned_data.get("date_by")
 
+			rec_list = Receipt_number.objects.filter(time_create__gte=d_from, time_create__lte=d_by)#тут сделать запрос
+
+			context = {"receipt_list_view": rec_list}
+			org = Organization.objects.all()
+			if org:
+				context['org'] = org[0]
 			
-			return HttpResponseRedirect(request.META['HTTP_REFERER'])
+			return render(request, "shop/receipt_list.html", context=context)
 
 	else:
 		form = Date_report_income()
 
 	context = {'form': form}
 
-
-
-	# receipt_open = Receipt_number.objects.all()
-	
-	# receipt_good_list = Receipt_list.objects.all()
-
-	# context = {'receipt_good_list': receipt_good_list, "receipt_open": receipt_open}
-	
-
-
-	# res = [{(i.id, i.time_create): [j for j in receipt_good_list if j.number_receipt == i.id ]} for i in receipt_open if i.state == True]
-	# print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-	# print(res)
-	# res = {}
-	# for i in receipt_open:
-	# 	if i.state == True:
-	# 		for j in receipt_good_list:
-	# 			if j.number_receipt == i.id:
-	# 				if res.get(i) == None:
-	# 					res[i] = j
-	# 				else:
-	# 					res[i] = res[i] + j
-
-
-
-
 	org = Organization.objects.all()
 	if org:
 		context['org'] = org[0]
-
-
 
 	return render(request, "shop/reports_income.html", context=context)
 
@@ -693,12 +669,69 @@ def income_report(request):
 #отчет по расходу
 def expense_report(request):
 
+	if request.method == 'POST':
+		form = Date_report_income(data=request.POST)
+		if form.is_valid():			
+			d_from = form.cleaned_data.get("date_from")
+			d_by = form.cleaned_data.get("date_by")
 
-	return
+			rec_list = Expense_number.objects.filter(time_create__gte=d_from, time_create__lte=d_by)
 
+			context = {"receipt_list_view": rec_list}
+			org = Organization.objects.all()
+			if org:
+				context['org'] = org[0]
+			
+			return render(request, "shop/receipt_list.html", context=context)
 
+	else:
+		form = Date_report_income()
+
+	context = {'form': form}
+
+	org = Organization.objects.all()
+	if org:
+		context['org'] = org[0]
+
+	return render(request, "shop/reports_expense.html", context=context)
+	
+
+#отчет по продажам
 def sales_report(request):
-	return
+
+	if request.method == 'POST':
+		form = Date_report_income(data=request.POST)
+		if form.is_valid():			
+			d_from = form.cleaned_data.get("date_from")
+			d_by = form.cleaned_data.get("date_by")
+
+			rec_list = Order_list_bought.objects.filter(time_create__gte=d_from, time_create__lte=d_by)#тут сделать запрос другой, подумать
+
+			context = {"receipt_list_view": rec_list}
+			org = Organization.objects.all()
+			if org:
+				context['org'] = org[0]
+			
+			return render(request, "shop/тут другой файл сделать надо.html", context=context)
+
+	else:
+		form = Date_report_income()
+
+	context = {'form': form}
+
+	org = Organization.objects.all()
+	if org:
+		context['org'] = org[0]
+
+	return render(request, "shop/reports_sales.html", context=context)
+
+
+
+
+
+
+
+	
 
 
 

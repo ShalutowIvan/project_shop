@@ -75,8 +75,9 @@ class Date_report_income(forms.Form):
     #     model = Receipt_number
     #     fields = ['time_create',]
     
-    date_from = models.DateTimeField()
-    date_by = models.DateTimeField()
+    date_from = forms.DateTimeField()
+    date_by = forms.DateTimeField()
+    # DateField
 
 
     # date_from = models.CharField()

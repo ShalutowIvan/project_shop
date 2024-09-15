@@ -9,9 +9,9 @@
 
     <div class="form-error">{{ form.non_field_errors }}</div>
 
-<p>Дата с: <input type="date" ></label></p>
-<p>Дата по: <input type="date" for="{{ form.date_by.id_for_label }}"></label></p>
-
+<p>Дата с: <input name="date_from" type="date"></p>
+<p>Дата по: <input name="date_by" type="date"></p>
+<!-- <p><input name="fio" placeholder="введите ФИО"></p> -->
 
     <button type="submit">Сформировать</button>
 

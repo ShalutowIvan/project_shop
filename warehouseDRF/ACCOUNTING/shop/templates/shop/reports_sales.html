@@ -4,14 +4,19 @@
 {% block content %}
 
 
+<form action="{% url 'sales_report' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
 
-<br><br>
-<a href="{% url 'income_report' %}"><h1>Отчет по приходу</h1></a>
-<br><br><br><br>
-<a href="{% url 'expense_report' %}"><h1>Отчет по расходу</h1></a>
-<br><br><br><br>
-<a href="{% url 'sales_report' %}"><h1>Отчет по продажам</h1></a>
+    <div class="form-error">{{ form.non_field_errors }}</div>
 
+<p>Дата с: <input name="date_from" type="date"></p>
+<p>Дата по: <input name="date_by" type="date"></p>
+
+
+    <button type="submit">Сформировать</button>
+
+   
+</form>
 
 
 

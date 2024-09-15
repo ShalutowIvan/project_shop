@@ -1,11 +1,65 @@
-a = [1,2,3,4]
-q={a: 1}
-# q = q + a
+from dataclasses import dataclass
+from typing import Literal, TypeAlias, Optional, TypeVar
 
-# for i in a:
-# 	if q.get(1) == None:
-# 		q[1] = [i]
-# 	else:
-# 		q[1] = q[1] + [i]
+# #TypeAlias - это для указания нескольких классов с конструкторами, типа или один конструктор или другой может быть выбран при создании объекта
 
-print(q)
+# @dataclass
+# class NonEmptyResponse:	
+# 	data: str
+# 	empty: Literal[False] = False
+# 	#тут типа конструктор не пустого объекта
+
+# @dataclass
+# class EmptyResponse:	
+# 	data: Literal[""] = ""
+# 	empty: Literal[True] = True
+# 	#тут пустой объект и данные не должно давать указывать 
+
+
+# # a = Response(data="I have data")
+# Response: TypeAlias = EmptyResponse or NonEmptyResponse
+# a = EmptyResponse(data="qwe")
+# # b = Response(data="asd")
+# print(a.data)
+
+# # создается с данными, но не должно
+
+# #можно указывать значения которые будут в объекте
+
+# @dataclass
+# class Number:
+# 	num: int
+
+
+# a = Number(num="asd")
+
+
+# print(a.num)
+
+# N = TypeVar('N', int)
+
+# @dataclass
+# class Number(N):
+# 	n: N
+
+S = TypeVar('S', str)
+# S = TypeVar('S', bound=str)
+
+# def func[S: str](x: S) -> S:
+# 	return x
+
+def func[S: str](x: S) -> S:
+    """Печатает x с заглавной буквы и возвращает x."""
+    print(x.capitalize())
+    return x
+
+
+
+
+a = func(x="asd")
+print(a)
+
+
+
+
+
