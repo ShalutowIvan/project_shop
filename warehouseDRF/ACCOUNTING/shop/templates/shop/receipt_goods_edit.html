@@ -1,0 +1,30 @@
+{% extends 'shop/start.html' %}
+
+
+{% block content %}
+
+
+<br><br><br><br>
+
+<h1>Редактирование позиции</h1>
+
+
+<form action="{% url 'receipt_document_edit' number_edit_good %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="form-error">{{ form.non_field_errors }}</div>
+
+<p>Количество: <input name="quantity"></p>
+
+    <button type="submit">Сохранить</button>
+
+   
+</form>
+
+
+
+
+
+{% endblock %}
+
+

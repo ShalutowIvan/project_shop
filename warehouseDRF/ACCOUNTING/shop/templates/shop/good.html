@@ -11,10 +11,8 @@
 
 		<li>
 			<a href="{% url 'group_show' i.slug %}">{{ i.name_group }}</a>
-
 		</li>
 		<br>
-
 
 {% endfor %}
 
@@ -28,6 +26,11 @@
 &nbsp &nbsp
 
 <a href="{% url 'group_add' %}"><button class="add_good">Добавить группу товара</button></a>
+
+&nbsp &nbsp
+
+<a href="{% url 'goods_load_file' %}"><button class="add_good">Загрузить файл</button></a>
+
 
 <br>
 <br>

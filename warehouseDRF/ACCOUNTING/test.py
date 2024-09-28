@@ -42,24 +42,28 @@ from typing import Literal, TypeAlias, Optional, TypeVar
 # class Number(N):
 # 	n: N
 
-S = TypeVar('S', str)
-# S = TypeVar('S', bound=str)
+# S = TypeVar('S', str)
+# # S = TypeVar('S', bound=str)
+
+# # def func[S: str](x: S) -> S:
+# # 	return x
 
 # def func[S: str](x: S) -> S:
-# 	return x
+#     """Печатает x с заглавной буквы и возвращает x."""
+#     print(x.capitalize())
+#     return x
 
-def func[S: str](x: S) -> S:
-    """Печатает x с заглавной буквы и возвращает x."""
-    print(x.capitalize())
-    return x
+# a = func(x="asd")
+# print(a)
+
+# from transliterate import translit
+# ru_text = "Вася"
+# text = translit(ru_text, language_code='ru', reversed=True)
+# print(text)
 
 
 
+a = "asd"
+a = a.title()
 
-a = func(x="asd")
 print(a)
-
-
-
-
-

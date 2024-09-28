@@ -3,6 +3,7 @@
 
 {% block content %}
 
+<h1>Отчет при приходу</h1>
 
 <form action="{% url 'income_report' %}" method="post" enctype="multipart/form-data">
     {% csrf_token %}

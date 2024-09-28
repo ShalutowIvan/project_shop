@@ -14,7 +14,9 @@
 <!--тут отрисовка списка товаров-->
 {% for i in receipt_good_list %}
 
-<h3>{{ i.product }} | {{ i.quantity }}  {% if receipt_doc.state == False %} <a href="{% url 'receipt_delete_goods' i.id %}"><button class="delete_receipt">Удалить товар</button></a> {% endif %} </h3>
+<h3>{{ i.product }} | {{ i.quantity }}  {% if receipt_doc.state == False %} 
+	<a href="{% url 'receipt_document_edit' i.id %}"><button class="edit_receipt">Изменить товар</button></a> 
+	<a href="{% url 'receipt_delete_goods' i.id %}"><button class="delete_receipt">Удалить товар</button></a> {% endif %} </h3>
 
 
 {% endfor %}

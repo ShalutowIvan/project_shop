@@ -75,7 +75,7 @@ def synchronization(request):
 
 		return render(request, "shop/synchro_error.html", context=context )
 
-
+#список заказов
 class Order_list(ListView):
     # paginate_by = 11
     # model = Goods
@@ -90,12 +90,6 @@ class Order_list(ListView):
 		db_order = Order_list_bought.objects.all()
         		
 		res = {}
-		# for i in db_order:
-		# 	if res.get(i.order_number) == None:
-		# 		res[i.order_number] = [i.fio, i.phone, i.time_create, i.delivery_address, [[i.product_id, i.quantity], ] ]
-		# 	else:
-		# 		res[i.order_number][4] += [[i.product_id, i.quantity], ]
-
 		for i in db_order:
 			if res.get(i.order_number) == None:
 				res[i.order_number] = [i.fio, i.phone, i.time_create, i.state_order]
@@ -107,6 +101,44 @@ class Order_list(ListView):
 			context['org'] = org[0]
 
 		return context
+
+
+#фильтры заказов тут сделать. Можно просто функции, 3 кнопки, проведенные, не проведенные, все. Сделал их в отдельном блоке в html. 
+def order_completed(request):
+	db_order = Order_list_bought.objects.filter(state_order=True)
+
+	context = {}
+	res = {}
+	for i in db_order:
+		if res.get(i.order_number) == None:
+			res[i.order_number] = [i.fio, i.phone, i.time_create, i.state_order]
+			
+	context["order_list"] = res
+
+	org = Organization.objects.all()
+	if org:
+		context['org'] = org[0]
+
+	return render(request, "shop/order_list_completed.html", context=context)
+
+
+def order_not_completed(request):
+	db_order = Order_list_bought.objects.filter(state_order=False)
+
+	context = {}
+	res = {}
+	for i in db_order:
+		if res.get(i.order_number) == None:
+			res[i.order_number] = [i.fio, i.phone, i.time_create, i.state_order]
+			
+	context["order_list"] = res
+
+	org = Organization.objects.all()
+	if org:
+		context['org'] = org[0]
+
+	return render(request, "shop/order_list_completed.html", context=context)
+
 
 
 #функция открыть заказ. 
@@ -178,9 +210,7 @@ def order_list_deactivate(request, order_deactivate):
 	return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
-
 #отображение списка товаров
-
 class Goods_list(ListView):
     paginate_by = 10
     model = Goods
@@ -203,36 +233,6 @@ class Goods_list(ListView):
         
         return context
 
-
-# class Group_show(ListView):
-#     paginate_by = 10
-#     model = Goods
-#     template_name = 'shop/good_group.html'
-#     context_object_name = 'gd'
-#     allow_empty = True
-
-#     def get_queryset(self):        
-#         return Goods.objects.filter(group__slug=self.kwargs['group_slug'])
-
-#     def get_context_data(self, *, object_list=None, **kwargs):
-#         context = super().get_context_data(**kwargs)
-        
-#         # if len(context['goods']) == 0:
-#         #     context['title'] = 'Группа - ' + "Пусто"
-#         # else:
-#         #     context['title'] = 'Группа - ' + str(context['goods'][0].group)
-
-#         # context["goods"] = Goods.objects.filter(group.slug)
-
-
-
-
-#         org = Organization.objects.all()
-#         if org:
-#             context['org'] = org[0]
-        
-
-#         return context
 
 @login_required
 def group_show(request, group_slug):
@@ -278,9 +278,6 @@ class Get_order(APIView):
 
 		return Response(Order_get_Serializer(instance=order, many=True).data)
 		
-
-
-
 
 #добавление группы товаров
 
@@ -336,6 +333,145 @@ class Goods_add(CreateView):
         # возвращаем form_valid предка
         return super().form_valid(form)
 
+import os
+import pandas as pd
+from transliterate import translit
+
+#загрузка файла с товарами
+def goods_load_file(request):	
+
+	if request.method == 'POST':		
+		p = request.POST
+		f = request.FILES
+		file = request.FILES['load_file']
+		
+		db_goods = pd.read_excel(file)
+		# context = {"goods_in_file": db_goods}#тут объект <class 'pandas.core.frame.DataFrame'>
+
+
+		# print(type(db_goods))#тип <class 'pandas.core.frame.DataFrame'>
+		# keys - для извлечения ключей
+		# values - для извлечения значений
+		# items - для извленичения ключей и значений
+		# далее в доку если нужно что-то еще для DataFrame из pandas
+
+		groups_query = Group.objects.all()
+		groups = [i.name_group.lower() for i in groups_query]
+		goods = []
+
+		for i in db_goods.values:
+			if i[4].lower() in groups:				
+				goods.append(
+				Goods(
+				name_product=i[0], 
+				slug=translit(i[0], language_code='ru', reversed=True), 
+				vendor_code=i[1], 
+				price=i[2],
+				stock=i[3],
+				group=Group.objects.get(name_group=i[4].title()),
+				user=request.user
+				) )
+			else:
+				group_obj = Group(name_group=i[4].title(), slug=translit(i[4], language_code='ru', reversed=True))
+				# иначе создаем новую группу
+				group_obj.save()
+				goods.append(
+				Goods(
+				name_product=i[0], 
+				slug=translit(i[0], language_code='ru', reversed=True), 
+				vendor_code=i[1], 
+				price=i[2],
+				stock=i[3],
+				group=group_obj,
+				user=request.user
+				) )
+
+		goods_create = Goods.objects.bulk_create(goods)
+		# return redirect('goods_pars_file', fields)
+		# return render(request, 'goods_pars_file', context=context)
+		return redirect('goods_list')
+	
+	# context = {'form': form}
+	context = {}
+
+	return render(request, 'shop/good_load_file.html', context=context)    
+
+
+def create_empty_excel(columns: list, filename: str, sheet_name: str = 'Sheet1'):
+    df = pd.DataFrame(columns=columns)
+
+    if not os.path.exists('excel_files'):
+        os.makedirs('excel_files')
+
+    filepath = os.path.join('excel_files', filename)
+    excel_writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
+    df.to_excel(excel_writer, index=False, sheet_name=sheet_name, freeze_panes=(1, 0))
+    excel_writer._save()
+
+    return filepath
+
+
+def url_from_load_pattern(request):
+	filepath = create_empty_excel(columns=["Название", "Артикул", "Цена", "Остаток", "Группа"], filename="Шаблон для загрузки товаров.xlsx")
+
+	return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+
+# ВИДЕО по скачиванию файла
+# https://www.youtube.com/watch?v=JMNq4sDKkTc
+
+# https://www.youtube.com/watch?v=xPRA4jixCX8
+# https://www.youtube.com/watch?v=tquWqkgU1X0
+
+
+# https://ru.stackoverflow.com/questions/1203933/django-python-%D0%90%D0%B2%D1%82%D0%BE%D0%BC%D0%B0%D1%82%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B5-%D1%81%D0%BA%D0%B0%D1%87%D0%B8%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-%D1%84%D0%B0%D0%B9%D0%BB%D0%BE%D0%B2
+
+
+
+#код для загрузки файла
+# https://stackoverflow.com/questions/36392510/django-download-a-file/36394206#36394206
+
+# import os
+# from django.conf import settings
+# from django.http import HttpResponse, Http404
+
+# def download(request, path):
+#     file_path = os.path.join(settings.MEDIA_ROOT, path)
+#     if os.path.exists(file_path):
+#         with open(file_path, 'rb') as fh:
+#             response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
+#             response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+#             return response
+#     raise Http404
+
+
+
+
+
+
+#урл для парсинга файла с товарами и записи товаров в базу
+# def goods_pars_file(request):#как сюда передать датафрейм или лист не знаю, в джанго урл надо это прописать хз как. Нужно закинуть в контекст фрейм
+
+# 	#вариант с формой
+# 	if request.method == 'POST':
+# 		# form = Parse_file(data=request.POST)
+		
+			
+
+
+
+# 		return redirect('goods_list')
+
+# 	# else:
+# 	# 	form = Parse_file()
+
+# 	# , "goods": goods
+# 	# 'form': form,
+# 	context = {}
+
+# 	return render(request, 'shop/good_parse_file.html', context=context)    
+
+	
 
 
 #список накладных просто вывод
@@ -350,6 +486,11 @@ def receipt_list(request):
 		context['org'] = org[0]
 
 	return render(request, "shop/receipt_list.html", context=context)
+
+
+#загузка файла накладной.
+
+
 
 
 #создание документа - добавить документ с добавлением коммента. После создания документа он сразу открывается - редирект на урл receipt_document_open
@@ -375,8 +516,8 @@ def receipt_document_create(request):
 #приходный документ - открытие
 @login_required
 def receipt_document_open(request, open_receipt):
-	receipt_open = Receipt_number.objects.get(id=open_receipt)
-	receipt_good_list = Receipt_list.objects.filter(number_receipt=open_receipt)
+	receipt_open = Receipt_number.objects.get(id=int(open_receipt))
+	receipt_good_list = Receipt_list.objects.filter(number_receipt=int(open_receipt))
 	context = {"number": open_receipt, 'receipt_good_list': receipt_good_list, "receipt_doc": receipt_open}
 
 	org = Organization.objects.all()
@@ -385,6 +526,34 @@ def receipt_document_open(request, open_receipt):
 		context['org'] = org[0]
 
 	return render(request, "shop/receipt_open.html", context=context)
+
+
+#редактирование позиции в накладной
+def receipt_document_edit(request, number_edit_good):
+
+	if request.method == 'POST':
+		form = Receipt_edit_goods_form(data=request.POST)
+		if form.is_valid():			
+			
+			quantity = form.cleaned_data.get("quantity")
+			good_edit = Receipt_list.objects.get(id=number_edit_good)
+			good_edit.quantity = quantity
+			
+			good_edit.save()
+
+			# print(type(number_edit_good))
+
+			return redirect('receipt_document_open', good_edit.number_receipt)
+
+	else:
+		form = Receipt_edit_goods_form()
+
+	context = {'form': form, "number_edit_good": number_edit_good}
+	
+
+	return render(request, "shop/receipt_goods_edit.html", context=context)
+
+
 
 
 #проведение документа - то функция после которой меняется статус документа и добавляется товар на остаток на основании документа
@@ -652,7 +821,7 @@ def income_report(request):
 			if org:
 				context['org'] = org[0]
 			
-			return render(request, "shop/receipt_list.html", context=context)
+			return render(request, "shop/report_list_income.html", context=context)
 
 	else:
 		form = Date_report_income()
@@ -682,7 +851,7 @@ def expense_report(request):
 			if org:
 				context['org'] = org[0]
 			
-			return render(request, "shop/receipt_list.html", context=context)
+			return render(request, "shop/report_list_expense.html", context=context)
 
 	else:
 		form = Date_report_income()
@@ -696,6 +865,8 @@ def expense_report(request):
 	return render(request, "shop/reports_expense.html", context=context)
 	
 
+
+# <a href="{% url 'order_list_open' i %}"><button class="open_order">Открыть заказ</button></a> тут ошибка
 #отчет по продажам
 def sales_report(request):
 
@@ -704,15 +875,17 @@ def sales_report(request):
 		if form.is_valid():			
 			d_from = form.cleaned_data.get("date_from")
 			d_by = form.cleaned_data.get("date_by")
+			
+			order_list = Order_list_bought.objects.filter(time_create__gte=d_from, time_create__lte=d_by)#тут сделать запрос другой, подумать
+			print("!!!!!!!!!!!!!!!!!!!!")
+			print(order_list)
 
-			rec_list = Order_list_bought.objects.filter(time_create__gte=d_from, time_create__lte=d_by)#тут сделать запрос другой, подумать
-
-			context = {"receipt_list_view": rec_list}
+			context = {"order_list": order_list}
 			org = Organization.objects.all()
 			if org:
 				context['org'] = org[0]
 			
-			return render(request, "shop/тут другой файл сделать надо.html", context=context)
+			return render(request, "shop/report_sales_list.html", context=context)
 
 	else:
 		form = Date_report_income()
@@ -726,14 +899,46 @@ def sales_report(request):
 	return render(request, "shop/reports_sales.html", context=context)
 
 
+#тут товар и сколько всего продано этого товара за период
+def sales_report_summary(request):
+
+	if request.method == 'POST':
+		form = Date_report_income(data=request.POST)
+		if form.is_valid():			
+			d_from = form.cleaned_data.get("date_from")
+			d_by = form.cleaned_data.get("date_by")
+
+			order_list = Order_list_bought.objects.filter(time_create__gte=d_from, time_create__lte=d_by)
+			
+			
+			report_quantity = {}
+			for i in order_list:
+				if i.state_order == True:
+					if report_quantity.get(i.product_id) == None:
+						report_quantity[i.product_id] = i.quantity
+					else:
+						report_quantity[i.product_id] += i.quantity
+
+			
+			context = {"report_quantity": report_quantity}
 
 
+			org = Organization.objects.all()
+			if org:
+				context['org'] = org[0]
+			
+			return render(request, "shop/report_sales_summary_list.html", context=context)
 
+	else:
+		form = Date_report_income()
 
+	context = {'form': form}
 
-	
+	org = Organization.objects.all()
+	if org:
+		context['org'] = org[0]
 
-
+	return render(request, "shop/reports_sales_summary.html", context=context)
 
 
 
@@ -744,5 +949,6 @@ def sales_report(request):
 #                    mixins.ListModelMixin,
 #                    viewsets.GenericViewSet):
 # 	pass
+
 
 

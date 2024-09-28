@@ -1,0 +1,27 @@
+{% extends 'shop/good.html' %}
+
+
+{% block goods %}
+
+<br><br>
+
+
+<a href="{% url 'url_from_load_pattern' %}"><button class="load_pattern">Скачать шаблон файла</button></a>
+
+<br><br>
+<form action="{% url 'goods_load_file' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+<!-- enctype="multipart/form-data" это для передачи файлов любых, картинок xls и тд-->
+
+	<p>Загрузка файла: <input type="file" name="load_file" ></p>
+
+    <button type="submit">Загрузить файл</button>
+
+</form>
+
+
+
+{% endblock %}
+
+

@@ -1,18 +1,10 @@
-{% extends 'shop/start.html' %}
-
-
-{% block content %}
-
-
-<!-- тут кнопки для фильтров -->
-<a href="{% url 'order_list' %}"><button class="all_order">Все заказы</button></a>
-<a href="{% url 'order_completed' %}"><button class="completed_order">Проведенные заказы</button></a>
-<a href="{% url 'order_not_completed' %}"><button class="completed_order">Не проведенные заказы</button></a>
-
-<br>
+{% extends 'shop/order_list.html' %}
 
 
 {% block orders %}
+
+
+<!-- тут кнопки для фильтров -->
 
 {% for i, j in order_list.items %}
 
@@ -42,7 +34,7 @@
 
 {% endfor %}
 
-{% endblock %}
+
 
 
 

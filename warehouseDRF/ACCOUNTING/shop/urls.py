@@ -21,16 +21,22 @@ urlpatterns = [
     path('', Home.as_view(), name='start'),
     path('synchronization_order/', synchronization, name='synchronization'),
     path('order_list/', Order_list.as_view(), name='order_list'),
+    path('order_list/completed/', order_completed, name='order_completed'),
+    path('order_list/not_completed/', order_not_completed, name='order_not_completed'),
+
     path('order_list/open/<int:order_number>/', order_list_open, name='order_list_open'),
     path('order_list/open/activate/<int:order_activate>/', order_list_activate, name='order_list_activate'),
     path('order_list/open/deactivate/<int:order_deactivate>/', order_list_deactivate, name='order_list_deactivate'),
-
-
     
     path('good_list/', Goods_list.as_view(), name='goods_list'),
     path('good_list/group_show/<slug:group_slug>/', group_show, name='group_show'),
     path('good_list/add/', Goods_add.as_view(), name='goods_add'),
     path('good_list/add_group/', Group_add.as_view(), name='group_add'),
+    
+    path('good_list/load_file/', goods_load_file, name='goods_load_file'),
+    path('good_list/load_file/url_from_load_pattern/', url_from_load_pattern, name='url_from_load_pattern'),
+
+
     #приходный документ
     path('receipt/list/view/', receipt_list, name='receipt_list'),
     path('receipt/list/view/create/', receipt_document_create, name='receipt_document_create'),
@@ -38,6 +44,7 @@ urlpatterns = [
     path('receipt/list/view/open/<int:open_receipt>/', receipt_document_open, name='receipt_document_open'),
     path('receipt/list/view/open/add_goods/<int:number_doc>/', receipt_add_goods, name='receipt_add_goods'),
     path('receipt/list/view/open/delete_goods/<int:number_delete_good>/', receipt_delete_goods, name='receipt_delete_goods'),
+    path('receipt/list/view/open/edit_goods/<int:number_edit_good>/', receipt_document_edit, name='receipt_document_edit'),
     path('receipt/list/view/open/activate/<int:receipt_activate>/', receipt_document_activate, name='receipt_document_activate'),
     path('receipt/list/view/open/deactivate/<int:receipt_deactivate>/', receipt_document_deactivate, name='receipt_document_deactivate'),
     #расходный документ
@@ -54,6 +61,7 @@ urlpatterns = [
     path('reports/income_report/', income_report, name='income_report'),
     path('reports/expense_report/', expense_report, name='expense_report'),
     path('reports/sales_report/', sales_report, name='sales_report'),
+    path('reports/sales_report_summary/', sales_report_summary, name='sales_report_summary'),
     
     # path('group/<slug:group_slug>/', GroupShow.as_view(), name='group'),
     # path('order/list/', Order_list_view.as_view(), name='order_list'),

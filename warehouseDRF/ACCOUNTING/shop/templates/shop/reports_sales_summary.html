@@ -3,22 +3,21 @@
 
 {% block content %}
 
-<h1>Отчет про списаниям</h1>
+<h1>Отчет по количеству проданного товара</h1>
 
-<form action="{% url 'expense_report' %}" method="post" enctype="multipart/form-data">
+<form action="{% url 'sales_report_summary' %}" method="post" enctype="multipart/form-data">
     {% csrf_token %}
 
     <div class="form-error">{{ form.non_field_errors }}</div>
 
 <p>Дата с: <input name="date_from" type="date"></p>
 <p>Дата по: <input name="date_by" type="date"></p>
-<!-- <p><input name="fio" placeholder="введите ФИО"></p> -->
+
 
     <button type="submit">Сформировать</button>
 
    
 </form>
-
 
 
 

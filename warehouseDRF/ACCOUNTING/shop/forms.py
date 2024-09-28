@@ -77,14 +77,22 @@ class Date_report_income(forms.Form):
     
     date_from = forms.DateTimeField()
     date_by = forms.DateTimeField()
-    # DateField
+    
 
 
-    # date_from = models.CharField()
-    # date_from = datetime(year=1, month=1, day=1)
-    # date_by = models.CharField()
+class Receipt_edit_goods_form(forms.Form):
+    
+    quantity = forms.FloatField()
 
-# date(year, month, day)
-# date(year, month, day)
+
+# class Load_file(forms.Form):
+    
+#     file = forms.FileField()
+#     file_path = forms.FilePathField()
+
+
+class Parse_file(forms.Form):
+    pass
+
 
 

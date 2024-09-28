@@ -1,0 +1,29 @@
+{% extends 'shop/start.html' %}
+
+
+{% block content %}
+
+
+<br><br><br>
+<h1>Отчет по расходным документам</h1>
+
+
+{% for j in receipt_list_view %}
+
+<h1> Номер: {{j.id}} || Дата: {{j.time_create}} || <a href="{% url 'receipt_document_open' j.id %}"><button class="open_receipt">Открыть документ</button></a> || {% if j.state == False %} <a href="{% url 'receipt_document_delete' j.id %}"><button class="delete_receipt">Удалить документ</button></a> {% endif %} </h1>
+
+{% if j.state %}
+<h1>Проведен</h1>
+{% endif %}
+
+<h3>Комментарий: {{j.comment}}</h3>
+<p>__________________________________________________</p>
+
+{% endfor %}
+
+
+
+
+{% endblock %}
+
+

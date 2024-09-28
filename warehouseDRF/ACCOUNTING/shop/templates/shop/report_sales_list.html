@@ -1,0 +1,43 @@
+{% extends 'shop/start.html' %}
+
+
+{% block content %}
+
+<h1>Отчет по заказам по дате</h1>
+
+{% for i in order_list %}
+
+<!-- <div id="orders"> -->
+
+<h2>Заказ № {{ i.order_number }} | Статус заказа: {{ i.state_order }}</h2>
+<h3>Покупатель: {{ i.fio }}</h3>
+<h3>Товар: {{ i.product_id }} | Количество: {{ i.quantity }} | Дата заказа: {{ i.time_create }} | </h3>
+
+
+<!-- <h3>{{ j.0 }}</h3>
+<h3>{{ j.1 }}</h3>
+<h3>{{ j.2 }}</h3>
+ -->
+<!-- {% if j.3 == True %}
+
+<h3>Статус: Проведен</h3>
+
+{% else %}
+
+<h3>Статус: Не проведен</h3>
+
+{% endif %} -->
+
+
+
+
+<!-- </div> -->
+
+
+{% endfor %}
+
+
+
+
+
+{% endblock %}

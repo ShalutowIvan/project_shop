@@ -1,0 +1,36 @@
+{% extends 'shop/good.html' %}
+
+
+{% block goods %}
+
+<br>
+
+<form action="{% url 'goods_pars_file' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+<!-- enctype="multipart/form-data" это для передачи файлов любых, картинок xls и тд-->
+
+
+    <p>Если это название укажите 1 <input type="range" min="1" max="10" name="name" ></p>
+
+
+	<p>Если это название укажите 1 <input type="number" name="name" ></p>
+    <p>Если это ссылка укажите 2 <input type="number" name="slug" ></p>
+    <p>Если это артикул укажите 3 <input type="number" name="vendor_code" ></p>
+    <p>Если это цена укажите 4 <input type="number" name="price" ></p>    
+    <p>Если это остаток укажите 5 <input type="number" name="stock" ></p>
+    <p>Если это группа укажите 6 <input type="number" name="group" ></p>
+    <br>
+    <p>Это не нужно редактировать <input type="number" name="user" value=1></p>
+    <!-- <p> <input type="number" name="photo" ></p> -->
+
+<!-- value это для значения по умолчанию в форме -->
+    <button type="submit">Добавить товары</button>
+
+</form>
+
+
+
+{% endblock %}
+
+

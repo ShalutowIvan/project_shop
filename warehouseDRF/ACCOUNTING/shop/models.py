@@ -3,13 +3,13 @@ from django.contrib.auth.models import User
 
 class Goods(models.Model):
 	name_product = models.CharField(max_length=255, default='_', verbose_name="Название товара")
-	slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name="URL")
+	slug = models.SlugField(max_length=255, default="_", unique=True, db_index=True, verbose_name="URL")
 	vendor_code = models.CharField(max_length=255, default='_', verbose_name="Артикул")
-	price = models.DecimalField(max_digits=19, decimal_places=2, verbose_name="Цена")
-	photo = models.ImageField(upload_to="photos/%Y/%m/%d/", verbose_name="Фото")
-	stock = models.FloatField(verbose_name="Остаток")
-	availability = models.BooleanField(default=True, verbose_name="Доступность")
-	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара", null=True)
+	price = models.DecimalField(max_digits=19, default=0, decimal_places=2, verbose_name="Цена")
+	photo = models.ImageField(default="_", upload_to="photos/%Y/%m/%d/", verbose_name="Фото")
+	stock = models.FloatField(default=0, verbose_name="Остаток")
+	availability = models.BooleanField(default=True, verbose_name="Доступность")#если товар не доступен, он должен исчезнуть на витрине
+	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара", null=False, default=None)
 	user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь",)
 
 	def __str__(self):
@@ -79,8 +79,8 @@ class Order_list_bought(models.Model):
 	state_order = models.BooleanField(default=False, verbose_name="состояние заказа")
 
 
-	def __str__(self):
-		return f"Товар: {self.product_id}, Количество: {self.quantity}"
+	# def __str__(self):
+	# 	return f"Товар: {self.product_id}, Количество: {self.quantity}"
 
 
 	class Meta:
