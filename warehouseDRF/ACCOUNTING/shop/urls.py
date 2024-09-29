@@ -32,9 +32,10 @@ urlpatterns = [
     path('good_list/group_show/<slug:group_slug>/', group_show, name='group_show'),
     path('good_list/add/', Goods_add.as_view(), name='goods_add'),
     path('good_list/add_group/', Group_add.as_view(), name='group_add'),
+    path('good_list/goods_modify/<int:good_id>/', goods_modify, name='goods_modify'),
     
     path('good_list/load_file/', goods_load_file, name='goods_load_file'),
-    path('good_list/load_file/url_from_load_pattern/', url_from_load_pattern, name='url_from_load_pattern'),
+    path('good_list/load_file/url_from_load_template/', url_from_load_template, name='url_from_load_template'),
 
 
     #приходный документ

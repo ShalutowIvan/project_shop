@@ -66,14 +66,7 @@ class Expense_add_goods_form(forms.ModelForm):
         fields = ['product', 'quantity', ]
 
 #форма для даты при формировании отчета по продажам
-class Date_report_income(forms.Form):
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-
-
-    # class Meta:
-    #     model = Receipt_number
-    #     fields = ['time_create',]
+class Date_report_income(forms.Form):    
     
     date_from = forms.DateTimeField()
     date_by = forms.DateTimeField()
@@ -84,15 +77,19 @@ class Receipt_edit_goods_form(forms.Form):
     
     quantity = forms.FloatField()
 
-
-# class Load_file(forms.Form):
+#для редактирования товара
+class Goods_modify(forms.Form):
+    # name_product = forms.CharField(max_length=255)
+    # slug = models.SlugField(max_length=255, default="_", unique=True, db_index=True, verbose_name="URL")
+    # vendor_code = forms.CharField(max_length=255)
+    # price = forms.DecimalField(max_digits=19, decimal_places=2)
+    photo = forms.ImageField()
+    # upload_to="photos/%Y/%m/%d/"
+    # stock = models.FloatField(default=0, verbose_name="Остаток")
+    # availability = models.BooleanField(default=True, verbose_name="Доступность")#если товар не доступен, он должен исчезнуть на витрине
+    # group = forms.ModelChoiceField(queryset=Group.objects.all())#выбор группы
     
-#     file = forms.FileField()
-#     file_path = forms.FilePathField()
 
-
-class Parse_file(forms.Form):
-    pass
 
 
 

@@ -1,0 +1,32 @@
+{% extends 'shop/good.html' %}
+
+
+{% block goods %}
+
+<br><br>
+
+
+<form action="{% url 'goods_modify' good_id %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+<!-- enctype="multipart/form-data" это для передачи файлов любых, картинок xls и тд-->
+<div class="form-error">{{ form.non_field_errors }}</div>
+
+
+<p><label class="form-label" for="{{ form.photo.id_for_label }}">Комментарий: </label>{{ form.photo }}</p>
+
+
+
+
+    <button type="submit">Сохранить изменения</button>
+
+</form>
+
+
+value={{ good.name_product }}
+
+
+
+{% endblock %}
+
+

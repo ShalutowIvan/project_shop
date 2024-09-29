@@ -61,9 +61,6 @@ from typing import Literal, TypeAlias, Optional, TypeVar
 # text = translit(ru_text, language_code='ru', reversed=True)
 # print(text)
 
+a = {1: 2, "asd": 333}
+print(333 in a.values())
 
-
-a = "asd"
-a = a.title()
-
-print(a)

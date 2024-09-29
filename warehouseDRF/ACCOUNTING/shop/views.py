@@ -1,5 +1,5 @@
 from django.shortcuts import render, HttpResponseRedirect, redirect, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from django.views.generic import ListView, DetailView, CreateView
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required
@@ -22,7 +22,8 @@ from django.forms import model_to_dict
 from .forms import *
 
 import requests
-
+import pandas as pd
+from transliterate import translit
 
 
 class Home(ListView):
@@ -333,9 +334,6 @@ class Goods_add(CreateView):
         # возвращаем form_valid предка
         return super().form_valid(form)
 
-import os
-import pandas as pd
-from transliterate import translit
 
 #загрузка файла с товарами
 def goods_load_file(request):	
@@ -348,73 +346,120 @@ def goods_load_file(request):
 		db_goods = pd.read_excel(file)
 		# context = {"goods_in_file": db_goods}#тут объект <class 'pandas.core.frame.DataFrame'>
 
-
-		# print(type(db_goods))#тип <class 'pandas.core.frame.DataFrame'>
-		# keys - для извлечения ключей
-		# values - для извлечения значений
-		# items - для извленичения ключей и значений
-		# далее в доку если нужно что-то еще для DataFrame из pandas
-
 		groups_query = Group.objects.all()
 		groups = [i.name_group.lower() for i in groups_query]
+		goods_query = Goods.objects.all()
+		goods_in_base = { i.name_product: i.vendor_code for i in goods_query }
+		
 		goods = []
+		try:
+			for i in db_goods.values:				
+				if goods_in_base.get(i[0]) != None or i[1] in goods_in_base.values():
+					continue
 
-		for i in db_goods.values:
-			if i[4].lower() in groups:				
-				goods.append(
-				Goods(
-				name_product=i[0], 
-				slug=translit(i[0], language_code='ru', reversed=True), 
-				vendor_code=i[1], 
-				price=i[2],
-				stock=i[3],
-				group=Group.objects.get(name_group=i[4].title()),
-				user=request.user
-				) )
-			else:
-				group_obj = Group(name_group=i[4].title(), slug=translit(i[4], language_code='ru', reversed=True))
-				# иначе создаем новую группу
-				group_obj.save()
-				goods.append(
-				Goods(
-				name_product=i[0], 
-				slug=translit(i[0], language_code='ru', reversed=True), 
-				vendor_code=i[1], 
-				price=i[2],
-				stock=i[3],
-				group=group_obj,
-				user=request.user
-				) )
+				if i[4].lower() in groups:	
+					goods.append(
+					Goods(
+					name_product=i[0], 
+					slug=translit(i[0], language_code='ru', reversed=True), 
+					vendor_code=i[1], 
+					price=i[2],
+					stock=i[3],
+					group=Group.objects.get(name_group=i[4].title()),
+					user=request.user
+					) )
+				else:
+					group_obj = Group(name_group=i[4].title(), slug=translit(i[4], language_code='ru', reversed=True))
+					# иначе создаем новую группу
+					group_obj.save()
+					goods.append(
+					Goods(
+					name_product=i[0], 
+					slug=translit(i[0], language_code='ru', reversed=True), 
+					vendor_code=i[1], 
+					price=i[2],
+					stock=i[3],
+					group=group_obj,
+					user=request.user
+					) )
 
-		goods_create = Goods.objects.bulk_create(goods)
-		# return redirect('goods_pars_file', fields)
-		# return render(request, 'goods_pars_file', context=context)
-		return redirect('goods_list')
-	
-	# context = {'form': form}
-	context = {}
+			if goods != []:
+				goods_create = Goods.objects.bulk_create(goods)
+			return redirect('goods_list')
+		
+		except Exception as ex:
+			# groups_update = Group.objects.all()
+			context = {"groups": groups_query, "error": ex}
+
+			return render(request, 'shop/error_with_loadfile.html', context=context)  
+			
+	groups = Group.objects.all()
+	context = {"groups": groups}
 
 	return render(request, 'shop/good_load_file.html', context=context)    
 
 
-def create_empty_excel(columns: list, filename: str, sheet_name: str = 'Sheet1'):
-    df = pd.DataFrame(columns=columns)
-
-    if not os.path.exists('excel_files'):
-        os.makedirs('excel_files')
-
-    filepath = os.path.join('excel_files', filename)
-    excel_writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
-    df.to_excel(excel_writer, index=False, sheet_name=sheet_name, freeze_panes=(1, 0))
-    excel_writer._save()
-
-    return filepath
+#скачивание шаблона для загрузки файла
+def url_from_load_template(request):
+	# filepath = create_empty_excel(columns=["Название", "Артикул", "Цена", "Остаток", "Группа"], filename="Шаблон для загрузки товаров.xlsx")
+	response = FileResponse(open(r"C:\Users\shalutov\Desktop\python\INTERNET_MARKET\DRF_ACCOUNTING\ACCOUNTING\shop\static\shop\xls\template.xlsx", 'rb'))
+	#подумать что сделать со ссылкой на файл шаблона, он у меня берется по абсолютной ссылке, и на другом пк не будет работать
+	return response
 
 
-def url_from_load_pattern(request):
-	filepath = create_empty_excel(columns=["Название", "Артикул", "Цена", "Остаток", "Группа"], filename="Шаблон для загрузки товаров.xlsx")
+#редактирование и удаление товара
+def goods_modify(request, good_id):
+	good = Goods.objects.get(id=good_id)
 
-	return HttpResponseRedirect(request.META['HTTP_REFERER'])
+	if request.method == 'POST':
+		form = Goods_modify(data=request.POST)
+		if form.is_valid():
+			# comm = form.save(commit=False)
+			# comm.save()
+			# тут заменяем полями из формы все поля из объекта товара
+			# good.
+			
+
+
+
+			return redirect('goods_list')
+
+	else:
+		form = Goods_modify()
+
+	context = {'form': form, "good_id": good_id, "good": good}#заполнить форму данными из товара автоматом, чтобы потом их можно было поменять, good это объект товара нужного, который редачим. Значения в форму джанго не подтягиваются. Можно попробовать заменгить форму джанго на обычную, но тогда нужно будет думать что делать с картинкой
+
+	return render(request, 'shop/good_modify.html', context=context)
+
+	# shop/good_add.html
+	# good_modify.html
+	
+
+# <p><label class="form-label" for="{{ form.name_product.id_for_label }}">Название товара: </label>{{  form.name_product | default:good.name_product }} </p>
+# <p><label class="form-label" for="{{ form.vendor_code.id_for_label }}">Комментарий: </label>{{ form.vendor_code }}</p>
+# <p><label class="form-label" for="{{ form.price.id_for_label }}">Комментарий: </label>{{ form.price }}</p>
+# <p><label class="form-label" for="{{ form.group.id_for_label }}">Комментарий: </label>{{ form.group }}</p>
+
+
+
+
+#урл для создания файла. сохранится на сервер
+# def create_empty_excel(columns: list, filename: str, sheet_name: str = 'Sheet1'):
+#     df = pd.DataFrame(columns=columns)
+
+#     if not os.path.exists('excel_files'):
+#         os.makedirs('excel_files')
+
+#     filepath = os.path.join('excel_files', filename)
+#     excel_writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
+#     df.to_excel(excel_writer, index=False, sheet_name=sheet_name, freeze_panes=(1, 0))
+#     excel_writer._save()
+
+#     return filepath
+
+
+
+	
 
 
 # ВИДЕО по скачиванию файла
@@ -455,11 +500,7 @@ def url_from_load_pattern(request):
 # 	#вариант с формой
 # 	if request.method == 'POST':
 # 		# form = Parse_file(data=request.POST)
-		
 			
-
-
-
 # 		return redirect('goods_list')
 
 # 	# else:
