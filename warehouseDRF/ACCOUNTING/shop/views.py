@@ -425,16 +425,20 @@ def goods_modify(request, good_id):
 			return redirect('goods_list')
 
 	else:
-		form = Goods_modify()
+		form = Goods_modify(files=good)
 
 	context = {'form': form, "good_id": good_id, "good": good}#заполнить форму данными из товара автоматом, чтобы потом их можно было поменять, good это объект товара нужного, который редачим. Значения в форму джанго не подтягиваются. Можно попробовать заменгить форму джанго на обычную, но тогда нужно будет думать что делать с картинкой
+	print("ФОРМА ТУТ!!!!!!!!!!!!!!!!!!!!")
+	# form.data = "123"
+	# print(form.name_product)
+
 
 	return render(request, 'shop/good_modify.html', context=context)
 
 	# shop/good_add.html
 	# good_modify.html
 	
-
+# <p><label class="form-label" for="{{ form.photo.id_for_label }}">Комментарий: </label>{{ form.photo }}</p>
 # <p><label class="form-label" for="{{ form.name_product.id_for_label }}">Название товара: </label>{{  form.name_product | default:good.name_product }} </p>
 # <p><label class="form-label" for="{{ form.vendor_code.id_for_label }}">Комментарий: </label>{{ form.vendor_code }}</p>
 # <p><label class="form-label" for="{{ form.price.id_for_label }}">Комментарий: </label>{{ form.price }}</p>

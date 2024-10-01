@@ -79,15 +79,15 @@ class Receipt_edit_goods_form(forms.Form):
 
 #для редактирования товара
 class Goods_modify(forms.Form):
-    # name_product = forms.CharField(max_length=255)
+    name_product = forms.CharField(max_length=255)
     # slug = models.SlugField(max_length=255, default="_", unique=True, db_index=True, verbose_name="URL")
     # vendor_code = forms.CharField(max_length=255)
     # price = forms.DecimalField(max_digits=19, decimal_places=2)
-    photo = forms.ImageField()
+    # photo = forms.ImageField()
     # upload_to="photos/%Y/%m/%d/"
     # stock = models.FloatField(default=0, verbose_name="Остаток")
     # availability = models.BooleanField(default=True, verbose_name="Доступность")#если товар не доступен, он должен исчезнуть на витрине
-    # group = forms.ModelChoiceField(queryset=Group.objects.all())#выбор группы
+    group = forms.ModelChoiceField(queryset=Group.objects.all())#выбор группы
     
 
 

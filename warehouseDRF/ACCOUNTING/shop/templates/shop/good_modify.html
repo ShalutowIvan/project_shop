@@ -13,8 +13,12 @@
 <div class="form-error">{{ form.non_field_errors }}</div>
 
 
-<p><label class="form-label" for="{{ form.photo.id_for_label }}">Комментарий: </label>{{ form.photo }}</p>
+# <p><label class="form-label" for="{{ form.name_product.id_for_label }}">Название товара: </label>{{ form.name_product }} </p>
+    <p>Название товара: <input name="name_product" type="text" value="{{ good.name_product }}"></p>
+    <p>Артикул: <input name="vendor_code" type="text" value="{{ good.vendor_code }}"></p>
+    <p>Цена: <input name="price" type="text" value="{{ good.price }}"></p>
 
+<p><label class="form-label" for="{{ form.group.id_for_label }}">Группа: </label>{{ form.group }}</p>
 
 
 
@@ -23,7 +27,7 @@
 </form>
 
 
-value={{ good.name_product }}
+
 
 
 
