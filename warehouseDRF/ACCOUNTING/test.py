@@ -61,12 +61,21 @@ from typing import Literal, TypeAlias, Optional, TypeVar
 # text = translit(ru_text, language_code='ru', reversed=True)
 # print(text)
 
-class A:
-    def __init__(self, a=None, b=None):
-        self.a = a
-        self.b = b
+# class A:
+#     def __init__(self, a=None, b=None):
+#         self.a = a
+#         self.b = b
 
 
-asd = A(a=1, b=2)
+#     # def __str__(self):
+#     #     return str(self.a)
 
-print(asd.a)
+
+# asd = A(a=1, b=2)
+# asd = str(asd)
+
+# print(asd)
+
+a = 
+
+

@@ -292,7 +292,7 @@ class Group_add(CreateView):
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
         org = Organization.objects.all()
-        
+        context["groups"] = Group.objects.all()
         if org:
             context['org'] = org[0]
         
@@ -320,7 +320,7 @@ class Goods_add(CreateView):
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
         org = Organization.objects.all()
-        
+        context["groups"] = Group.objects.all()
         if org:
             context['org'] = org[0]
         
@@ -387,8 +387,7 @@ def goods_load_file(request):
 				goods_create = Goods.objects.bulk_create(goods)
 			return redirect('goods_list')
 		
-		except Exception as ex:
-			# groups_update = Group.objects.all()
+		except Exception as ex:			
 			context = {"groups": groups_query, "error": ex}
 
 			return render(request, 'shop/error_with_loadfile.html', context=context)  
@@ -412,26 +411,30 @@ def goods_modify(request, good_id):
 	good = Goods.objects.get(id=good_id)
 
 	if request.method == 'POST':
-		form = Goods_modify(data=request.POST)
-		if form.is_valid():
-			# comm = form.save(commit=False)
-			# comm.save()
-			# тут заменяем полями из формы все поля из объекта товара
-			# good.
+		# form = Goods_modify(data=request.POST)
+		# if form.is_valid():
 			
+			good.name_product = request.POST["name_product"]
+			good.vendor_code = request.POST["vendor_code"]
+			good.price = float(request.POST["price"].replace(",", "."))
+			good.group = Group.objects.get(id=int(request.POST["group"]))		
+			good.save()
 
-
+			# comm = form.save(commit=False)#так не работает
+			# comm.save()
+			# подумать что делать с загрузкой фото
 
 			return redirect('goods_list')
 
-	else:
-		form = Goods_modify(files=good)
+	# else:		
+	# 	form = Goods_modify()
+	
+	group = Group.objects.all()
 
-	context = {'form': form, "good_id": good_id, "good": good}#заполнить форму данными из товара автоматом, чтобы потом их можно было поменять, good это объект товара нужного, который редачим. Значения в форму джанго не подтягиваются. Можно попробовать заменгить форму джанго на обычную, но тогда нужно будет думать что делать с картинкой
-	print("ФОРМА ТУТ!!!!!!!!!!!!!!!!!!!!")
-	# form.data = "123"
-	# print(form.name_product)
-
+	
+	context = {"good_id": good_id, "good": good, "groups": group}
+	# "form": form, 
+	# <p><label class="form-label" for="{{ form.photo.id_for_label }}">Фото: </label>{{ form.photo }}</p>
 
 	return render(request, 'shop/good_modify.html', context=context)
 
