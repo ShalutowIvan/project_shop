@@ -61,21 +61,16 @@ from typing import Literal, TypeAlias, Optional, TypeVar
 # text = translit(ru_text, language_code='ru', reversed=True)
 # print(text)
 
-# class A:
-#     def __init__(self, a=None, b=None):
-#         self.a = a
-#         self.b = b
 
 
-#     # def __str__(self):
-#     #     return str(self.a)
 
 
-# asd = A(a=1, b=2)
-# asd = str(asd)
+import os
 
-# print(asd)
+a = "C:/Users/shalutov/Desktop/python/INTERNET_MARKET/DRF_ACCOUNTING/ACCOUNTING/media/photos/2024/10/05/1640757399_2-sobakovod-club-p-sobaki-sobachya-budka-2.jpg"
 
-a = 
+
+if os.path.exists(a):
+	print("YES")
 
 

@@ -7,7 +7,22 @@
 
 <a href="{% url 'goods_list' %}"><h4>Все группы товаров</h4></a>
 
+
+
 {% for i in groups %}
+
+{% if i.slug == no_group %}
+
+		<li>
+			<a href="{% url 'group_show' electro %}">Вася</a>
+		</li>
+		{{ i.name_group }}
+
+{{ continue }} 
+это не работает
+
+{% endif %}
+
 
 		<li>
 			<a href="{% url 'group_show' i.slug %}">{{ i.name_group }}</a>
@@ -15,6 +30,11 @@
 		<br>
 
 {% endfor %}
+
+
+
+
+
 
 </aside>
 
@@ -58,6 +78,8 @@
 <p> Остаток {{j.stock}}</p>
 
 <a href="{% url 'goods_modify' j.id %}"><button class="goods_modify">Изменить</button></a>
+<br><br>
+<a href="{% url 'goods_delete' j.id %}"><button class="goods_delete">Удалить</button></a>
 
 </div>
 

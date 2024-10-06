@@ -7,17 +7,23 @@
 {% for j in goods_in_group %}
 
 	<div id="goods">
+}
 {% if j.photo %}
 <p><img class="product-img" src="{{j.photo.url}}"></p>
 {% endif %}
 	<h1> {{j.name_product}}</h1>
 <p> Цена {{j.price}}</p>
 <p> Остаток {{j.stock}}</p>
-
-
+<a href="{% url 'goods_modify' j.id %}"><button class="goods_modify">Изменить</button></a>
+<br><br>
+<a href="{% url 'goods_delete' j.id %}"><button class="goods_delete">Удалить</button></a>
 </div>
 
 {% endfor %}
+
+
+
+
 			</nobr>
 
 

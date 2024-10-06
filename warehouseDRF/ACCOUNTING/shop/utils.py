@@ -28,5 +28,8 @@ class DataMixin:
 
 
 
-
+def handle_uploaded_file(file_name, path):
+    with open(f"{path}{file_name.name}", "wb+") as destination:
+        for chunk in file_name.chunks():
+            destination.write(chunk)
 

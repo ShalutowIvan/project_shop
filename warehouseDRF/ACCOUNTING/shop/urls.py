@@ -33,6 +33,7 @@ urlpatterns = [
     path('good_list/add/', Goods_add.as_view(), name='goods_add'),
     path('good_list/add_group/', Group_add.as_view(), name='group_add'),
     path('good_list/goods_modify/<int:good_id>/', goods_modify, name='goods_modify'),
+    path('good_list/goods_delete/<int:good_id>/', goods_delete, name='goods_delete'),
     
     path('good_list/load_file/', goods_load_file, name='goods_load_file'),
     path('good_list/load_file/url_from_load_template/', url_from_load_template, name='url_from_load_template'),
@@ -48,6 +49,10 @@ urlpatterns = [
     path('receipt/list/view/open/edit_goods/<int:number_edit_good>/', receipt_document_edit, name='receipt_document_edit'),
     path('receipt/list/view/open/activate/<int:receipt_activate>/', receipt_document_activate, name='receipt_document_activate'),
     path('receipt/list/view/open/deactivate/<int:receipt_deactivate>/', receipt_document_deactivate, name='receipt_document_deactivate'),
+    path('receipt/list/receipt_load_file/<int:number_doc>/', receipt_load_file, name='receipt_load_file'),
+
+
+    
     #расходный документ
     path('expense/list/view/', expense_list, name='expense_list'),
     path('expense/list/view/create/', expense_document_create, name='expense_document_create'),

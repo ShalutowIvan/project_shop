@@ -21,10 +21,12 @@ from django.forms import model_to_dict
 
 from .forms import *
 
+import os
 import requests
 import pandas as pd
 from transliterate import translit
-
+from .utils import handle_uploaded_file
+from PIL import Image
 
 class Home(ListView):
     # paginate_by = 11
@@ -226,6 +228,9 @@ class Goods_list(ListView):
         context = super().get_context_data(**kwargs)
         org = Organization.objects.all()
         groups = Group.objects.all()
+        # groups.append("Без группы")
+        # print("!!!!!!!!!!!!!!!!")
+        # print(groups)
         context["groups"] = groups
         if org:
             context['org'] = org[0]
@@ -241,7 +246,7 @@ def group_show(request, group_slug):
 	goods_in_group = Goods.objects.filter(group__slug=group_slug)
 	groups = Group.objects.all()
 
-	context = {"goods_in_group": goods_in_group, "groups": groups}
+	context = {"goods_in_group": goods_in_group, "groups": groups, "no_group": "no_group"}
 
 	org = Organization.objects.all()
 	if org:
@@ -307,7 +312,8 @@ class Group_add(CreateView):
         return super().form_valid(form)
 
 
-
+# <a href="{% url 'group_show' None %}">Без группы</a>
+# <br><br>
 #добавление товара
 
 class Goods_add(CreateView):
@@ -329,6 +335,7 @@ class Goods_add(CreateView):
     #передача юзера в форму автоматом от залогининного пользователя. В самой форме юзер не заполняется
     def form_valid(self, form):
         self.object = form.save(commit=False)
+        self.object.slug = translit(form.cleaned_data.get("name_product"), language_code='ru', reversed=True)
         self.object.user = self.request.user        
         self.object.save()
         # возвращаем form_valid предка
@@ -340,19 +347,18 @@ def goods_load_file(request):
 
 	if request.method == 'POST':		
 		p = request.POST
-		f = request.FILES
-		file = request.FILES['load_file']
-		
-		db_goods = pd.read_excel(file)
+		f = request.FILES#тут мультивалуедикт
+		file = request.FILES['load_file']#тут имя файла
 		# context = {"goods_in_file": db_goods}#тут объект <class 'pandas.core.frame.DataFrame'>
 
 		groups_query = Group.objects.all()
 		groups = [i.name_group.lower() for i in groups_query]
 		goods_query = Goods.objects.all()
-		goods_in_base = { i.name_product: i.vendor_code for i in goods_query }
-		
+		goods_in_base = { i.name_product: i.vendor_code for i in goods_query }		
 		goods = []
+		
 		try:
+			db_goods = pd.read_excel(file)
 			for i in db_goods.values:				
 				if goods_in_base.get(i[0]) != None or i[1] in goods_in_base.values():
 					continue
@@ -366,6 +372,7 @@ def goods_load_file(request):
 					price=i[2],
 					stock=i[3],
 					group=Group.objects.get(name_group=i[4].title()),
+					photo=i[5],
 					user=request.user
 					) )
 				else:
@@ -380,6 +387,7 @@ def goods_load_file(request):
 					price=i[2],
 					stock=i[3],
 					group=group_obj,
+					photo=i[5],
 					user=request.user
 					) )
 
@@ -391,6 +399,7 @@ def goods_load_file(request):
 			context = {"groups": groups_query, "error": ex}
 
 			return render(request, 'shop/error_with_loadfile.html', context=context)  
+
 			
 	groups = Group.objects.all()
 	context = {"groups": groups}
@@ -406,46 +415,76 @@ def url_from_load_template(request):
 	return response
 
 
+
 #редактирование и удаление товара
 def goods_modify(request, good_id):
 	good = Goods.objects.get(id=good_id)
+	group = Group.objects.all()
 
 	if request.method == 'POST':
-		# form = Goods_modify(data=request.POST)
-		# if form.is_valid():
-			
+		try:			
+			file_photo = request.FILES['photo']#FILES это словарь с ключами из имен полей с файлами
+			# print("!!!!!!!!!!!!!!!!!!!!!")#пустое поле с фото не грузится
+			# print(file_photo)
+
+			image = Image.open(file_photo)
+			image.verify()
+
+			path = os.path.abspath("media/" + str(good.photo))#полный абсолютный путь к файлу из БД		
+			if os.path.exists(path):#если файл есть там, то удаляем, если нет, то не удаляем
+				f = str(good.photo)#берем путь к файлу из базы
+				new_file = f[:f.rfind('/') + 1] + file_photo.name#заменяем в пути к файлу имя файла, это потом в БД пойдет
+				os.remove(path)#удаляем сам файл на сервере
+				handle_uploaded_file(file_name=file_photo, path="media/" + f[:f.rfind('/') + 1])#загружаем новый файл в ту же самую папку
+			else:
+				new_file = file_photo.name
+				handle_uploaded_file(file_name=file_photo, path="media/")
+
 			good.name_product = request.POST["name_product"]
 			good.vendor_code = request.POST["vendor_code"]
 			good.price = float(request.POST["price"].replace(",", "."))
-			good.group = Group.objects.get(id=int(request.POST["group"]))		
-			good.save()
-
-			# comm = form.save(commit=False)#так не работает
-			# comm.save()
-			# подумать что делать с загрузкой фото
-
+			good.photo = new_file
+			good.group = Group.objects.get(id=int(request.POST["group"]))
+			good.save()			
+	
 			return redirect('goods_list')
+		except Exception as ex:
+			context = {"groups": group, "error": ex}
+
+			return render(request, 'shop/error_with_editfile.html', context=context)  
+
 
 	# else:		
-	# 	form = Goods_modify()
+		# form = Goods_modify()
+		# form = Goods_modify(data={"name_product": good.name_product, "photo": good.photo})
+	#значения по умолчанию в форме джанго можно писать здесь при гет запросе в объекте формы в поле data, и передавать туда словарь
 	
-	group = Group.objects.all()
-
-	
+		
 	context = {"good_id": good_id, "good": good, "groups": group}
-	# "form": form, 
-	# <p><label class="form-label" for="{{ form.photo.id_for_label }}">Фото: </label>{{ form.photo }}</p>
-
+	
 	return render(request, 'shop/good_modify.html', context=context)
 
-	# shop/good_add.html
-	# good_modify.html
 	
 # <p><label class="form-label" for="{{ form.photo.id_for_label }}">Комментарий: </label>{{ form.photo }}</p>
 # <p><label class="form-label" for="{{ form.name_product.id_for_label }}">Название товара: </label>{{  form.name_product | default:good.name_product }} </p>
 # <p><label class="form-label" for="{{ form.vendor_code.id_for_label }}">Комментарий: </label>{{ form.vendor_code }}</p>
 # <p><label class="form-label" for="{{ form.price.id_for_label }}">Комментарий: </label>{{ form.price }}</p>
 # <p><label class="form-label" for="{{ form.group.id_for_label }}">Комментарий: </label>{{ form.group }}</p>
+
+
+#удаление товара
+def goods_delete(request, good_id):
+
+	good = Goods.objects.get(id=good_id)
+	path = os.path.abspath("media/" + str(good.photo))
+	os.remove(path)#удаляем сам файл на сервере
+	# фото удалить еще
+
+	good.delete()
+
+	return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+
 
 
 
@@ -463,21 +502,6 @@ def goods_modify(request, good_id):
 #     excel_writer._save()
 
 #     return filepath
-
-
-
-	
-
-
-# ВИДЕО по скачиванию файла
-# https://www.youtube.com/watch?v=JMNq4sDKkTc
-
-# https://www.youtube.com/watch?v=xPRA4jixCX8
-# https://www.youtube.com/watch?v=tquWqkgU1X0
-
-
-# https://ru.stackoverflow.com/questions/1203933/django-python-%D0%90%D0%B2%D1%82%D0%BE%D0%BC%D0%B0%D1%82%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B5-%D1%81%D0%BA%D0%B0%D1%87%D0%B8%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-%D1%84%D0%B0%D0%B9%D0%BB%D0%BE%D0%B2
-
 
 
 #код для загрузки файла
@@ -693,6 +717,94 @@ def receipt_delete_goods(request, number_delete_good):
 	list_delete = Receipt_list.objects.get(id=number_delete_good)
 	list_delete.delete()
 	return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+
+#загрузка файла накладной
+def receipt_load_file(request, number_doc):	
+
+	if request.method == 'POST':		
+		p = request.POST
+		f = request.FILES#тут мультивалуедикт
+		file = request.FILES['load_file']#тут имя файла
+		# context = {"goods_in_file": db_goods}#тут объект <class 'pandas.core.frame.DataFrame'>
+
+		groups_query = Group.objects.all()
+		groups = [i.name_group.lower() for i in groups_query]
+		goods_query = Goods.objects.all()
+		goods_in_base = { i.name_product: i.vendor_code for i in goods_query }		
+		
+		
+		#начал пока только делать объект с товарами в накладной. Решил делать загрузку файла на странице открытой накладной, чтобы там прокинулся номер накладной. 
+		receipts = []
+
+		try:
+			file_receipt = pd.read_excel(file)
+			for i in file_receipt.values:
+				receipts.append(
+					Receipt_list(
+						product=Goods.objects.get(name_product=i[0]),
+						number_receipt=number_doc,
+						quantity=i[1],
+						user=request.user
+						)
+					)
+
+
+			# for i in db_goods.values:				
+				# if goods_in_base.get(i[0]) != None or i[1] in goods_in_base.values():
+				# 	continue
+
+			# 	if i[4].lower() in groups:	
+			# 		goods.append(
+			# 		Goods(
+			# 		name_product=i[0], 
+			# 		slug=translit(i[0], language_code='ru', reversed=True), 
+			# 		vendor_code=i[1], 
+			# 		price=i[2],
+			# 		stock=i[3],
+			# 		group=Group.objects.get(name_group=i[4].title()),
+			# 		photo=i[5],
+			# 		user=request.user
+			# 		) )
+			# 	else:
+			# 		group_obj = Group(name_group=i[4].title(), slug=translit(i[4], language_code='ru', reversed=True))
+			# 		# иначе создаем новую группу
+			# 		group_obj.save()
+			# 		goods.append(
+			# 		Goods(
+			# 		name_product=i[0], 
+			# 		slug=translit(i[0], language_code='ru', reversed=True), 
+			# 		vendor_code=i[1], 
+			# 		price=i[2],
+			# 		stock=i[3],
+			# 		group=group_obj,
+			# 		photo=i[5],
+			# 		user=request.user
+			# 		) )
+
+			# if goods != []:
+			# 	goods_create = Goods.objects.bulk_create(goods)
+			return redirect('receipt_list')
+		
+		except Exception as ex:			
+			context = {"error": ex}
+
+			return render(request, 'shop/error_with_loadfile_receipt.html', context=context)  
+			
+	
+	context = {}
+
+	return render(request, 'shop/receipt_load_file.html', context=context)    
+
+
+
+
+
+
+
+
+
+
 
 
 ###########################################################################

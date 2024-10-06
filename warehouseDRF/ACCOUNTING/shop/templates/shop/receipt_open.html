@@ -4,7 +4,12 @@
 {% block content %}
 
 
-<br><br><br><br>
+<br><br>
+
+<a href="{% url 'receipt_load_file' number %}"><button>Загрузить файл накладной</button></a>
+
+
+<br><br>
 
 
 <h1> Номер приходного документа: {{ number }} </h1>

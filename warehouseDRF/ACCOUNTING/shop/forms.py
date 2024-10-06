@@ -11,7 +11,7 @@ class Goods_add_form(forms.ModelForm):
 
     class Meta:
         model = Goods
-        fields = ['name_product', 'slug', 'vendor_code', 'price', 'photo', 'stock', 'group', ]
+        fields = ['name_product', 'vendor_code', 'price', 'photo', 'stock', 'group',]
 
 
 class Group_add_form(forms.ModelForm):
@@ -77,17 +77,28 @@ class Receipt_edit_goods_form(forms.Form):
     
     quantity = forms.FloatField()
 
+
 #для редактирования товара
-class Goods_modify(forms.Form):
+# class Goods_modify(forms.Form):
     # name_product = forms.CharField(max_length=255)
     # slug = models.SlugField(max_length=255, default="_", unique=True, db_index=True, verbose_name="URL")
     # vendor_code = forms.CharField(max_length=255)
     # price = forms.DecimalField(max_digits=19, decimal_places=2)
-    photo = forms.ImageField()
+    
     # upload_to="photos/%Y/%m/%d/"
     # stock = models.FloatField(default=0, verbose_name="Остаток")
     # availability = models.BooleanField(default=True, verbose_name="Доступность")#если товар не доступен, он должен исчезнуть на витрине
     # group = forms.ModelChoiceField(queryset=Group.objects.all())#выбор группы
+
+    # photo = forms.ImageField()
+    # photo = forms.FileField()
+
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+
+    # class Meta:
+    #     model = Goods
+    #     fields = ['photo',]
     
 
 

@@ -9,7 +9,7 @@ class Goods(models.Model):
 	photo = models.ImageField(default="_", upload_to="photos/%Y/%m/%d/", verbose_name="Фото")
 	stock = models.FloatField(default=0, verbose_name="Остаток")
 	availability = models.BooleanField(default=True, verbose_name="Доступность")#если товар не доступен, он должен исчезнуть на витрине
-	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара", null=False, default=None)
+	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара", null=True, default=None)
 	user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь",)
 
 	def __str__(self):
@@ -29,8 +29,8 @@ class Group(models.Model):
 	name_group = models.CharField(max_length=255, default='_', db_index=True, verbose_name="Название группы")
 	slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name="URL")
 
-	# def __str__(self):
-	# 	return self.name_group
+	def __str__(self):
+		return self.name_group
 
 
 	def get_absolute_url(self):
