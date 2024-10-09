@@ -5,9 +5,9 @@
 
 
 <br><br>
-
+{% if receipt_doc.state == False %} 
 <a href="{% url 'receipt_load_file' number %}"><button>Загрузить файл накладной</button></a>
-
+{% endif %}
 
 <br><br>
 
@@ -25,6 +25,16 @@
 
 
 {% endfor %}
+
+
+{% for i in receipt_buffer %}
+
+<h3>{{ i.product }} | {{ i.quantity }}  {% if receipt_doc.state == False %} 
+	<a href="{% url '' i.id %}"><button class="edit_receipt">Изменить товар</button></a> 
+	<a href="{% url '' i.id %}"><button class="delete_receipt">Удалить товар</button></a> {% endif %} </h3>
+
+{% endfor %}
+
 
 <!-- номер документа прокидывается как параметр в функцию для добавления товара ниже -->
 {% if receipt_doc.state == False %}

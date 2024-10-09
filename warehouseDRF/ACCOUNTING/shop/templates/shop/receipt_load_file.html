@@ -1,7 +1,7 @@
-{% extends 'shop/good.html' %}
+{% extends 'shop/start.html' %}
 
 
-{% block goods %}
+{% block content %}
 
 <br><br>
 
@@ -15,7 +15,8 @@
 <h3>Загрузка файла с товарами</h3>
 &darr;&darr;&darr;
 <br>
-<form action="{% url 'goods_load_file' %}" method="post" enctype="multipart/form-data">
+
+<form action="{% url 'receipt_load_file' number_doc %}" method="post" enctype="multipart/form-data">
     {% csrf_token %}
 
 <!-- enctype="multipart/form-data" это для передачи файлов любых, картинок xls и тд-->

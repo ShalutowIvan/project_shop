@@ -127,6 +127,23 @@ class Receipt_list(models.Model):
 		ordering = ['product']
 
 
+class Buffer_receipt(models.Model):
+	product = models.CharField(max_length=255, default='_', verbose_name="Название товара")
+	number_receipt = models.IntegerField(default=0, verbose_name="Номер накладной")
+	quantity = models.FloatField(default=0, verbose_name="Количество")	
+	user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Пользователь")
+
+
+	def __str__(self):
+		return f"Товар: {self.product}, Количество: {self.quantity}"
+
+
+	class Meta:
+		verbose_name = "Временные списки загружаемых товаров"
+		verbose_name_plural = "Временные списки загружаемых товаров"
+		ordering = ['product']
+
+
 
 
 class Expense_number(models.Model):

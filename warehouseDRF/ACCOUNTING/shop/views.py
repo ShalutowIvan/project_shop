@@ -246,7 +246,7 @@ def group_show(request, group_slug):
 	goods_in_group = Goods.objects.filter(group__slug=group_slug)
 	groups = Group.objects.all()
 
-	context = {"goods_in_group": goods_in_group, "groups": groups, "no_group": "no_group"}
+	context = {"goods_in_group": goods_in_group, "groups": groups}
 
 	org = Organization.objects.all()
 	if org:
@@ -590,7 +590,8 @@ def receipt_document_create(request):
 def receipt_document_open(request, open_receipt):
 	receipt_open = Receipt_number.objects.get(id=int(open_receipt))
 	receipt_good_list = Receipt_list.objects.filter(number_receipt=int(open_receipt))
-	context = {"number": open_receipt, 'receipt_good_list': receipt_good_list, "receipt_doc": receipt_open}
+	receipt_buffer = Buffer_receipt.objects.filter(number_receipt=int(open_receipt))
+	context = {"number": open_receipt, 'receipt_good_list': receipt_good_list, "receipt_doc": receipt_open, "receipt_buffer": receipt_buffer}
 
 	org = Organization.objects.all()
         
@@ -728,18 +729,30 @@ def receipt_load_file(request, number_doc):
 		file = request.FILES['load_file']#тут имя файла
 		# context = {"goods_in_file": db_goods}#тут объект <class 'pandas.core.frame.DataFrame'>
 
-		groups_query = Group.objects.all()
-		groups = [i.name_group.lower() for i in groups_query]
-		goods_query = Goods.objects.all()
-		goods_in_base = { i.name_product: i.vendor_code for i in goods_query }		
+		# groups_query = Group.objects.all()
+		# groups = [i.name_group.lower() for i in groups_query]
+		# goods_query = Goods.objects.all()
+		# goods_in_base = { i.name_product: i.vendor_code for i in goods_query }		
 		
 		
 		#начал пока только делать объект с товарами в накладной. Решил делать загрузку файла на странице открытой накладной, чтобы там прокинулся номер накладной. 
 		receipts = []
+		buffer_goods = []
 
 		try:
 			file_receipt = pd.read_excel(file)
 			for i in file_receipt.values:
+				if Goods.objects.get(name_product=i[0]) == None:
+					buffer_goods.append(Buffer_receipt(
+						product=i[0],
+						number_receipt=number_doc,
+						quantity=i[1],
+						user=request.user
+						))
+
+					# если товара нет в базе, то предлагаем создать его либо заменить, 2 кнопки. товар этот предварительно грузим во временную базу, и после замены товара или добавления удаляем из временной базы товар
+
+
 				receipts.append(
 					Receipt_list(
 						product=Goods.objects.get(name_product=i[0]),
@@ -749,6 +762,11 @@ def receipt_load_file(request, number_doc):
 						)
 					)
 
+			if receipts != []:
+				receipts_create = Receipt_list.objects.bulk_create(receipts)
+
+			if buffer_goods != []:
+				buffer_create = Buffer_receipt.objects.bulk_create(buffer_goods)
 
 			# for i in db_goods.values:				
 				# if goods_in_base.get(i[0]) != None or i[1] in goods_in_base.values():
@@ -784,7 +802,7 @@ def receipt_load_file(request, number_doc):
 
 			# if goods != []:
 			# 	goods_create = Goods.objects.bulk_create(goods)
-			return redirect('receipt_list')
+			return redirect('receipt_document_open', number_doc)
 		
 		except Exception as ex:			
 			context = {"error": ex}
@@ -792,16 +810,19 @@ def receipt_load_file(request, number_doc):
 			return render(request, 'shop/error_with_loadfile_receipt.html', context=context)  
 			
 	
-	context = {}
+	context = {"number_doc": number_doc}
 
 	return render(request, 'shop/receipt_load_file.html', context=context)    
 
 
+#добавить если нет в бд
+def receipt_add_if_not_in_base(request):
+	pass
 
 
-
-
-
+#заменить если нет в бд
+def receipt_change_if_not_in_base(request):
+	pass
 
 
 
