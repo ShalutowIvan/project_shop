@@ -751,9 +751,8 @@ def receipt_load_file(request, number_doc):
 						))
 
 					# если товара нет в базе, то предлагаем создать его либо заменить, 2 кнопки. товар этот предварительно грузим во временную базу, и после замены товара или добавления удаляем из временной базы товар
-
-
-				receipts.append(
+				else:
+					receipts.append(
 					Receipt_list(
 						product=Goods.objects.get(name_product=i[0]),
 						number_receipt=number_doc,
@@ -816,13 +815,15 @@ def receipt_load_file(request, number_doc):
 
 
 #добавить если нет в бд
-def receipt_add_if_not_in_base(request):
-	pass
+def receipt_add_if_not_in_base(request, number_doc):
+	
+	return
 
 
 #заменить если нет в бд
-def receipt_change_if_not_in_base(request):
-	pass
+def receipt_change_if_not_in_base(request, number_doc):
+
+	return
 
 
 

@@ -50,6 +50,8 @@ urlpatterns = [
     path('receipt/list/view/open/activate/<int:receipt_activate>/', receipt_document_activate, name='receipt_document_activate'),
     path('receipt/list/view/open/deactivate/<int:receipt_deactivate>/', receipt_document_deactivate, name='receipt_document_deactivate'),
     path('receipt/list/receipt_load_file/<int:number_doc>/', receipt_load_file, name='receipt_load_file'),
+    path('receipt/list/receipt_add_if_not_in_base/<int:number_doc>/', receipt_add_if_not_in_base, name='receipt_add_if_not_in_base'),
+    path('receipt/list/receipt_change_if_not_in_base/<int:number_doc>/', receipt_change_if_not_in_base, name='receipt_change_if_not_in_base'),
 
 
     

@@ -26,13 +26,13 @@
 
 {% endfor %}
 
-
+<!-- перебираем буфер и сопоставляем -->
 {% for i in receipt_buffer %}
 
-<h3>{{ i.product }} | {{ i.quantity }}  {% if receipt_doc.state == False %} 
-	<a href="{% url '' i.id %}"><button class="edit_receipt">Изменить товар</button></a> 
-	<a href="{% url '' i.id %}"><button class="delete_receipt">Удалить товар</button></a> {% endif %} </h3>
-
+<h3>{{ i.product }} | {{ i.quantity }}  {% if receipt_doc.state == False %} 	
+	<a href="{% url 'receipt_add_if_not_in_base' i.id %}"><button class="receipt_add">Добавить в каталог</button></a> 
+	<a href="{% url 'receipt_change_if_not_in_base' i.id %}"><button class="receipt_change">Заменить на другой товар</button></a> {% endif %} </h3>
+<!-- подумать как сделать лучше  -->
 {% endfor %}
 
 
