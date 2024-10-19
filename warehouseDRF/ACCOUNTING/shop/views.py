@@ -20,7 +20,10 @@ from rest_framework.generics import UpdateAPIView, RetrieveUpdateDestroyAPIView
 from django.forms import model_to_dict
 
 from .forms import *
+from django.core.exceptions import ObjectDoesNotExist
 
+import random
+import string
 import os
 import requests
 import pandas as pd
@@ -148,15 +151,23 @@ def order_not_completed(request):
 @login_required
 def order_list_open(request, order_number):	
 
-	goods_in_order = Order_list_bought.objects.filter(order_number=order_number)#тут список, queryset
-	
-	context = {"goods_in_order": goods_in_order, "order_number": order_number}
-
 	org = Organization.objects.all()
 	if org:
 		context['org'] = org[0]
 
-	return render(request, "shop/order_list_open.html", context=context)
+	try:
+		goods_in_order = Order_list_bought.objects.filter(order_number=order_number)#тут список, queryset
+	
+		context = {"goods_in_order": goods_in_order, "order_number": order_number}
+
+		
+
+		return render(request, "shop/order_list_open.html", context=context)
+	except Exception as ex:
+		context["error"] = ex
+
+		return render(request, "shop/error_with_loadfile_receipt.html", context=context)
+
 	
 # Нужно еще сделать оповещение на сайте витрины на странице заказов
 
@@ -477,15 +488,12 @@ def goods_delete(request, good_id):
 
 	good = Goods.objects.get(id=good_id)
 	path = os.path.abspath("media/" + str(good.photo))
-	os.remove(path)#удаляем сам файл на сервере
-	# фото удалить еще
-
+	if os.path.isfile(path):
+		os.remove(path)#удаляем сам файл на сервере
+	
 	good.delete()
 
 	return HttpResponseRedirect(request.META['HTTP_REFERER'])
-
-
-
 
 
 
@@ -519,10 +527,6 @@ def goods_delete(request, good_id):
 #             response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
 #             return response
 #     raise Http404
-
-
-
-
 
 
 #урл для парсинга файла с товарами и записи товаров в базу
@@ -562,9 +566,6 @@ def receipt_list(request):
 
 #загузка файла накладной.
 
-
-
-
 #создание документа - добавить документ с добавлением коммента. После создания документа он сразу открывается - редирект на урл receipt_document_open
 @login_required
 def receipt_document_create(request):
@@ -583,7 +584,7 @@ def receipt_document_create(request):
 
 	return render(request, 'shop/receipt_create.html', context=context)    
 
-	
+
 
 #приходный документ - открытие
 @login_required
@@ -594,7 +595,8 @@ def receipt_document_open(request, open_receipt):
 	context = {"number": open_receipt, 'receipt_good_list': receipt_good_list, "receipt_doc": receipt_open, "receipt_buffer": receipt_buffer}
 
 	org = Organization.objects.all()
-        
+    
+	
 	if org:
 		context['org'] = org[0]
 
@@ -612,9 +614,7 @@ def receipt_document_edit(request, number_edit_good):
 			good_edit = Receipt_list.objects.get(id=number_edit_good)
 			good_edit.quantity = quantity
 			
-			good_edit.save()
-
-			# print(type(number_edit_good))
+			good_edit.save()	
 
 			return redirect('receipt_document_open', good_edit.number_receipt)
 
@@ -625,7 +625,6 @@ def receipt_document_edit(request, number_edit_good):
 	
 
 	return render(request, "shop/receipt_goods_edit.html", context=context)
-
 
 
 
@@ -727,107 +726,101 @@ def receipt_load_file(request, number_doc):
 		p = request.POST
 		f = request.FILES#тут мультивалуедикт
 		file = request.FILES['load_file']#тут имя файла
-		# context = {"goods_in_file": db_goods}#тут объект <class 'pandas.core.frame.DataFrame'>
-
-		# groups_query = Group.objects.all()
-		# groups = [i.name_group.lower() for i in groups_query]
-		# goods_query = Goods.objects.all()
-		# goods_in_base = { i.name_product: i.vendor_code for i in goods_query }		
-		
-		
-		#начал пока только делать объект с товарами в накладной. Решил делать загрузку файла на странице открытой накладной, чтобы там прокинулся номер накладной. 
+				
 		receipts = []
 		buffer_goods = []
 
 		try:
 			file_receipt = pd.read_excel(file)
-			for i in file_receipt.values:
-				if Goods.objects.get(name_product=i[0]) == None:
-					buffer_goods.append(Buffer_receipt(
-						product=i[0],
-						number_receipt=number_doc,
-						quantity=i[1],
-						user=request.user
-						))
-
-					# если товара нет в базе, то предлагаем создать его либо заменить, 2 кнопки. товар этот предварительно грузим во временную базу, и после замены товара или добавления удаляем из временной базы товар
-				else:
+			for i in file_receipt.values:			
+				try:
 					receipts.append(
 					Receipt_list(
-						product=Goods.objects.get(name_product=i[0]),
-						number_receipt=number_doc,
-						quantity=i[1],
-						user=request.user
-						)
-					)
+					product=Goods.objects.get(name_product=i[0]),
+					number_receipt=number_doc,
+					quantity=i[1],
+					user=request.user
+					))
+				except ObjectDoesNotExist:
+					buffer_goods.append(Buffer_receipt(
+					product=i[0],
+					number_receipt=number_doc,
+					quantity=i[1],
+					user=request.user
+					))					
 
 			if receipts != []:
 				receipts_create = Receipt_list.objects.bulk_create(receipts)
-
 			if buffer_goods != []:
 				buffer_create = Buffer_receipt.objects.bulk_create(buffer_goods)
+			
+			return redirect('receipt_document_open', number_doc)		
 
-			# for i in db_goods.values:				
-				# if goods_in_base.get(i[0]) != None or i[1] in goods_in_base.values():
-				# 	continue
-
-			# 	if i[4].lower() in groups:	
-			# 		goods.append(
-			# 		Goods(
-			# 		name_product=i[0], 
-			# 		slug=translit(i[0], language_code='ru', reversed=True), 
-			# 		vendor_code=i[1], 
-			# 		price=i[2],
-			# 		stock=i[3],
-			# 		group=Group.objects.get(name_group=i[4].title()),
-			# 		photo=i[5],
-			# 		user=request.user
-			# 		) )
-			# 	else:
-			# 		group_obj = Group(name_group=i[4].title(), slug=translit(i[4], language_code='ru', reversed=True))
-			# 		# иначе создаем новую группу
-			# 		group_obj.save()
-			# 		goods.append(
-			# 		Goods(
-			# 		name_product=i[0], 
-			# 		slug=translit(i[0], language_code='ru', reversed=True), 
-			# 		vendor_code=i[1], 
-			# 		price=i[2],
-			# 		stock=i[3],
-			# 		group=group_obj,
-			# 		photo=i[5],
-			# 		user=request.user
-			# 		) )
-
-			# if goods != []:
-			# 	goods_create = Goods.objects.bulk_create(goods)
-			return redirect('receipt_document_open', number_doc)
-		
 		except Exception as ex:			
-			context = {"error": ex}
+			context = {"error": ex}			
 
 			return render(request, 'shop/error_with_loadfile_receipt.html', context=context)  
-			
-	
+				
 	context = {"number_doc": number_doc}
 
 	return render(request, 'shop/receipt_load_file.html', context=context)    
 
 
+
 #добавить если нет в бд
-def receipt_add_if_not_in_base(request, number_doc):
+def receipt_add_if_not_in_base(request, number_good):
+	good_in_buffer = Buffer_receipt.objects.get(id=number_good)
+	letters = string.ascii_lowercase#это создания артикула, будет случайная последовательность символов
+
+	good_in_base = Goods(
+					name_product=good_in_buffer.product, 
+					slug=translit(good_in_buffer.product, language_code='ru', reversed=True), 
+					vendor_code=''.join(random.choice(letters) for i in range(15)), 
+					price=0,
+					stock=0,
+					group=Group.objects.get(name_group="Без группы"),
+					photo="_",
+					user=request.user
+					)
+	good_in_base.save()
+
+	good_in_receipt = Receipt_list(
+						product=good_in_base,
+						number_receipt=good_in_buffer.number_receipt,
+						quantity=good_in_buffer.quantity,
+						user=request.user
+						)
+	good_in_receipt.save()
 	
-	return
+	good_in_buffer.delete()
+
+	return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
 #заменить если нет в бд
-def receipt_change_if_not_in_base(request, number_doc):
+def receipt_change_if_not_in_base(request, number_good):
+	good_in_buffer = Buffer_receipt.objects.get(id=number_good)
+	number_doc = good_in_buffer.number_receipt
+	if request.method == 'POST':		
+		form = Receipt_add_goods_form(data=request.POST)
+		if form.is_valid():
+			
+			good = form.save(commit=False)
+			good.number_receipt = number_doc
+			good.user = request.user
+			good.save()
+			# good_in_buffer.delete()#не удаляется товар. фотка товара не удаляется если она не существует, переделать
 
-	return
+			return redirect('receipt_document_open', number_doc)
 
+	else:
+		form = Receipt_add_goods_form()
+	good_in_buffer.delete()
+	context = {'form': form, "number_doc": number_doc}
 
+	return render(request, "shop/receipt_goods_add.html", context=context)
 
-
+	
 
 ###########################################################################
 #РАСХОДНЫЙ документ - начало - открытие
@@ -969,6 +962,43 @@ def expense_delete_goods(request, number_delete_good):
 	list_delete = Expense_list.objects.get(id=number_delete_good)
 	list_delete.delete()
 	return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+
+#инвентаризация
+def inventory_list(request):
+	return
+
+
+def inventory_create(request, number):#при создании выбирать группы товаров
+	# в инвенту закидываютяс все товары из группы с остатком из базы, остаток из базы закидывается в колонку колва "было"
+	#колонка стало нужно заполнять, она пустая либо можно что туда закинуть, надо подумать
+	return
+
+
+def inventory_open(request, number):
+	return
+
+
+def inventory_save(request, number):
+	return
+
+
+def inventory_activate(request, number):
+	return
+
+
+def inventory_deactivate(request, number):
+	return
+
+
+def inventory_load_file(request, number):
+	return
+
+
+def inventory_result(request, number):#подсчет недостачи и излишков
+	return
+
+
 
 
 

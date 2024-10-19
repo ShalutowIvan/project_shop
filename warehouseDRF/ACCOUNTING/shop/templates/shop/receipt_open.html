@@ -27,6 +27,15 @@
 {% endfor %}
 
 <!-- перебираем буфер и сопоставляем -->
+
+
+{% if receipt_buffer %}
+
+<h3>Этих товаров нет в базе</h3>
+
+{% endif %}
+
+
 {% for i in receipt_buffer %}
 
 <h3>{{ i.product }} | {{ i.quantity }}  {% if receipt_doc.state == False %} 	

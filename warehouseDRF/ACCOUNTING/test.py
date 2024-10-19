@@ -60,17 +60,7 @@ from typing import Literal, TypeAlias, Optional, TypeVar
 # ru_text = "Вася"
 # text = translit(ru_text, language_code='ru', reversed=True)
 # print(text)
-
-
-
-
-
 import os
+path = os.path.abspath("/")#выводится путь к файлу питона
 
-a = "C:/Users/shalutov/Desktop/python/INTERNET_MARKET/DRF_ACCOUNTING/ACCOUNTING/media/photos/2024/10/05/1640757399_2-sobakovod-club-p-sobaki-sobachya-budka-2.jpg"
-
-
-if os.path.exists(a):
-	print("YES")
-
-
+print(os.path.isfile(path))

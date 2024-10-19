@@ -178,3 +178,44 @@ class Expense_list(models.Model):
 		ordering = ['product']
 
 
+
+class Inventory_number(models.Model):
+	comment = models.CharField(max_length=255, default='_', verbose_name="Комментарий")
+	time_create = models.DateTimeField(auto_now_add=True)
+	state = models.BooleanField(default=False, verbose_name="состояние")	
+
+
+	def __str__(self):
+		return f"Номер= {self.pk} Дата= {self.time_create} Комментарий= {self.comment}"
+
+
+	class Meta:
+		verbose_name = "Номера инвентаризации"
+		verbose_name_plural = "Номера инвентаризации"
+		ordering = ['time_create']
+
+
+#таблица с товарами из приходных документов с номерами документов
+class Inventory_list(models.Model):
+	product = models.ForeignKey(to=Goods, on_delete=models.CASCADE, verbose_name="Товар")
+	number_act = models.IntegerField(default=0, verbose_name="Номер акта списания")#этот номер берется из id таблицы Expense_number
+	quantity_old = models.FloatField(default=0, verbose_name="Количество было")	
+	quantity_new = models.FloatField(default=0, verbose_name="Количество стало")	
+	user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Пользователь")	
+
+	def __str__(self):
+		return f"Товар: {self.product}, Количество: {self.quantity}"
+
+
+	class Meta:
+		verbose_name = "Список инвентаризаций"
+		verbose_name_plural = "Списки инвентаризаций"
+		ordering = ['product']
+
+
+
+
+
+
+
+
