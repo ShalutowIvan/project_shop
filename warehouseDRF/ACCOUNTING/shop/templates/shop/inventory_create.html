@@ -1,0 +1,30 @@
+{% extends 'shop/start.html' %}
+
+
+{% block content %}
+
+
+<br><br><br><br>
+
+<form action="{% url 'inventory_create' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="form-error">{{ form.non_field_errors }}</div>
+
+    <p><label class="form-label" for="{{ form.number_group.id_for_label }}">Группа: </label>{{ form.number_group }}</p>
+
+<p><label class="form-label" for="{{ form.comment.id_for_label }}">Комментарий: </label>{{ form.comment }}</p>
+
+
+    <button type="submit">Сохранить документ</button>
+
+   
+</form>
+
+
+
+
+
+{% endblock %}
+
+

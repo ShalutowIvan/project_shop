@@ -101,6 +101,14 @@ class Receipt_edit_goods_form(forms.Form):
     #     fields = ['photo',]
     
 
+#для инвентаризации
+class Inventory_number_form(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
+
+    class Meta:
+        model = Inventory_number
+        fields = ['number_group', 'comment',]
 
 

@@ -1,0 +1,29 @@
+{% extends 'shop/start.html' %}
+
+
+{% block content %}
+
+<h1>Список инвентаризаций</h1>
+<br><br><br>
+
+
+
+{% for j in inventory_list_view %}
+
+<h1> Номер: {{j.id}} || Дата: {{j.time_create}} || тут кнопка открыть будет || {% if j.state == False %} тут кнопка удалить будет {% endif %} </h1>
+
+{% if j.state %}
+<h1>Проведен</h1>
+{% endif %}
+
+<h3>Комментарий: {{j.comment}}</h3>
+<p>__________________________________________________</p>
+
+{% endfor %}
+
+
+
+
+{% endblock %}
+
+

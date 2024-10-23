@@ -1,23 +1,13 @@
 from django.urls import path, re_path
 from shop.views import *
+from shop.views_receipt import *
+from shop.views_expense import *
+from shop.views_inventory import *
 
 # app_name = 'showcase' #если прописать название приложения, то в шаблонах придется его везде дописать через двоеточие для каждоый ссылки функции. Возможно это будет понятнее если в проекте много приложений.
 
 urlpatterns = [
-	# path('', GoodsHome.as_view(), name='start'),
-    # path('basket/', basket_view, name='basket_view'),
-    # path('group/<slug:group_slug>/', GroupShow.as_view(), name='group'),
-    # path('baskets/<int:product_id>/', add_in_basket, name='add_in_basket'),
-    # path('admin/', adminka, name='adminka'),
-    # path('baskets/clear_basket/<int:basket_id>/', clear_basket, name='clear_basket'),
-    # path('contacts/', Get_contacts.as_view(), name='contacts'),    
-    # path('checkout/', checkout, name='checkout'),
-    # path('checkout_list/', checkout_list, name='checkout_list'),
-    # path('search/', SearchGood.as_view(), name='search'),
-    
 
-    # path('group/<str:name_product>/', add_in_basket, name='add_in_basket'),
-    # path('product/<slug:product_slug>/', show_product, name='product')
     path('', Home.as_view(), name='start'),
     path('synchronization_order/', synchronization, name='synchronization'),
     path('order_list/', Order_list.as_view(), name='order_list'),
@@ -53,8 +43,6 @@ urlpatterns = [
     path('receipt/list/receipt_add_if_not_in_base/<int:number_good>/', receipt_add_if_not_in_base, name='receipt_add_if_not_in_base'),
     path('receipt/list/receipt_change_if_not_in_base/<int:number_good>/', receipt_change_if_not_in_base, name='receipt_change_if_not_in_base'),
 
-
-    
     #расходный документ
     path('expense/list/view/', expense_list, name='expense_list'),
     path('expense/list/view/create/', expense_document_create, name='expense_document_create'),
@@ -70,7 +58,10 @@ urlpatterns = [
     path('reports/expense_report/', expense_report, name='expense_report'),
     path('reports/sales_report/', sales_report, name='sales_report'),
     path('reports/sales_report_summary/', sales_report_summary, name='sales_report_summary'),
-    
+
+    #инвентаризация
+    path('inventory/list/view/', inventory_list, name='inventory_list'),
+
     # path('group/<slug:group_slug>/', GroupShow.as_view(), name='group'),
     # path('order/list/', Order_list_view.as_view(), name='order_list'),
     # path('order/list/<int:pk>', Order_list_view.as_view(), name='order_list_c'),
