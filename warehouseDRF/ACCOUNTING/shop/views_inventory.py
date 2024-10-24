@@ -57,17 +57,29 @@ def inventory_delete(request, inv_number):
 
 #тут остановился!!!!!!!!!!!
 def inventory_open(request, inv_number):
+
+	if request.method == 'POST':
+		form = Inventiry_open_form(data=request.POST)#форму поменять
+		if form.is_valid():
+			invent = form.save(commit=False)
+			invent.save()
+
+			return redirect('inventory_open', invent.id)#нужно решить куда будет редирект
+
+	else:
+		form = Inventiry_open_form()
+	
 	inv_number_obj = Inventory_number.objects.get(id=int(inv_number))
 	inv_good_list = Inventory_list.objects.filter(number_inventory=int(inv_number))
 	inv_buffer = Inventory_buffer.objects.filter(number_inventory=int(inv_number))
-	context = {"number_inv": inv_number, 'inv_good_list': inv_good_list, "inv_number_obj": inv_number_obj,
-			   "inv_buffer": inv_buffer}
+	context = {'form': form, "number_inv": inv_number, 'inv_good_list': inv_good_list, "inv_number_obj": inv_number_obj, "inv_buffer": inv_buffer}
+
 	#тут доделать, много логики еще. Должна быть форма с товарами из добавленных групп, поле для заполнения это колво в колонке стало
 	org = Organization.objects.all()
 
 	if org:
 		context['org'] = org[0]
-
+	
 	return render(request, "shop/inventory_open.html", context=context)
 
 #загрузка файла из html
