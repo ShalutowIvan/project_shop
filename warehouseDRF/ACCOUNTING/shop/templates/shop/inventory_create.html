@@ -3,6 +3,7 @@
 
 {% block content %}
 
+<h1>Создание инвентаризации</h1>
 
 <br><br><br><br>
 
@@ -11,12 +12,10 @@
 
     <div class="form-error">{{ form.non_field_errors }}</div>
 
-    <p><label class="form-label" for="{{ form.number_group.id_for_label }}">Группа: </label>{{ form.number_group }}</p>
-
-<p><label class="form-label" for="{{ form.comment.id_for_label }}">Комментарий: </label>{{ form.comment }}</p>
+    <p><label class="form-label" for="{{ form.comment.id_for_label }}">Комментарий: </label>{{ form.comment }}</p>
 
 
-    <button type="submit">Сохранить документ</button>
+    <button type="submit">Создать документ</button>
 
    
 </form>

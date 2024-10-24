@@ -176,9 +176,13 @@ class Expense_list(models.Model):
 		ordering = ['product']
 
 
+#таблицы для инвентаризации
+class Inventory_group(models.Model):
+	number_inventory = models.IntegerField(default=0, verbose_name="Номер инвентаризации")#он присваиваться из id из таблицы Inventory_number
+	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара", null=False)#каждая группа будет принадлежать определенной инвенте
+
 
 class Inventory_number(models.Model):
-	number_group = models.IntegerField(default=0, verbose_name="Номер группы")
 	comment = models.CharField(max_length=255, default='_', verbose_name="Комментарий")
 	time_create = models.DateTimeField(auto_now_add=True)
 	state = models.BooleanField(default=False, verbose_name="состояние")
@@ -187,17 +191,16 @@ class Inventory_number(models.Model):
 	def __str__(self):
 		return f"Номер= {self.pk} Дата= {self.time_create} Комментарий= {self.comment}"
 
-
 	class Meta:
 		verbose_name = "Номера инвентаризации"
 		verbose_name_plural = "Номера инвентаризации"
 		ordering = ['time_create']
 
 
-#таблица с товарами из приходных документов с номерами документов
+#таблица с товарами из инвенты с номерами документов
 class Inventory_list(models.Model):
 	product = models.ForeignKey(to=Goods, on_delete=models.CASCADE, verbose_name="Товар")
-	number_inventory = models.IntegerField(default=0, verbose_name="Номер инвентаризации")#этот номер берется из id таблицы Expense_number
+	number_inventory = models.IntegerField(default=0, verbose_name="Номер инвентаризации")
 	quantity_old = models.FloatField(default=0, verbose_name="Количество было")
 	quantity_new = models.FloatField(default=0, verbose_name="Количество стало")
 	user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Пользователь")
@@ -226,6 +229,8 @@ class Inventory_buffer(models.Model):
 		verbose_name = "Список буфер инвентаризаций"
 		verbose_name_plural = "Списки буфер инвентаризаций"
 		ordering = ['product']
+
+
 
 
 

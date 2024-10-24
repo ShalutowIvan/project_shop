@@ -109,6 +109,16 @@ class Inventory_number_form(forms.ModelForm):
 
     class Meta:
         model = Inventory_number
-        fields = ['number_group', 'comment',]
+        fields = ['comment',]
+
+
+class Inventory_group_form(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+    class Meta:
+        model = Inventory_group
+        fields = ['group',]
 
 

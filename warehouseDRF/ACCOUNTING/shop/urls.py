@@ -61,6 +61,10 @@ urlpatterns = [
 
     #инвентаризация
     path('inventory/list/view/', inventory_list, name='inventory_list'),
+    path('inventory/list/view/create/', inventory_create, name='inventory_create'),
+    path('inventory/list/view/open/<int:inv_number>/', inventory_open, name='inventory_open'),
+    path('inventory/list/view/delete/<int:inv_number>/', inventory_delete, name='inventory_delete'),
+    path('inventory/list/view/add_group/<int:inv_number>/', inventory_add_group, name='inventory_add_group'),
 
     # path('group/<slug:group_slug>/', GroupShow.as_view(), name='group'),
     # path('order/list/', Order_list_view.as_view(), name='order_list'),

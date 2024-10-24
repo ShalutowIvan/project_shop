@@ -1,0 +1,62 @@
+{% extends 'shop/start.html' %}
+
+
+{% block content %}
+
+
+<br><br>
+тут будет загрузка файла
+
+<br><br>
+
+
+<h1> Номер инвентаризации: {{ number_inv }} </h1>
+<h1> Дата {{ inv_number_obj.time_create }} </h1>
+
+<h3>Название товара | Количество</h3>
+<!--тут отрисовка списка товаров-->
+{% for i in inv_good_list %}
+
+<h3>{{ i.product }} | {{ i.quantity }}  {% if inv_number_obj.state == False %}
+логика
+	 {% endif %} </h3>
+
+
+{% endfor %}
+
+<!-- перебираем буфер и сопоставляем -->
+<!--тут буффер может не понадобиться, подумать-->
+
+{% if inv_buffer %}
+
+<h3>Этих товаров нет в базе</h3>
+
+{% endif %}
+
+
+{% for i in inv_buffer %}
+
+<h3>{{ i.product }} | {{ i.quantity }}  {% if inv_number_obj.state == False %}
+	логика
+	{% endif %} </h3>
+
+{% endfor %}
+
+
+<!--проведение и деактивация и сохранение документа ниже-->
+{% if inv_number_obj.state == False %}
+<a href="{% url 'inventory_add_group' number_inv %}"><h3>Добавить группу товара</h3></a>
+
+<p>тут будут кнопки для проведения и сохранения документа</p>
+
+{% else %}
+
+<p>тут будет кнопка отмена проведения</p>
+
+{% endif %}
+
+
+
+{% endblock %}
+
+

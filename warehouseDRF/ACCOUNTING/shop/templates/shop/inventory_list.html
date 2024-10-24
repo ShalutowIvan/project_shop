@@ -4,13 +4,13 @@
 {% block content %}
 
 <h1>Список инвентаризаций</h1>
-<br><br><br>
 
-
+<a href="{% url 'inventory_create' %}"><h1>Создать инвентаризацию</h1></a>
+<br>
 
 {% for j in inventory_list_view %}
 
-<h1> Номер: {{j.id}} || Дата: {{j.time_create}} || тут кнопка открыть будет || {% if j.state == False %} тут кнопка удалить будет {% endif %} </h1>
+<h1> Номер: {{j.id}} || Дата: {{j.time_create}} || <a href="{% url 'inventory_open' j.id %}"><button class="open_inv">Открыть документ</button></a> || {% if j.state == False %} <a href="{% url 'inventory_delete' j.id %}"><button class="delete_receipt">Удалить документ</button></a> {% endif %} </h1>
 
 {% if j.state %}
 <h1>Проведен</h1>
