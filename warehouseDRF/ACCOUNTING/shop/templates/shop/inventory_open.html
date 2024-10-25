@@ -2,7 +2,7 @@
 
 
 {% block content %}
-
+{% load floattags %}
 
 <br><br>
 тут будет загрузка файла
@@ -14,15 +14,35 @@
 <h1> Дата {{ inv_number_obj.time_create }} </h1>
 
 <h3>Название товара | Количество</h3>
-<!--тут отрисовка списка товаров-->
-{% for i in inv_good_list %}
 
-<h3>{{ i.product }} | {{ i.quantity }}  {% if inv_number_obj.state == False %}
-логика
+<!--тут отрисовка списка товаров с формой ввода нового колва -->
+
+<form action="{% url 'inventory_open' number_inv %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="form-error">{{ form.non_field_errors }}</div>
+
+    {% for i in inv_good_list %}
+
+    <h3>{{ i.product }} | {{ i.quantity_old }}  {% if inv_number_obj.state == False %}
+    Количество стало: <input name="quantity_new" type="number" step=0.1 value={{ i.quantity_new|formatted_float }}>
+
 	 {% endif %} </h3>
 
 
 {% endfor %}
+
+
+
+
+    <button type="submit">Сохранить</button>
+
+
+</form>
+
+
+
+
 
 <!-- перебираем буфер и сопоставляем -->
 <!--тут буффер может не понадобиться, подумать-->

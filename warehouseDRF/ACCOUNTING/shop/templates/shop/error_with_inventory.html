@@ -1,0 +1,13 @@
+{% extends 'shop/start.html' %}
+
+
+
+{% block content %}
+
+<h1>Ошибка при инвентаризации:</h1>
+
+<h3>{{ error }}</h3>
+
+<h2><a href="{% url 'inventory_open' inv_number %}">Вернуться к инвентаризации</a></h2>
+
+{% endblock %}

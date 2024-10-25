@@ -59,20 +59,20 @@ def inventory_delete(request, inv_number):
 def inventory_open(request, inv_number):
 
 	if request.method == 'POST':
-		form = Inventiry_open_form(data=request.POST)#форму поменять
-		if form.is_valid():
-			invent = form.save(commit=False)
-			invent.save()
+		try:
+			invent = float(request.POST["quantity_new"].replace(",", "."))
+			#тут еще много логики. нужно чтобы вся форма тут обрабатывалась и записывала в базу все колво. Нужно чтобы имена полей формы были разные и в цикле обрабатывались. И потом тут питон коде брать нужные имена полей формы. То есть главное чтобы имена полей формы были разные для каждого товара
 
 			return redirect('inventory_open', invent.id)#нужно решить куда будет редирект
+		except Exception as ex:
+			context = {"error": ex, "inv_number": inv_number}
+			return render(request, 'shop/error_with_inventory.html', context=context)
 
-	else:
-		form = Inventiry_open_form()
-	
+
 	inv_number_obj = Inventory_number.objects.get(id=int(inv_number))
 	inv_good_list = Inventory_list.objects.filter(number_inventory=int(inv_number))
 	inv_buffer = Inventory_buffer.objects.filter(number_inventory=int(inv_number))
-	context = {'form': form, "number_inv": inv_number, 'inv_good_list': inv_good_list, "inv_number_obj": inv_number_obj, "inv_buffer": inv_buffer}
+	context = {"number_inv": inv_number, 'inv_good_list': inv_good_list, "inv_number_obj": inv_number_obj, "inv_buffer": inv_buffer}
 
 	#тут доделать, много логики еще. Должна быть форма с товарами из добавленных групп, поле для заполнения это колво в колонке стало
 	org = Organization.objects.all()
@@ -108,8 +108,28 @@ def inventory_add_group(request, inv_number):
 		if form.is_valid():
 			group = form.save(commit=False)
 			group.number_inventory = inv_number
-			group.save()
 
+			goods = Goods.objects.filter(group__slug=group.group.slug)
+			query_list_inventory = Inventory_list.objects.filter(number_inventory=inv_number)
+			list_goods_name_inventory = [i.product.name_product for i in query_list_inventory]
+			good_list_from_inventory = []
+			for i in goods:
+				if i.name_product in list_goods_name_inventory:
+					continue
+				else:
+					good_list_from_inventory.append(
+						Inventory_list(
+							product=i,
+							number_inventory=inv_number,
+							quantity_old=i.stock,
+							quantity_new=0,
+							user=request.user
+							))
+
+			if good_list_from_inventory != []:
+				inventory_create = Inventory_list.objects.bulk_create(good_list_from_inventory)
+
+			group.save()
 			return redirect('inventory_open', inv_number)
 
 	else:

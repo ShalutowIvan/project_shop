@@ -99,12 +99,6 @@ class Inventory_group_form(forms.ModelForm):
         fields = ['group',]
 
 
-class Inventiry_open_form(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+# class Inventiry_open_form(forms.Form):
+#     quantity_new = forms.FloatField()
 
-
-    class Meta:
-        model = Inventory_list
-        fields = ['quantity_new',]
-    #уточнить модел.форм нужна или обычная или вообще джанго форма не нужна
