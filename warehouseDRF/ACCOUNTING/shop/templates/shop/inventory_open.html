@@ -24,7 +24,7 @@
 
     {% for i in inv_good_list %}
 
-    <h3>{{ i.product }} | {{ i.quantity_old }}  {% if inv_number_obj.state == False %}
+    <h3>{{ i.product }} |Количество было: {{ i.quantity_old }}  {% if inv_number_obj.state == False %} |
     Количество стало: <input name="{{ i.id }}" type="number" step=0.1 value={{ i.quantity_new|formatted_float }}>
 
 	 {% endif %} </h3>
@@ -36,9 +36,6 @@
 
 
 </form>
-
-
-
 
 
 <!-- перебираем буфер и сопоставляем -->
@@ -64,11 +61,13 @@
 {% if inv_number_obj.state == False %}
 <a href="{% url 'inventory_add_group' number_inv %}"><h3>Добавить группу товара</h3></a>
 
-<p>тут будут кнопки для проведения</p>
+
+<a href="{% url 'inventory_activate' number_inv %}"><button class="activate">Провести</button></a>
+
 
 {% else %}
-
-<p>тут будет кнопка отмена проведения</p>
+<br>
+<a href="{% url 'inventory_deactivate' number_inv %}"><button class="deactivate">Отменить проведение</button></a>
 
 {% endif %}
 

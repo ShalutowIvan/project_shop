@@ -144,38 +144,64 @@ def inventory_add_group(request, inv_number):
 #при проведении инвенты остаток либо отнимается либо прибивляется на разницу
 def inventory_activate(request, inv_number):
 	invent_number = Inventory_number.objects.get(id=inv_number)
+	if invent_number.state == False:
+		list_goods_in_inventory = Inventory_list.objects.filter(number_inventory=inv_number)
 
-    if invent_number.state == False:
-        list_goods_in_inventory = Inventory_list.objects.filter(number_inventory=inv_number)
+		gen_list = [i.product.id for i in list_goods_in_inventory]
+		list_good = Goods.objects.filter(pk__in=gen_list)
 
-        gen_list = [i.product.id for i in list_goods_in_inventory]
-
-        list_good = Goods.objects.filter(
-            pk__in=gen_list)  # не понятно почему, но тут список объектов получается неизменяемый, у них нельзя записать новые значения. Сделал queryset типом list, и все норм. Теперь значения полей объектов стали меняться.
-
-        list_good = list(list_good)
-
-        for i in range(len(gen_list)):
-            # list_good[i].stock -= list_goods_to_subtract[i].quantity
-            if list_goods_in_inventory[]
-            # сделать сравнение было и стало и далее уже отнять или прибавить
+		list_good = list(list_good)
 
 
-        # print(list_good[i].stock)
+		for i in range(len(gen_list)):
+			if list_goods_in_inventory[i].quantity_old >= list_goods_in_inventory[i].quantity_new:
+				list_good[i].stock -= list_goods_in_inventory[i].quantity_old - list_goods_in_inventory[i].quantity_new
+			elif list_goods_in_inventory[i].quantity_old <= list_goods_in_inventory[i].quantity_new:
+				list_good[i].stock += list_goods_in_inventory[i].quantity_new - list_goods_in_inventory[i].quantity_old
 
-        goods = Goods.objects.bulk_update(objs=list_good, fields=["stock", ])
 
-        doc.state = True
-        doc.save()
+
+
+
+
+
+
+
+		goods = Goods.objects.bulk_update(objs=list_good, fields=["stock", ])
+
+		invent_number.state = True
+		invent_number.save()
 
 
 	return redirect('inventory_list')
-    # return render(request, "shop/inventory_open.html", context=context)
-    # return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
 def inventory_deactivate(request, inv_number):
-	return
+	invent_number = Inventory_number.objects.get(id=inv_number)
+	if invent_number.state == True:
+		list_goods_in_inventory = Inventory_list.objects.filter(number_inventory=inv_number)
+
+		gen_list = [i.product.id for i in list_goods_in_inventory]
+		list_good = Goods.objects.filter(pk__in=gen_list)
+
+		list_good = list(list_good)
+
+		for i in range(len(gen_list)):
+			if list_goods_in_inventory[i].quantity_old >= list_goods_in_inventory[i].quantity_new:
+				list_good[i].stock += list_goods_in_inventory[i].quantity_old - list_goods_in_inventory[i].quantity_new
+			elif list_goods_in_inventory[i].quantity_old <= list_goods_in_inventory[i].quantity_new:
+				list_good[i].stock -= list_goods_in_inventory[i].quantity_new - list_goods_in_inventory[i].quantity_old
+
+	# сделать сравнение было и стало и далее уже отнять или прибавить
+
+	# print(list_good[i].stock)
+
+	goods = Goods.objects.bulk_update(objs=list_good, fields=["stock", ])
+
+	invent_number.state = False
+	invent_number.save()
+
+	return redirect('inventory_open', inv_number)
 
 
 def inventory_load_file(request, inv_number):
