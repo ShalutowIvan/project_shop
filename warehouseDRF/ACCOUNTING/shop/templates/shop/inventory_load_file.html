@@ -1,0 +1,34 @@
+{% extends 'shop/start.html' %}
+
+
+{% block content %}
+
+<br><br>
+
+<h3>Шаблон файла для загрузки товаров</h3>
+&darr;&darr;&darr;
+<br><br>
+<a href="{% url 'url_from_load_template' %}"><button class="load_template">Скачать шаблон файла</button></a>
+
+<br><br>
+
+<h3>Загрузка файла с товарами</h3>
+&darr;&darr;&darr;
+<br>
+
+<form action="{% url 'inventory_load_file' inv_number %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+<!-- enctype="multipart/form-data" это для передачи файлов любых, картинок xls и тд-->
+
+<p><input type="file" name="load_file" ></p>
+
+    <button type="submit">Загрузить файл</button>
+
+</form>
+
+
+
+{% endblock %}
+
+

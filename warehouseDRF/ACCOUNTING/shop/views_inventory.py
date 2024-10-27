@@ -85,26 +85,6 @@ def inventory_open(request, inv_number):
 	return render(request, "shop/inventory_open.html", context=context)
 
 
-#загрузка файла из html
-# {% if receipt_doc.state == False %}
-# <a href="{% url 'receipt_load_file' number %}"><button>Загрузить файл накладной</button></a>
-# {% endif %}
-
-# <!--проведение и деактивация и сохранение документа ниже-->
-# {% if inv_number_obj.state == False %}
-# <a href="{% url '' number_inv %}"><h3>Добавить группу товара</h3></a>
-#
-# <a href="{% url '' number_inv %}"><button class="activate_inv">Провести документ</button></a>
-#
-# <a href="{% url '' number_inv %}"><button class="activate_inv">Сохранить документ</button></a>
-#
-# {% else %}
-#
-# <a href="{% url '' number_inv %}"><button class="deactivate_receipt">Отмена проведения документа</button></a>
-#
-# {% endif %}
-
-
 def inventory_add_group(request, inv_number):
 	if request.method == 'POST':
 		form = Inventory_group_form(data=request.POST)
@@ -159,21 +139,14 @@ def inventory_activate(request, inv_number):
 			elif list_goods_in_inventory[i].quantity_old <= list_goods_in_inventory[i].quantity_new:
 				list_good[i].stock += list_goods_in_inventory[i].quantity_new - list_goods_in_inventory[i].quantity_old
 
-
-
-
-
-
-
-
-
 		goods = Goods.objects.bulk_update(objs=list_good, fields=["stock", ])
 
 		invent_number.state = True
 		invent_number.save()
 
-
-	return redirect('inventory_list')
+	
+	return redirect('inventory_open', inv_number)
+	# return redirect('inventory_list')
 
 
 def inventory_deactivate(request, inv_number):
@@ -192,10 +165,6 @@ def inventory_deactivate(request, inv_number):
 			elif list_goods_in_inventory[i].quantity_old <= list_goods_in_inventory[i].quantity_new:
 				list_good[i].stock -= list_goods_in_inventory[i].quantity_new - list_goods_in_inventory[i].quantity_old
 
-	# сделать сравнение было и стало и далее уже отнять или прибавить
-
-	# print(list_good[i].stock)
-
 	goods = Goods.objects.bulk_update(objs=list_good, fields=["stock", ])
 
 	invent_number.state = False
@@ -204,12 +173,113 @@ def inventory_deactivate(request, inv_number):
 	return redirect('inventory_open', inv_number)
 
 
+#загрузка файла
 def inventory_load_file(request, inv_number):
-	return
+	if request.method == 'POST':
+		p = request.POST
+		f = request.FILES  # тут мультивалуедикт
+		file = request.FILES['load_file']  # тут имя файла
+
+		list_inventory = []
+		buffer_inventory = []
+
+		try:
+			file_inventory = pd.read_excel(file)
+			# goods = Goods.objects.filter()
+
+			list_good_in_file = [i[0] for i in file_inventory.values]#взяли список названий товаров из файла
+
+			query_objects_in_base = Goods.objects.filter(name_product__in=list_good_in_file)#фильтр товаров из базы по списку товаров из файла
+			
+			#ниже отсортировал объекты товаров из базы, чтобы порядок был такой же как из файла. Элементы с пустым списком это значит что товара нет в базе
+			list_goods = [
+			[j for j in query_objects_in_base if j.name_product == i]
+			for i in list_good_in_file
+			]
+
+			# list_name_in_base_goods = [i.name_product for i in query_objects_in_base]
+			
+			# goods_not_in_base = list(filter(lambda x: x not in list_name_in_base_goods, list_good_in_file))#список товаров котрых нет в БД но есть в файле
+			# print(goods_not_in_base)
+
+			# for i in range(len(list_name_in_base_goods)):
+			# 	print(list_name_in_base_goods[i])
+			# 	print(list_good_in_file[i])
+			# 	print(1)
+			# for i in range(len(file_inventory.values)):
+			# 	print(file_inventory.values[i])
+			
+			for i in range(len(list_good_in_file)):
+				if list_goods[i] != []:
+					list_inventory.append(
+                        Inventory_list(
+                            product=list_goods[i][0],
+                            number_inventory=inv_number,
+                            #ост тут. В маркет при загрузке файла добавляются товары в инвенту новыми строками, и проставляется колво "стало". Если товар со штрих0-кодом не нашелся, то маркет кидает его в файл с ошибками и не загружает
+                            quantity_old=list_goods[i][0].stock,
+                            quantity_new=file_inventory.values[i][1],
+                            user=request.user
+                        ))
+				else:
+					buffer_inventory.append(Inventory_buffer(
+                        product=file_inventory.values[i][0],
+                        number_inventory=inv_number,
+                        quantity_old=0,
+                        quantity_new=file_inventory.values[i][1],
+                        user=request.user
+                    ))
+
+			if list_inventory != []:
+				inventory_create = Inventory_list.objects.bulk_create(list_inventory)
+			if buffer_inventory != []:
+				buffer_inventory = Inventory_buffer.objects.bulk_create(buffer_inventory)
+			#доделать логику для товаров которых нет в БД, или в файл их кидать или в системе куда то перекидывать
+
+			return redirect('inventory_open', inv_number)
+
+		except Exception as ex:
+			context = {"error": ex}
+
+			return render(request, 'shop/error_with_loadfile_receipt.html', context=context)
+
+	context = {"inv_number": inv_number}
+
+	return render(request, 'shop/inventory_load_file.html', context=context)
+
+
+def inventory_delete_position(request, id_good_in_inventory):	
+	invent_good_delete = Inventory_list.objects.get(id=id_good_in_inventory)
+	# inv_number = invent_good_delete.number_inventory
+	invent_good_delete.delete()
+	return HttpResponseRedirect(request.META['HTTP_REFERER'])
+	# return redirect('inventory_open', inv_number)
+
+# <a href="{% url 'inventory_delete_position' i.id %}"><button class="delete_position">Удалить</button></a>
+#удаление в цикле из формы не работает
+
+
+# <!--проведение и деактивация и сохранение документа ниже-->
+# {% if inv_number_obj.state == False %}
+# <a href="{% url '' number_inv %}"><h3>Добавить группу товара</h3></a>
+#
+# <a href="{% url '' number_inv %}"><button class="activate_inv">Провести документ</button></a>
+#
+# <a href="{% url '' number_inv %}"><button class="activate_inv">Сохранить документ</button></a>
+#
+# {% else %}
+#
+# <a href="{% url '' number_inv %}"><button class="deactivate_receipt">Отмена проведения документа</button></a>
+#
+# {% endif %}
+
 
 
 def inventory_result(request, inv_number):#подсчет недостачи и излишков
 	return
+
+
+
+
 
 
 

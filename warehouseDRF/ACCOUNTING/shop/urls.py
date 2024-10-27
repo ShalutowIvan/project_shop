@@ -67,6 +67,10 @@ urlpatterns = [
     path('inventory/list/view/add_group/<int:inv_number>/', inventory_add_group, name='inventory_add_group'),
     path('inventory/list/view/activate/<int:inv_number>/', inventory_activate, name='inventory_activate'),
     path('inventory/list/view/deactivate/<int:inv_number>/', inventory_deactivate, name='inventory_deactivate'),
+    path('inventory/list/view/receipt_load_file/<int:inv_number>/', inventory_load_file, name='inventory_load_file'),
+    path('inventory/list/view/delete_position/<int:id_good_in_inventory>/', inventory_delete_position, name='inventory_delete_position'),
+
+    
 
     # path('group/<slug:group_slug>/', GroupShow.as_view(), name='group'),
     # path('order/list/', Order_list_view.as_view(), name='order_list'),
