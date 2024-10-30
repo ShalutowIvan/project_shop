@@ -56,13 +56,19 @@
 
 <h3>Этих товаров нет в базе</h3>
 
+<a href="{% url 'url_from_load_error_inv' %}"><button class="error_inv">Скачать файл с ошибками</button></a>
+
 {% endif %}
 
 
 {% for i in inv_buffer %}
 
 <h3>{{ i.product }} | {{ i.quantity_new }}  {% if inv_number_obj.state == False %}
-	логика
+
+    <a href="{% url 'inventory_add_if_not_in_base' i.id %}"><button class="inventory_add">Добавить в инвентаризацию</button></a>
+	<a href="{% url 'inventory_change_if_not_in_base' i.id %}"><button class="inventory_buffer_change">Заменить на другой товар</button></a>
+    <a href="{% url 'inventory_delete_position_if_not_in_base' i.id %}"><button class="delete_inv_buffer_position">Удалить</button></a>
+
 	{% endif %} </h3>
 
 {% endfor %}

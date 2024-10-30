@@ -1,0 +1,30 @@
+{% extends 'shop/start.html' %}
+
+
+{% block content %}
+
+
+<br><br><br><br>
+
+<h1>Добавление позиций</h1>
+
+<form action="{% url 'inventory_change_if_not_in_base' number_good %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="form-error">{{ form.non_field_errors }}</div>
+
+<p><label class="form-label" for="{{ form.product.id_for_label }}">Товар: </label>{{ form.product }}</p>
+
+
+    <button type="submit">Добавить</button>
+
+   
+</form>
+
+
+
+
+
+{% endblock %}
+
+

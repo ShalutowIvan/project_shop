@@ -61,15 +61,31 @@ from typing import Literal, TypeAlias, Optional, TypeVar
 # text = translit(ru_text, language_code='ru', reversed=True)
 # print(text)
 # import os
-# path = os.path.abspath("/")#выводится путь к файлу питона
+# path = os.path.abspath("xls/inventory.xlsx")#выводится путь к файлу питона
+#
+# # print(os.path.isfile(path))
+# print(path)
 
-# print(os.path.isfile(path))
+# arr1 = ['p', 'y', 't', 'h', 'o', 'n', ' ', '3', '.', '0', '0']
+# res = list(filter(lambda a: a=="0", arr1))
+# print(res)
+
+class Python:
+    def __init__(self, a, b):
+        self.a = a
+        self.b = b
 
 
-arr1 = ['p', 'y', 't', 'h', 'o', 'n', ' ', '3', '.', '0', '0']
-res = list(filter(lambda a: a=="0", arr1))
-print(res)
+obj = Python(1, 2)
+print(obj.__dict__)
 
+
+#так можно тоже грузить в xls
+# fn = "xls/error.xlsx"
+# wb = load_workbook(fn)
+#
+# wb.save(fn)
+# wb.close()
 
 
 

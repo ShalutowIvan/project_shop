@@ -13,7 +13,7 @@ class Goods(models.Model):
 	user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь",)
 
 	def __str__(self):
-		return self.name_product
+		return f"{self.name_product}, {self.stock}"
 
 	
 
@@ -206,7 +206,7 @@ class Inventory_list(models.Model):
 	user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Пользователь")
 
 	def __str__(self):
-		return f"Товар: {self.product}, Количество: {self.quantity}"
+		return f"Товар: {self.product}, Количество: {self.quantity_new}"
 
 
 	class Meta:
@@ -223,7 +223,7 @@ class Inventory_buffer(models.Model):
 	user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Пользователь")
 
 	def __str__(self):
-		return f"Товар: {self.product}, Количество: {self.quantity}"
+		return f"Товар: {self.product}, Количество: {self.quantity_new}"
 
 	class Meta:
 		verbose_name = "Список буфер инвентаризаций"

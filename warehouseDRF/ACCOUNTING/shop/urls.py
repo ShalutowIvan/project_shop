@@ -68,9 +68,12 @@ urlpatterns = [
     path('inventory/list/view/activate/<int:inv_number>/', inventory_activate, name='inventory_activate'),
     path('inventory/list/view/deactivate/<int:inv_number>/', inventory_deactivate, name='inventory_deactivate'),
     path('inventory/list/view/receipt_load_file/<int:inv_number>/', inventory_load_file, name='inventory_load_file'),
-    path('inventory/list/view/delete_position/<int:id_good_in_inventory>/', inventory_delete_position, name='inventory_delete_position'),
-
-    
+    # path('inventory/list/view/delete_position/<int:id_good_in_inventory>/', inventory_delete_position, name='inventory_delete_position'),
+    path('inventory/list/url_from_load_template_inv/', url_from_load_template_inv, name='url_from_load_template_inv'),
+    path('inventory/list/url_from_load_error_inv/', url_from_load_error_inv, name='url_from_load_error_inv'),
+    path('inventory/list/delete_position_if_not_in_base/<int:id_good>/', inventory_delete_position_if_not_in_base, name='inventory_delete_position_if_not_in_base'),
+    path('inventory/list/inventory_add_if_not_in_base/<int:number_good>/', inventory_add_if_not_in_base, name='inventory_add_if_not_in_base'),
+    path('inventory/list/inventory_change_if_not_in_base/<int:number_good>/', inventory_change_if_not_in_base, name='inventory_change_if_not_in_base'),
 
     # path('group/<slug:group_slug>/', GroupShow.as_view(), name='group'),
     # path('order/list/', Order_list_view.as_view(), name='order_list'),

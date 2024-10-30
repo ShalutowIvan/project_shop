@@ -6,6 +6,8 @@ import pandas as pd
 import string
 import random
 from transliterate import translit
+from django.core.exceptions import ObjectDoesNotExist
+
 
 #список накладных просто вывод
 @login_required
@@ -249,19 +251,20 @@ def receipt_add_if_not_in_base(request, number_good):
 def receipt_change_if_not_in_base(request, number_good):
     good_in_buffer = Buffer_receipt.objects.get(id=number_good)
     number_doc = good_in_buffer.number_receipt
-    if request.method == 'POST':
-        form = Receipt_add_goods_form(data=request.POST)
-        if form.is_valid():
-            good = form.save(commit=False)
-            good.number_receipt = number_doc
-            good.user = request.user
-            good.save()
-            # good_in_buffer.delete()#не удаляется товар. фотка товара не удаляется если она не существует, переделать
+    # if request.method == 'POST':
+    #     form = Receipt_add_goods_form(data=request.POST)
+    #     if form.is_valid():
+    #         good = form.save(commit=False)
+    #         good.number_receipt = number_doc
+    #         good.user = request.user
+    #         good.save()
+    #         # good_in_buffer.delete()#не удаляется товар - потому что используется другой пост запрос. фотка товара не удаляется если она не существует, переделать
+    #
+    #         return redirect('receipt_document_open', number_doc)
 
-            return redirect('receipt_document_open', number_doc)
-
-    else:
-        form = Receipt_add_goods_form()
+    # else:
+    #тут пост запрос идет через другую УРЛ - receipt_add_goods
+    form = Receipt_add_goods_form()
     good_in_buffer.delete()
     context = {'form': form, "number_doc": number_doc}
 

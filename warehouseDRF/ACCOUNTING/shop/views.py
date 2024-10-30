@@ -421,7 +421,8 @@ def goods_load_file(request):
 #скачивание шаблона для загрузки файла
 def url_from_load_template(request):
 	# filepath = create_empty_excel(columns=["Название", "Артикул", "Цена", "Остаток", "Группа"], filename="Шаблон для загрузки товаров.xlsx")
-	response = FileResponse(open(r"C:\Users\shalutov\Desktop\python\INTERNET_MARKET\DRF_ACCOUNTING\ACCOUNTING\shop\static\shop\xls\template.xlsx", 'rb'))
+	path = os.path.abspath(r"shop\static\shop\xls\template.xlsx")
+	response = FileResponse(open(path, 'rb'))
 	#подумать что сделать со ссылкой на файл шаблона, он у меня берется по абсолютной ссылке, и на другом пк не будет работать
 	return response
 

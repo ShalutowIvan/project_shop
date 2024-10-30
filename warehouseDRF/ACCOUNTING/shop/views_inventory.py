@@ -1,12 +1,14 @@
 from django.shortcuts import render, HttpResponseRedirect, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, FileResponse
 from .models import *
 from .forms import *
 import pandas as pd
 import string
 import random
+import os
 from transliterate import translit
-
+from openpyxl import load_workbook
 
 ###################################################################################
 #инвентаризация - начало
@@ -198,7 +200,7 @@ def inventory_load_file(request, inv_number):
 			]
 
 			# list_name_in_base_goods = [i.name_product for i in query_objects_in_base]
-			
+
 			# goods_not_in_base = list(filter(lambda x: x not in list_name_in_base_goods, list_good_in_file))#список товаров котрых нет в БД но есть в файле
 			# print(goods_not_in_base)
 
@@ -235,6 +237,14 @@ def inventory_load_file(request, inv_number):
 				buffer_inventory = Inventory_buffer.objects.bulk_create(buffer_inventory)
 			#доделать логику для товаров которых нет в БД, или в файл их кидать или в системе куда то перекидывать
 
+			#запись файлов которых нет в базе в файл xlsx. Его можно потом скачать.
+			name = [i.product for i in buffer_inventory]
+			quantity = [i.quantity_new for i in buffer_inventory]
+			data = {"Название": name, "Количество": quantity}
+			df = pd.DataFrame(data)
+			df.to_excel('xls/error.xlsx', index=False)
+			########################################################################
+
 			return redirect('inventory_open', inv_number)
 
 		except Exception as ex:
@@ -247,12 +257,128 @@ def inventory_load_file(request, inv_number):
 	return render(request, 'shop/inventory_load_file.html', context=context)
 
 
-def inventory_delete_position(request, id_good_in_inventory):	
-	invent_good_delete = Inventory_list.objects.get(id=id_good_in_inventory)
+#урл для скачивания файла шаблона инвентаризации
+def url_from_load_template_inv(request):
+	# filepath = create_empty_excel(columns=["Название", "Артикул", "Цена", "Остаток", "Группа"], filename="Шаблон для загрузки товаров.xlsx")
+	path = os.path.abspath(r"shop\static\shop\xls\template_inv.xlsx")
+	response = FileResponse(open(path, 'rb'))
+	#подумать что сделать со ссылкой на файл шаблона, он у меня берется по абсолютной ссылке, и на другом пк не будет работать
+	return response
+
+#урл для скачивания файла с ошибками
+def url_from_load_error_inv(request):
+	# filepath = create_empty_excel(columns=["Название", "Артикул", "Цена", "Остаток", "Группа"], filename="Шаблон для загрузки товаров.xlsx")
+	path = os.path.abspath(r"xls\error.xlsx")
+	response = FileResponse(open(path, 'rb'))
+	#подумать что сделать со ссылкой на файл шаблона, он у меня берется по абсолютной ссылке, и на другом пк не будет работать
+	return response
+
+
+#добавить товар если нет в БД
+def inventory_add_if_not_in_base(request, number_good):
+    good_in_buffer = Inventory_buffer.objects.get(id=number_good)
+    letters = string.ascii_lowercase  # это создания артикула, будет случайная последовательность символов
+
+    good_in_base = Goods(
+        name_product=good_in_buffer.product,
+        slug=translit(good_in_buffer.product, language_code='ru', reversed=True),
+        vendor_code=''.join(random.choice(letters) for i in range(15)),
+        price=0,
+        stock=0,
+        group=Group.objects.get(name_group="Без группы"),
+        photo="_",
+        user=request.user
+    )
+    good_in_base.save()
+
+    good_in_inventory = Inventory_list(
+        product=good_in_base,
+        number_inventory=good_in_buffer.number_inventory,
+		quantity_old=0,
+        quantity_new=good_in_buffer.quantity_new,
+        user=request.user
+    )
+    good_in_inventory.save()
+
+    good_in_buffer.delete()
+
+    return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+
+
+# заменить товар на другой если нет в бд. Возможно лучше еще сделать кнопку для отдельного добавления товара в инвенту
+def inventory_change_if_not_in_base(request, number_good):
+	good_in_buffer = Inventory_buffer.objects.get(id=number_good)
+	number_inv = good_in_buffer.number_inventory
+	if request.method == 'POST':
+		form = Inventory_add_goods_form(data=request.POST)
+		if form.is_valid():
+			good_in_inv = form.save(commit=False)
+			good_in_inv.number_inventory = number_inv
+			good_in_inv.quantity_old = form.cleaned_data.get("product").stock
+			good_in_inv.user = request.user
+			good_in_inv.save()
+			good_in_buffer.delete()
+
+			return redirect('inventory_open', number_inv)
+	else:
+		form = Inventory_add_goods_form()
+	# good_in_buffer.delete()
+	context = {'form': form, "number_good": number_good}
+
+	return render(request, "shop/inventory_goods_add.html", context=context)
+
+
+# def inventory_add_goods(request, number_inv):
+#
+# 	if request.method == 'POST':
+# 		form = Inventory_add_goods_form(data=request.POST)
+# 		if form.is_valid():
+# 			good_in_inv = form.save(commit=False)
+# 			good_in_inv.number_inventory = number_inv
+# 			# good_in_inv.quantity_old = form.cleaned_data.get("quantity_old")#тут может быть ошибка
+# 			good_in_inv.quantity_old = 0
+# 			good_in_inv.user = request.user
+# 			good_in_inv.save()
+# 			# good_in_buffer.delete()
+#
+# 			return redirect('inventory_open', number_inv)
+#
+# 	else:
+# 		form = Receipt_add_goods_form()
+#
+# 	context = {'form': form, "number_doc": number_inv}
+#
+# 	return render(request, "shop/receipt_goods_add.html", context=context)
+
+
+def inventory_delete_position_if_not_in_base(request, id_good):
+	invent_good_delete = Inventory_buffer.objects.get(id=id_good)
 	# inv_number = invent_good_delete.number_inventory
 	invent_good_delete.delete()
 	return HttpResponseRedirect(request.META['HTTP_REFERER'])
 	# return redirect('inventory_open', inv_number)
+
+
+def inventory_result(request, inv_number):#подсчет недостачи и излишков
+	return
+
+
+
+
+
+
+#####################################################################################
+
+
+
+
+# def inventory_delete_position(request, id_good_in_inventory):
+# 	invent_good_delete = Inventory_list.objects.get(id=id_good_in_inventory)
+# 	# inv_number = invent_good_delete.number_inventory
+# 	invent_good_delete.delete()
+# 	return HttpResponseRedirect(request.META['HTTP_REFERER'])
+# 	# return redirect('inventory_open', inv_number)
 
 # <a href="{% url 'inventory_delete_position' i.id %}"><button class="delete_position">Удалить</button></a>
 #удаление в цикле из формы не работает
@@ -273,16 +399,24 @@ def inventory_delete_position(request, id_good_in_inventory):
 # {% endif %}
 
 
+#ссылка на статью хабра про загрузку файлов xls
+# https://habr.com/ru/articles/824050/
 
-def inventory_result(request, inv_number):#подсчет недостачи и излишков
-	return
-
-
-
-
-
-
-
-
-
-#####################################################################################
+# def url_from_load_template_inv(request, sheet_name: str = 'Sheet1'):
+# 	# columns = {'Имя': ['Анна', 'Петр', 'Мария'],
+#     #     'Возраст': [25, 30, 35],
+#     #     'Город': ['Москва', 'Санкт-Петербург', 'Киев']}
+# 	# filename = "Excel"
+# 	# df = pd.DataFrame(columns)
+#
+# 	# if not os.path.exists('excel_files'):
+# 	# 	os.makedirs('excel_files')
+#
+# 	# filepath = os.path.join('excel_files', filename)
+# 	# excel_writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
+# 	# df.to_excel(excel_writer, index=False, sheet_name=sheet_name, freeze_panes=(1, 0))
+# 	# excel_writer._save()
+# 	df.to_excel('данные.xlsx', index=False)
+#
+# 	return HttpResponseRedirect(request.META['HTTP_REFERER'])
+	# return filepath

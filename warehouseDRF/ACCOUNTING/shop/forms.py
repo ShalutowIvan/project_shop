@@ -99,6 +99,14 @@ class Inventory_group_form(forms.ModelForm):
         fields = ['group',]
 
 
-# class Inventiry_open_form(forms.Form):
-#     quantity_new = forms.FloatField()
+
+class Inventory_add_goods_form(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+    class Meta:
+        model = Inventory_list
+        fields = ['product', ]
+
 
