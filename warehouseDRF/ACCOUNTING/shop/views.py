@@ -150,7 +150,7 @@ def order_not_completed(request):
 #функция открыть заказ. 
 @login_required
 def order_list_open(request, order_number):	
-
+	context = {}
 	org = Organization.objects.all()
 	if org:
 		context['org'] = org[0]

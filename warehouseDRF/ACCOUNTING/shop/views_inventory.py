@@ -198,21 +198,23 @@ def inventory_load_file(request, inv_number):
 			[j for j in query_objects_in_base if j.name_product == i]
 			for i in list_good_in_file
 			]
-
-			# list_name_in_base_goods = [i.name_product for i in query_objects_in_base]
-
-			# goods_not_in_base = list(filter(lambda x: x not in list_name_in_base_goods, list_good_in_file))#список товаров котрых нет в БД но есть в файле
-			# print(goods_not_in_base)
-
-			# for i in range(len(list_name_in_base_goods)):
-			# 	print(list_name_in_base_goods[i])
-			# 	print(list_good_in_file[i])
-			# 	print(1)
-			# for i in range(len(file_inventory.values)):
-			# 	print(file_inventory.values[i])
 			
+			query_goods_in_invent = list(Inventory_list.objects.filter(number_inventory=inv_number))
+			goods_in_invent = [i.product.name_product for i in query_goods_in_invent]
+			objs_in_invent = []
+			# print("!!!!!!!!!!!!!!!!!!")
+			# print(query_goods_in_invent)
+			# print(goods_in_invent)
+
 			for i in range(len(list_good_in_file)):
 				if list_goods[i] != []:
+					if list_good_in_file[i] in goods_in_invent:
+						obj_invent = query_goods_in_invent[goods_in_invent.index(list_good_in_file[i])]
+						obj_invent.quantity_new = file_inventory.values[i][1]
+						# query_goods_in_invent[goods_in_invent.index(list_good_in_file[i])].quantity_new = file_inventory.values[i][1]
+						objs_in_invent.append(obj_invent)
+						continue#тут колво обновляться у существующего товара
+
 					list_inventory.append(
                         Inventory_list(
                             product=list_goods[i][0],
@@ -235,9 +237,12 @@ def inventory_load_file(request, inv_number):
 				inventory_create = Inventory_list.objects.bulk_create(list_inventory)
 			if buffer_inventory != []:
 				buffer_inventory = Inventory_buffer.objects.bulk_create(buffer_inventory)
+			if objs_in_invent != []:
+				invent_update_file = Inventory_list.objects.bulk_update(objs=objs_in_invent, fields=["quantity_new",])
+
 			#доделать логику для товаров которых нет в БД, или в файл их кидать или в системе куда то перекидывать
 
-			#запись файлов которых нет в базе в файл xlsx. Его можно потом скачать.
+			#запись файлов которых нет в базе в файл xlsx. Его можно потом скачать. Берется из буфера инвентаризации
 			name = [i.product for i in buffer_inventory]
 			quantity = [i.quantity_new for i in buffer_inventory]
 			data = {"Название": name, "Количество": quantity}
@@ -264,6 +269,7 @@ def url_from_load_template_inv(request):
 	response = FileResponse(open(path, 'rb'))
 	#подумать что сделать со ссылкой на файл шаблона, он у меня берется по абсолютной ссылке, и на другом пк не будет работать
 	return response
+
 
 #урл для скачивания файла с ошибками
 def url_from_load_error_inv(request):
@@ -358,6 +364,19 @@ def inventory_delete_position_if_not_in_base(request, id_good):
 	invent_good_delete.delete()
 	return HttpResponseRedirect(request.META['HTTP_REFERER'])
 	# return redirect('inventory_open', inv_number)
+
+
+
+def inventory_update_quantity(request, number_inv):
+	query_goods_in_invent = Inventory_list.objects.filter(number_inventory=number_inv)
+	for i in query_goods_in_invent:
+		i.quantity_old = i.product.stock
+
+	goods = Inventory_list.objects.bulk_update(objs=query_goods_in_invent, fields=["quantity_old",])
+
+	return redirect('inventory_open', number_inv)
+
+
 
 
 def inventory_result(request, inv_number):#подсчет недостачи и излишков

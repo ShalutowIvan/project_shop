@@ -19,6 +19,9 @@
 <h1> Номер инвентаризации: {{ number_inv }} </h1>
 <h1> Дата {{ inv_number_obj.time_create }} </h1>
 
+<a href="{% url 'inventory_update_quantity' number_inv %}"><button>Обновить остаток из базы</button></a>
+
+<br>
 <h3>Название товара | Количество</h3>
 
 <!--тут отрисовка списка товаров с формой ввода нового колва -->

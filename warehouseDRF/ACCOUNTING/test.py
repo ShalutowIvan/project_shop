@@ -70,14 +70,14 @@ from typing import Literal, TypeAlias, Optional, TypeVar
 # res = list(filter(lambda a: a=="0", arr1))
 # print(res)
 
-class Python:
-    def __init__(self, a, b):
-        self.a = a
-        self.b = b
+# class Python:
+#     def __init__(self, a, b):
+#         self.a = a
+#         self.b = b
 
 
-obj = Python(1, 2)
-print(obj.__dict__)
+# obj = Python(1, 2)
+# print(obj.__dict__)
 
 
 #так можно тоже грузить в xls
@@ -88,6 +88,9 @@ print(obj.__dict__)
 # wb.close()
 
 
+q = [1, 2, "qwe", 4, 5, 6]
+i = q.index("qwe")
+print(i)
 
 
 
