@@ -88,10 +88,5 @@ from typing import Literal, TypeAlias, Optional, TypeVar
 # wb.close()
 
 
-q = [1, 2, "qwe", 4, 5, 6]
-i = q.index("qwe")
-print(i)
-
-
 
 

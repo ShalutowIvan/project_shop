@@ -1,0 +1,32 @@
+{% extends 'shop/start.html' %}
+
+
+{% block content %}
+
+
+<br><br><br><br>
+
+<h1>Добавление позиций на приход</h1>
+
+<!-- где взять параметр сюда? -->
+<form action="{% url 'receipt_change_if_not_in_base' number_good %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="form-error">{{ form.non_field_errors }}</div>
+
+<p><label class="form-label" for="{{ form.product.id_for_label }}">Товар: </label>{{ form.product }}</p>
+<p><label class="form-label" for="{{ form.quantity.id_for_label }}">Количество: </label>{{ form.quantity }}</p>
+
+
+    <button type="submit">Добавить</button>
+
+   
+</form>
+
+
+
+
+
+{% endblock %}
+
+

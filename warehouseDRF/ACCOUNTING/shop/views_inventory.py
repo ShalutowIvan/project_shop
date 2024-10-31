@@ -202,9 +202,6 @@ def inventory_load_file(request, inv_number):
 			query_goods_in_invent = list(Inventory_list.objects.filter(number_inventory=inv_number))
 			goods_in_invent = [i.product.name_product for i in query_goods_in_invent]
 			objs_in_invent = []
-			# print("!!!!!!!!!!!!!!!!!!")
-			# print(query_goods_in_invent)
-			# print(goods_in_invent)
 
 			for i in range(len(list_good_in_file)):
 				if list_goods[i] != []:
@@ -319,20 +316,32 @@ def inventory_change_if_not_in_base(request, number_good):
 	if request.method == 'POST':
 		form = Inventory_add_goods_form(data=request.POST)
 		if form.is_valid():
-			good_in_inv = form.save(commit=False)
-			good_in_inv.number_inventory = number_inv
-			good_in_inv.quantity_old = form.cleaned_data.get("product").stock
-			good_in_inv.user = request.user
-			good_in_inv.save()
+			good_in_form = form.cleaned_data.get("product")
+			good_in_invent = Inventory_list.objects.filter(product=good_in_form)
+			if good_in_invent:#при добавлении товара который уже есть в инвенте, обновится колво в товаре инвенты
+				good_in_invent.quantity_new = good_in_buffer.quantity_new
+				good_in_invent.save()
+			else:
+				good_in_inv = form.save(commit=False)
+				good_in_inv.number_inventory = number_inv
+				good_in_inv.quantity_old = good_in_form.stock
+				good_in_inv.quantity_new = good_in_buffer.quantity_new
+				good_in_inv.user = request.user
+				good_in_inv.save()
 			good_in_buffer.delete()
 
 			return redirect('inventory_open', number_inv)
 	else:
 		form = Inventory_add_goods_form()
-	# good_in_buffer.delete()
+
 	context = {'form': form, "number_good": number_good}
 
 	return render(request, "shop/inventory_goods_add.html", context=context)
+
+
+
+
+
 
 
 # def inventory_add_goods(request, number_inv):

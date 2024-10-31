@@ -45,6 +45,17 @@ class Receipt_add_goods_form(forms.ModelForm):
         fields = ['product', 'quantity', ]
 
 
+class Receipt_add_goods_form_if_not_in_base(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+    class Meta:
+        model = Receipt_list
+        fields = ['product', ]
+
+
+
 #для расходного документа
 class Expense_number_form(forms.ModelForm):
     def __init__(self, *args, **kwargs):

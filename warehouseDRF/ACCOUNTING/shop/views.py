@@ -353,6 +353,8 @@ class Goods_add(CreateView):
         return super().form_valid(form)
 
 
+import numpy as np
+
 #загрузка файла с товарами
 def goods_load_file(request):	
 
@@ -370,8 +372,10 @@ def goods_load_file(request):
 		
 		try:
 			db_goods = pd.read_excel(file)
+			print("!!!!!!!!!!!!!!!!!!!!!!")
+			print(np.isnan(db_goods["название"][0]))#не понятно как проверить что ячейки пустые и что нужно будет потом в них записывать значения по умолчанию в объектах
 			for i in db_goods.values:				
-				if goods_in_base.get(i[0]) != None or i[1] in goods_in_base.values():
+				if goods_in_base.get(i[0]) != None or i[1] in goods_in_base.values():#если есть в базе товар с артикулом или названием, то не добавляем
 					continue
 
 				if i[4].lower() in groups:	
@@ -382,13 +386,13 @@ def goods_load_file(request):
 					vendor_code=i[1], 
 					price=i[2],
 					stock=i[3],
-					group=Group.objects.get(name_group=i[4].title()),
+					group=Group.objects.get(name_group=i[4].title()),#лишний sql запрос. Переделать, чтобы в цикле каждый раз не было запроса, сюда нужен элемент группы
 					photo=i[5],
 					user=request.user
 					) )
-				else:
+				elif i[4].lower() not in groups:
 					group_obj = Group(name_group=i[4].title(), slug=translit(i[4], language_code='ru', reversed=True))
-					# иначе создаем новую группу
+					# если группы такой нет, то создаем новую группу
 					group_obj.save()
 					goods.append(
 					Goods(
@@ -401,7 +405,21 @@ def goods_load_file(request):
 					photo=i[5],
 					user=request.user
 					) )
+				else:#ост тут
+					goods.append(
+						Goods(
+							name_product=i[0],
+							slug=translit(i[0], language_code='ru', reversed=True),
+							vendor_code=i[1],
+							price=i[2],
+							stock=i[3],
+							group=Group.objects.get(name_group=i[4].title()),
+							# лишний sql запрос. Переделать, чтобы в цикле каждый раз не было запроса, сюда нужен элемент группы
+							photo=i[5],
+							user=request.user
+						))
 
+			#что будет если каких то полей нет в файле......
 			if goods != []:
 				goods_create = Goods.objects.bulk_create(goods)
 			return redirect('goods_list')
