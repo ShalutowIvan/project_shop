@@ -186,8 +186,7 @@ def inventory_load_file(request, inv_number):
 		buffer_inventory = []
 
 		try:
-			file_inventory = pd.read_excel(file)
-			# goods = Goods.objects.filter()
+			file_inventory = pd.read_excel(file)			
 
 			list_good_in_file = [i[0] for i in file_inventory.values]#взяли список названий товаров из файла
 
@@ -203,12 +202,15 @@ def inventory_load_file(request, inv_number):
 			goods_in_invent = [i.product.name_product for i in query_goods_in_invent]
 			objs_in_invent = []
 
+			query_goods_in_invent_buffer = list(Inventory_buffer.objects.filter(number_inventory=inv_number))
+			goods_in_invent_buffer = [i.product for i in query_goods_in_invent_buffer]
+			objs_in_invent_buffer = []
+
 			for i in range(len(list_good_in_file)):
 				if list_goods[i] != []:
 					if list_good_in_file[i] in goods_in_invent:
 						obj_invent = query_goods_in_invent[goods_in_invent.index(list_good_in_file[i])]
-						obj_invent.quantity_new = file_inventory.values[i][1]
-						# query_goods_in_invent[goods_in_invent.index(list_good_in_file[i])].quantity_new = file_inventory.values[i][1]
+						obj_invent.quantity_new = file_inventory.values[i][1]						
 						objs_in_invent.append(obj_invent)
 						continue#тут колво обновляться у существующего товара
 
@@ -222,6 +224,12 @@ def inventory_load_file(request, inv_number):
                             user=request.user
                         ))
 				else:
+					if list_good_in_file[i] in goods_in_invent_buffer:
+						obj_invent_buffer = query_goods_in_invent_buffer[goods_in_invent_buffer.index(list_good_in_file[i])]
+						obj_invent_buffer.quantity_new = file_inventory.values[i][1]
+						objs_in_invent_buffer.append(obj_invent_buffer)
+						continue
+
 					buffer_inventory.append(Inventory_buffer(
                         product=file_inventory.values[i][0],
                         number_inventory=inv_number,
@@ -233,9 +241,11 @@ def inventory_load_file(request, inv_number):
 			if list_inventory != []:
 				inventory_create = Inventory_list.objects.bulk_create(list_inventory)
 			if buffer_inventory != []:
-				buffer_inventory = Inventory_buffer.objects.bulk_create(buffer_inventory)
+				buffer_inventory = Inventory_buffer.objects.bulk_create(buffer_inventory)				
 			if objs_in_invent != []:
 				invent_update_file = Inventory_list.objects.bulk_update(objs=objs_in_invent, fields=["quantity_new",])
+			if objs_in_invent_buffer != []:
+				invent_update_file_buffer = Inventory_buffer.objects.bulk_update(objs=objs_in_invent_buffer, fields=["quantity_new",])
 
 			#доделать логику для товаров которых нет в БД, или в файл их кидать или в системе куда то перекидывать
 
@@ -257,6 +267,49 @@ def inventory_load_file(request, inv_number):
 	context = {"inv_number": inv_number}
 
 	return render(request, 'shop/inventory_load_file.html', context=context)
+
+
+#добавить все товары из буфера в инвентаризацию если их нет
+def inventory_add_all_buffer(request, number_inv):
+	good_in_buffer = Inventory_buffer.objects.filter(number_inventory=number_inv)
+	letters = string.ascii_lowercase
+	no_group = Group.objects.get(name_group="Без группы")
+	list_inventory = []
+	list_goods = []
+
+	for i in good_in_buffer:
+		goods_from_buffer = Goods(
+        	name_product=i.product,
+        	slug=translit(i.product, language_code='ru', reversed=True),
+        	vendor_code=''.join(random.choice(letters) for i in range(15)),
+        	price=0,
+        	stock=0,
+        	group=no_group,
+        	photo="_",
+        	user=request.user
+    		)
+		list_goods.append(goods_from_buffer)
+
+		#ост тут
+		list_inventory.append(
+			Inventory_list(
+			product=goods_from_buffer,
+			number_inventory=number_inv,                            
+			quantity_old=0,
+			quantity_new=i.quantity_new,
+			user=request.user
+            ))
+
+	if list_goods != []:
+		goods_create = Goods.objects.bulk_create(list_goods)
+	if list_inventory != []:
+		inventory_create = Inventory_list.objects.bulk_create(list_inventory)
+
+	good_in_buffer.delete()
+
+
+	return redirect('inventory_open', number_inv)
+
 
 
 #урл для скачивания файла шаблона инвентаризации

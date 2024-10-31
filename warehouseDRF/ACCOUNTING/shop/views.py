@@ -372,8 +372,10 @@ def goods_load_file(request):
 		
 		try:
 			db_goods = pd.read_excel(file)
+			db_goods.fillna(0, inplace=True)#эта строка заполняет пустые ячейки нулями
 			print("!!!!!!!!!!!!!!!!!!!!!!")
-			print(np.isnan(db_goods["название"][0]))#не понятно как проверить что ячейки пустые и что нужно будет потом в них записывать значения по умолчанию в объектах
+			# print(np.isnan(db_goods["название"][0]))#не понятно как проверить что ячейки пустые и что нужно будет потом в них записывать значения по умолчанию в объектах
+			print(db_goods)
 			for i in db_goods.values:				
 				if goods_in_base.get(i[0]) != None or i[1] in goods_in_base.values():#если есть в базе товар с артикулом или названием, то не добавляем
 					continue
@@ -405,19 +407,19 @@ def goods_load_file(request):
 					photo=i[5],
 					user=request.user
 					) )
-				else:#ост тут
-					goods.append(
-						Goods(
-							name_product=i[0],
-							slug=translit(i[0], language_code='ru', reversed=True),
-							vendor_code=i[1],
-							price=i[2],
-							stock=i[3],
-							group=Group.objects.get(name_group=i[4].title()),
-							# лишний sql запрос. Переделать, чтобы в цикле каждый раз не было запроса, сюда нужен элемент группы
-							photo=i[5],
-							user=request.user
-						))
+				# else:#ост тут. Можно группу нулем заполнить и добавить без группы, но могут быть нюансы... подумать
+				# 	goods.append(
+				# 		Goods(
+				# 			name_product=i[0],
+				# 			slug=translit(i[0], language_code='ru', reversed=True),
+				# 			vendor_code=i[1],
+				# 			price=i[2],
+				# 			stock=i[3],
+				# 			group=Group.objects.get(name_group=i[4].title()),
+				# 			# лишний sql запрос. Переделать, чтобы в цикле каждый раз не было запроса, сюда нужен элемент группы
+				# 			photo=i[5],
+				# 			user=request.user
+				# 		))
 
 			#что будет если каких то полей нет в файле......
 			if goods != []:

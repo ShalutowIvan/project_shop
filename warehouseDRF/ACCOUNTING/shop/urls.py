@@ -75,6 +75,7 @@ urlpatterns = [
     path('inventory/list/inventory_add_if_not_in_base/<int:number_good>/', inventory_add_if_not_in_base, name='inventory_add_if_not_in_base'),
     path('inventory/list/inventory_change_if_not_in_base/<int:number_good>/', inventory_change_if_not_in_base, name='inventory_change_if_not_in_base'),
     path('inventory/list/view/update_quantity/<int:number_inv>/', inventory_update_quantity, name='inventory_update_quantity'),
+    path('inventory/list/view/add_all_buffer/<int:number_inv>/', inventory_add_all_buffer, name='inventory_add_all_buffer'),
 
     # path('group/<slug:group_slug>/', GroupShow.as_view(), name='group'),
     # path('order/list/', Order_list_view.as_view(), name='order_list'),
