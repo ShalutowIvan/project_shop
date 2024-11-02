@@ -1,0 +1,38 @@
+{% extends 'shop/good.html' %}
+
+
+{% block goods %}
+
+<br><br>
+
+
+<form action="{% url 'select_group_to_transfer' group_delete_id %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+<!-- enctype="multipart/form-data" это для передачи файлов любых, картинок xls и тд-->
+    
+    <!-- selected выбирает конкретный пункт из выпадающего меню, у меня он пробегает цикл, потом на последнем элементе оставляет selected , нужно как то сделать, чтобы выбиралась нужная мне группа-->
+    
+    <h3>В удаляемой группе есть товары. Выберите группу, в которую нужно перенести товары из удаляемой группы</h3>
+
+    <select id="group_new" name="group_new">
+
+        {% for j in groups %}
+
+            <option value="{{ j.id }}">{{ j.name_group }} </option>
+        
+        {% endfor %}
+    </select>
+    <br><br>
+    <button type="submit">Сохранить изменения</button>
+
+</form>
+
+
+
+
+
+
+{% endblock %}
+
+

@@ -10,9 +10,15 @@
 <form action="{% url 'inventory_add_group' inv_number %}" method="post" enctype="multipart/form-data">
     {% csrf_token %}
 
-    <div class="form-error">{{ form.non_field_errors }}</div>
+    <select id="group_inv" name="group_inv">
 
-    <p><label class="form-label" for="{{ form.group.id_for_label }}">Группа: </label>{{ form.group }}</p>
+        {% for j in groups_query %}
+
+            <option value="{{ j.id }}">{{ j.name_group }} </option>
+        
+        {% endfor %}
+    </select>
+    <br><br>
 
 
     <button type="submit">Добавить группу</button>

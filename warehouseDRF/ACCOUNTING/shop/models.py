@@ -13,7 +13,7 @@ class Goods(models.Model):
 	user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь",)
 
 	def __str__(self):
-		return f"{self.name_product}, {self.stock}"
+		return f"{self.name_product}"
 
 	
 
@@ -177,9 +177,16 @@ class Expense_list(models.Model):
 
 
 #таблицы для инвентаризации
-class Inventory_group(models.Model):
-	number_inventory = models.IntegerField(default=0, verbose_name="Номер инвентаризации")#он присваиваться из id из таблицы Inventory_number
-	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара", null=False)#каждая группа будет принадлежать определенной инвенте
+#таблица с группами инвенты лишняя. Без нее можно обойтись
+# class Inventory_group(models.Model):
+# 	number_inventory = models.IntegerField(default=0, verbose_name="Номер инвентаризации")#он присваиваться из id из таблицы Inventory_number
+# 	group = models.ForeignKey('Group', on_delete=models.PROTECT, verbose_name="Группа товара", null=False)#каждая группа будет принадлежать определенной инвенте
+
+	# <div class="form-error">{{ form.non_field_errors }}</div>
+
+    # <p><label class="form-label" for="{{ form.group.id_for_label }}">Группа: </label>{{ form.group }}</p>
+
+
 
 
 class Inventory_number(models.Model):
@@ -219,7 +226,7 @@ class Inventory_buffer(models.Model):
 	product = models.CharField(max_length=255, default='_', verbose_name="Название товара")
 	number_inventory = models.IntegerField(default=0, verbose_name="Номер инвентаризации")  # этот номер берется из id таблицы Expense_number
 	quantity_old = models.FloatField(default=0, verbose_name="Количество было")
-	quantity_new = models.FloatField(default=0, verbose_name="Количество стало")
+	quantity_new = models.FloatField(default=0, verbose_name="Количество стало")	
 	user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Пользователь")
 
 	def __str__(self):

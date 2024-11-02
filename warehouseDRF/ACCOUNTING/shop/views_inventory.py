@@ -50,11 +50,11 @@ def inventory_create(request):
 def inventory_delete(request, inv_number):
 	invent = Inventory_number.objects.get(id=inv_number)
 	invent_list_delete = Inventory_list.objects.filter(number_inventory=inv_number)
-	invent_group = Inventory_group.objects.filter(number_inventory=inv_number)
+	# invent_group = Inventory_group.objects.filter(number_inventory=inv_number)
 
 	invent.delete()
 	invent_list_delete.delete()
-	invent_group.delete()
+	# invent_group.delete()
 	return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
@@ -88,22 +88,25 @@ def inventory_open(request, inv_number):
 
 
 def inventory_add_group(request, inv_number):
-	if request.method == 'POST':
-		form = Inventory_group_form(data=request.POST)
-		if form.is_valid():
-			group = form.save(commit=False)
-			group.number_inventory = inv_number
+	groups_query = Group.objects.all()
 
-			goods = Goods.objects.filter(group__slug=group.group.slug)
-			query_list_inventory = Inventory_list.objects.filter(number_inventory=inv_number)
-			list_goods_name_inventory = [i.product.name_product for i in query_list_inventory]
-			good_list_from_inventory = []
-			for i in goods:
-				if i.name_product in list_goods_name_inventory:
-					continue
-				else:
-					good_list_from_inventory.append(
-						Inventory_list(
+	if request.method == 'POST':
+		# form = Inventory_group_form(data=request.POST)
+		# if form.is_valid():
+			# group = form.save(commit=False)
+		group = Group.objects.get(id=int(request.POST["group_inv"]))#просто группа без модели
+			# group.number_inventory = inv_number
+
+		goods = Goods.objects.filter(group__slug=group.slug)
+		query_list_inventory = Inventory_list.objects.filter(number_inventory=inv_number)
+		list_goods_name_inventory = [i.product.name_product for i in query_list_inventory]
+		good_list_from_inventory = []
+		for i in goods:
+			if i.name_product in list_goods_name_inventory:
+				continue
+			else:
+				good_list_from_inventory.append(
+					Inventory_list(
 							product=i,
 							number_inventory=inv_number,
 							quantity_old=i.stock,
@@ -111,14 +114,14 @@ def inventory_add_group(request, inv_number):
 							user=request.user
 							))
 
-			if good_list_from_inventory != []:
-				inventory_create = Inventory_list.objects.bulk_create(good_list_from_inventory)
-			group.save()
-			return redirect('inventory_open', inv_number)
-	else:
-		form = Inventory_group_form()
+		if good_list_from_inventory != []:
+			inventory_create = Inventory_list.objects.bulk_create(good_list_from_inventory)
+			# group.save()
+		return redirect('inventory_open', inv_number)
+	# else:
+	# 	form = Inventory_group_form()
 
-	context = {'form': form, "inv_number": inv_number}
+	context = {"groups_query": groups_query, "inv_number": inv_number}
 
 	return render(request, "shop/inventory_add_group.html", context=context)
 
@@ -126,7 +129,14 @@ def inventory_add_group(request, inv_number):
 #при проведении инвенты остаток либо отнимается либо прибивляется на разницу
 def inventory_activate(request, inv_number):
 	invent_number = Inventory_number.objects.get(id=inv_number)
+	buffer = list(Inventory_buffer.objects.filter(number_inventory=inv_number))
+
 	if invent_number.state == False:
+		if buffer != []:#ТУТ НЕ РАБОТАЕТ УСЛОВИЕ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			context = {"number_inv": inv_number, "undistributed_goods": "Есть не распределенные товары"}
+			return render(request, "shop/error_with_inventory_buffer.html", context=context)
+			# return redirect('inventory_open', inv_number)
+
 		list_goods_in_inventory = Inventory_list.objects.filter(number_inventory=inv_number)
 
 		gen_list = [i.product.id for i in list_goods_in_inventory]

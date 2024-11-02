@@ -11,17 +11,7 @@
 
 {% for i in groups %}
 
-{% if i.slug == no_group %}
 
-		<li>
-			<a href="{% url 'group_show' electro %}">Вася</a>
-		</li>
-		{{ i.name_group }}
-
-{{ continue }} 
-это не работает
-
-{% endif %}
 
 
 		<li>
@@ -51,6 +41,9 @@
 
 <a href="{% url 'goods_load_file' %}"><button class="add_good">Загрузить файл</button></a>
 
+&nbsp &nbsp
+
+<a href="{% url 'group_delete' %}"><button class="delete_group">Выбрать группу для удаления</button></a>
 
 <br>
 <br>

@@ -20,8 +20,18 @@ class Group_add_form(forms.ModelForm):
 
     class Meta:
         model = Group
-        fields = ['name_group', 'slug']
+        fields = ['name_group',]
  
+
+class Group_delete_form(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = Group
+        fields = ['name_group', 'slug']
+
+
 
 
 #для приходного документа
@@ -100,14 +110,14 @@ class Inventory_number_form(forms.ModelForm):
         fields = ['comment',]
 
 
-class Inventory_group_form(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+# class Inventory_group_form(forms.ModelForm):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
 
 
-    class Meta:
-        model = Inventory_group
-        fields = ['group',]
+#     class Meta:
+#         model = Inventory_group
+#         fields = ['group',]
 
 
 

@@ -1,0 +1,38 @@
+{% extends 'shop/good.html' %}
+
+
+{% block goods %}
+
+<br><br>
+
+
+<form action="{% url 'group_delete' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+<!-- enctype="multipart/form-data" это для передачи файлов любых, картинок xls и тд-->
+    
+    <!-- selected выбирает конкретный пункт из выпадающего меню, у меня он пробегает цикл, потом на последнем элементе оставляет selected , нужно как то сделать, чтобы выбиралась нужная мне группа-->
+    <h3>Выберите группу, которую нужно удалить</h3>
+    <select id="group" name="group">
+
+        {% for i in groups %}
+
+            <option value="{{ i.id }}">{{ i.name_group }} </option>
+        
+        {% endfor %}
+    </select>
+
+    <br><br>    
+    
+    <button type="submit">Удалить</button>
+
+</form>
+
+
+
+
+
+
+{% endblock %}
+
+

@@ -1,5 +1,9 @@
 body {
-	background-image: url('img/fon2.jpg');
+	background-image: url('img/fon5.jpg');
+	/*-webkit-background-size: 100%;
+  -moz-background-size: 100%;
+  -o-background-size: 100%;*/
+  background-size: 100%;
 }
 /*это стиль для картинки товаров. Первая позиция отображается под хедером и не видно название товара*/
 
@@ -11,7 +15,7 @@ body {
 header{
 position: fixed;
 float: top;
-background: green;
+background: #a77aa7;
 /*opacity: 0.5; это прозрачность*/
 height: 30vh;
 padding: 1.5%;
@@ -181,7 +185,7 @@ position: absolute;
 
 .footer {
 
-background: darkgreen;
+background: #a77aa7;
 /* position: sticky;*/
 position: fixed;
 bottom: 0;

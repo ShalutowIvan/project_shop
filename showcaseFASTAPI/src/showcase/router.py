@@ -139,7 +139,7 @@ async def add_in_basket(request: Request, good_id, session: AsyncSession = Depen
         context = await base_requisites(db=session, check=check, request=request)
         return templates.TemplateResponse("showcase/if_goods_none.html", context)
 
-    # if type(good_id) != int:#решил сделать так вместо анотации типа в роутере
+    
     good = await session.get(Goods, good_id)
     if good is None:
         context = await base_requisites(db=session, check=check, request=request)
@@ -195,16 +195,18 @@ async def basket_view(request: Request, session: AsyncSession = Depends(get_asyn
 
 #удаление товара по коду товара то есть id
 @router_showcase.get("/basket/goods/{basket_id}")
-async def delete_in_basket(request: Request, basket_id, session: AsyncSession = Depends(get_async_session)):
+async def delete_in_basket(request: Request, basket_id: int, session: AsyncSession = Depends(get_async_session)):
+    
+    
+    # if not basket_id.isdigit():#решил сделать так вместо анотации типа в роутере
+    #     context = await base_requisites(db=session, request=request)
+    #     return templates.TemplateResponse("showcase/if_goods_none.html", context)
 
-    if type(basket_id) != int:#решил сделать так вместо анотации типа в роутере
-        context = await base_requisites(db=session, request=request)
-        return templates.TemplateResponse("showcase/if_goods_none.html", context)
-
-    good = await session.get(Goods, basket_id)
-    if good is None:
-        context = await base_requisites(db=session, request=request)
-        return templates.TemplateResponse("showcase/if_goods_none.html", context)
+    # good = await session.get(Goods, basket_id)#basket_id не совпадает с id из списка товаров
+    # if good is None:
+    #     print("!!!!!!!!!!!!!!!!!!!!!!!!")
+    #     context = await base_requisites(db=session, request=request)
+    #     return templates.TemplateResponse("showcase/if_goods_none.html", context)
 
 
     basket = await session.get(Basket, basket_id)
@@ -289,7 +291,7 @@ async def contacts_form(request: Request, session: AsyncSession = Depends(get_as
     try:  # тут передалать так, чтобы в html формы выводились ошибки, то есть прокидывался контекст с ошибкой в форму, как это сделано в реге. Пока просто кидаю ошибку в html форме
         tel = int(phone)
         p = int(pay)
-        if pay not in (1, 2):
+        if p not in (1, 2):
             raise Exception("Неверный способ оплаты")
     except Exception as ex:
 
@@ -508,18 +510,24 @@ async def get_group(request: Request, session: AsyncSession = Depends(get_async_
 @router_showcase.get("/query_api/get/order/")
 async def get_order_status(request: Request, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None)):
     try:
-
         rq = requests.get("http://127.0.0.1:9999/api/get_order/")
         res = rq.json()
         #тут сделать логику по смене статуса у заказов. Сделать сравнение по номеру заказов и если заказ в res тру, то ставить его получен received в витрине. 
+        # print("!!!!!!!!!!!!!!!!!!!")
+        # print(res[4]["order_number"])
+        # print(res[4]["state_order"])
+        # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         # print(res)
-
         query_order = await session.scalars(select(Order_list))
         order_list = query_order.all()
-        # print("!!!!!!!!!!!!!!!!!!!!!")
-        # print(order_list[0].order_number)
+        print("!!!!!!!!!!!!!!!!!!!!!")
+        print(order_list)
         for i in range(len(res)):
             if res[i]["order_number"] == order_list[i].order_number:
+                # print("!!!!!!!!!!!!!!!!!!!")
+                # print(res[i]["order_number"])
+                # print(res[i]["state_order"])
+
                 if res[i]["state_order"] == True:
                     order_list[i].state_order = "received"
                 elif res[i]["state_order"] == False:
@@ -538,8 +546,11 @@ async def get_order_status(request: Request, session: AsyncSession = Depends(get
         context['error'] = ex
 
         return templates.TemplateResponse("showcase/if_shop_not_work.html", context)
+#это json из учетной системы
+# [{'id': 9, 'fio': 'Вася', 'phone': '123', 'product_id_id': 8, 'quantity': 1.0, 'order_number': 15, 'delivery_address': 'фыв', 'state_order': True}, {'id': 8, 'fio': 'Вася', 'phone': '123', 'product_id_id': 1, 'quantity': 1.0, 'order_number': 15, 'delivery_address': 'фыв', 'state_order': True}, {'id': 10, 'fio': 'Вася', 'phone': '123', 'product_id_id': 7, 'quantity': 1.0, 'order_number': 15, 'delivery_address': 'фыв', 'state_order': True}, {'id': 11, 'fio': 'Вася', 'phone': '123', 'product_id_id': 1, 'quantity': 1.0, 'order_number': 16, 'delivery_address': 'фыв', 'state_order': False}, {'id': 12, 'fio': 'Вася', 'phone': '123', 'product_id_id': 8, 'quantity': 1.0, 'order_number': 17, 'delivery_address': 'фыв', 'state_order': False}, {'id': 13, 'fio': 'Jhon', 'phone': '89998887766', 'product_id_id': 3, 'quantity': 1.0, 'order_number': 18, 'delivery_address': 'фыв', 'state_order': True}, {'id': 14, 'fio': 'Вася', 'phone': '123', 'product_id_id': 3, 'quantity': 1.0, 'order_number': 19, 'delivery_address': 'фыв', 'state_order': True}]
 
-
+#это запрос из БД витрины. Почему если заказ не получен, то обратно не меняется статус
+# [<src.showcase.models.Order_list object at 0x00000170557FDC60>, <src.showcase.models.Order_list object at 0x00000170557FDD20>, <src.showcase.models.Order_list object at 0x00000170557FD2A0>, <src.showcase.models.Order_list object at 0x00000170557FDD50>, <src.showcase.models.Order_list object at 0x00000170557FD480>, <src.showcase.models.Order_list object at 0x00000170557FDF00>, <src.showcase.models.Order_list object at 0x00000170557FDBA0>]
 
 
 #конец роутеров для апи с учетной системой

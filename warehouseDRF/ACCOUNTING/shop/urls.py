@@ -24,6 +24,8 @@ urlpatterns = [
     path('good_list/add_group/', Group_add.as_view(), name='group_add'),
     path('good_list/goods_modify/<int:good_id>/', goods_modify, name='goods_modify'),
     path('good_list/goods_delete/<int:good_id>/', goods_delete, name='goods_delete'),
+    path('good_list/group_delete/', group_delete, name='group_delete'),
+    path('good_list/select_group_to_transfer/<int:group_id>/', select_group_to_transfer, name='select_group_to_transfer'),
     
     path('good_list/load_file/', goods_load_file, name='goods_load_file'),
     path('good_list/load_file/url_from_load_template/', url_from_load_template, name='url_from_load_template'),

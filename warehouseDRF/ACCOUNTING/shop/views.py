@@ -243,12 +243,27 @@ class Goods_list(ListView):
         # print("!!!!!!!!!!!!!!!!")
         # print(groups)
         context["groups"] = groups
+        context["no_group"] = "no_group"
         if org:
             context['org'] = org[0]
 
         # context['form'] = AddGoodForm()#форма для поиска не нужна
         
         return context
+
+# {% if i.slug == no_group %}
+
+# 		<li>
+# 			<a href="{% url 'group_show' no_group %}">Вася</a>
+# 		</li>
+# 		{{ i.name_group }}
+
+# {{ continue }} 
+# это не работает
+
+# {% endif %}
+
+
 
 
 @login_required
@@ -299,28 +314,84 @@ class Get_order(APIView):
 #добавление группы товаров
 
 class Group_add(CreateView):
-    form_class = Group_add_form
-    template_name = 'shop/group_add.html'
-    success_url = reverse_lazy('goods_list')
-    login_url = reverse_lazy('start')
+	form_class = Group_add_form
+	template_name = 'shop/group_add.html'
+	success_url = reverse_lazy('goods_list')
+	login_url = reverse_lazy('start')
 
-
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
-        org = Organization.objects.all()
-        context["groups"] = Group.objects.all()
-        if org:
-            context['org'] = org[0]
+	def get_context_data(self, *, object_list=None, **kwargs):
+		context = super().get_context_data(**kwargs)
+		org = Organization.objects.all()
+		context["groups"] = Group.objects.all()
+		if org:
+			context['org'] = org[0]
         
-        return context
+		return context
 
     #передача юзера в форму автоматом от залогининного пользователя. В самой форме юзер не заполняется
-    def form_valid(self, form):
-        self.object = form.save(commit=False)
-        self.object.user = self.request.user        
-        self.object.save()
+	def form_valid(self, form):
+		self.object = form.save(commit=False)
+		self.object.user = self.request.user
+		self.object.slug = translit(form.cleaned_data.get("name_group"), language_code='ru', reversed=True)
+		self.object.save()
         # возвращаем form_valid предка
-        return super().form_valid(form)
+		return super().form_valid(form)
+
+
+def group_delete(request):
+	# good = Goods.objects.get(id=good_id)
+	groups = Group.objects.all()
+	# ост тут. Удаление группы, решил с помощью формы сделать как в modify goods
+	if request.method == 'POST':
+		try:
+			context = {}
+			group = Group.objects.get(id=int(request.POST["group"]))
+			goods_in_group = list(Goods.objects.filter(group__slug=group.slug))						
+			if goods_in_group != []:
+				#если группа не пустая, то нужен рендер на другую форму с выбором группы куда переносить товары. Закинем туда также контекст с группой которую удаляем и с списком объектов с товарами				
+				# context["group_delete_id"] = group.id			
+				return redirect('select_group_to_transfer', group.id)#ост сделать новую форму и урл
+			else:
+				group.delete()			
+	
+			return redirect('goods_list')
+		except Exception as ex:
+			context = {"groups": groups, "error": ex}
+
+			return render(request, 'shop/error_with_editfile.html', context=context)  
+
+		
+	context = {"groups": groups}
+	
+	return render(request, 'shop/good_group_delete.html', context=context)
+
+
+#урл для переноса товаров в новую группу
+def select_group_to_transfer(request, group_id):
+	groups = list(Group.objects.all())
+	group_delete = Group.objects.get(id=group_id)
+	groups.remove(group_delete)
+	if request.method == 'POST':		
+		group_new = Group.objects.get(id=int(request.POST["group_new"]))#берем из формы новую группу, в нее переносим товары
+		#тут логика переноса всех товаров из удаляемой группы в новую группу, потом удаляюему группу нужно удалить...
+		goods_in_group = list(Goods.objects.filter(group__id=group_id))#товары из удаляемой группы
+		for i in goods_in_group:
+			i.group = group_new
+
+		gd = Goods.objects.bulk_update(objs=goods_in_group, fields=["group",])#коммит в БД с изменениями группы
+
+		group_delete.delete()#удаление старой группы
+		#после того как убрали товары, не удаляется так как есть связь с таблицей инвенты.... Если инвенту по группе делали, то нельзя удалить так как есть связь. Как убрать связь не знаю. За счет связи удобно работает форма добавления группы. 
+		# чекбокс это boolfield
+		
+
+		return redirect('goods_list')
+
+	
+	context = {"groups": groups, "group_delete_id": group_id}#тут контекст без удаляемой группы
+
+	return render(request, 'shop/good_group_delete_if_not_empty.html', context=context)
+
 
 
 # <a href="{% url 'group_show' None %}">Без группы</a>
@@ -354,7 +425,7 @@ class Goods_add(CreateView):
 
 
 #загрузка файла с товарами
-def goods_load_file(request):	
+def goods_load_file(request):
 
 	if request.method == 'POST':		
 		# p = request.POST
@@ -362,11 +433,12 @@ def goods_load_file(request):
 		# file = request.FILES['load_file']#тут имя файла
 		# context = {"goods_in_file": db_goods}#тут объект <class 'pandas.core.frame.DataFrame'>
 
-		groups_query = Group.objects.all()
+		groups_query = list(Group.objects.all())#можно пополнять этот лист при создании группы
 		groups = [i.name_group.lower() for i in groups_query]
 		goods_query = Goods.objects.all()
 		goods_in_base = { i.name_product: i.vendor_code for i in goods_query }		
 		goods = []
+		new_groups = []
 		
 		try:
 			file = request.FILES['load_file']#тут имя файла
@@ -405,9 +477,10 @@ def goods_load_file(request):
 					user=request.user
 					) )				
 				elif i[4].lower() not in groups:#если группа заполнена, но ее нет в базе
-					group_obj = Group(name_group=i[4].title(), slug=translit(i[4], language_code='ru', reversed=True))
-					# если группы такой нет, то создаем новую группу. Есть проблема, если группу создадим, то потом нужно в базу сходить, а в цикле я не хожу в базу и получается ошибка так как каждый раз создаю группу
-					group_obj.save()
+					group_obj = Group(name_group=i[4].title(), slug=translit(i[4], language_code='ru', reversed=True))				
+					groups_query.append(group_obj)#то для обновления текущего списка объектов групп, чтобы в нем были новые группы. Это нужно в случае если появится новая группа и в нее товар грузим, выше в предыдущем условии пригождается
+					groups.append(group_obj.name_group.lower())#список названий групп пополняем, для дальнейших проверок
+					new_groups.append(group_obj)#список новых объектов групп, их потом в БД закинем после цикла					
 					goods.append(Goods(
 					name_product=i[0], 
 					slug=translit(i[0], language_code='ru', reversed=True), 
@@ -432,9 +505,14 @@ def goods_load_file(request):
 				# 			user=request.user
 				# 		))
 
-			#что будет если каких то полей нет в файле......
+			# new_gr = Group.objects.update_or_create(defaults=groups_query)#пробую через update
+
+			if new_groups != []:
+				groups_create = Group.objects.bulk_create(new_groups)
+
 			if goods != []:
 				goods_create = Goods.objects.bulk_create(goods)
+
 			return redirect('goods_list')
 		
 		except Exception as ex:			

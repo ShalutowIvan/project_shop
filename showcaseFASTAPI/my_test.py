@@ -55,23 +55,17 @@
 # elapsed_time = end_time - start_time
 # print('Elapsed time: ', elapsed_time)
 
-http = "http"
-token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIn0.D-PUbaFp3o2DYcFpPBVX67syyOoRjKZFAeskKOh5hog"
-content = f"<a href={http}://127.0.0.1:8000/regusers/restore/password_user/{token}><h1>ССЫЛКА</h1></a>"
-begin = content.find("password_user/")
-end = content.find("><h1>")
-
-z = content[begin+14:end]
-
-print(z)
 
 
 
+from pydantic import BaseModel
 
+class Number(BaseModel):
+	id: int
 
-
-
-
+a = Number(id=1)
+a.id = "asd"
+print(a.id)
 
 
 

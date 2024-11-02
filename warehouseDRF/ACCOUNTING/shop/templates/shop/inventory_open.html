@@ -57,7 +57,7 @@
 
 {% if inv_buffer %}
 
-<h3>Этих товаров нет в базе</h3>
+<h2>Нераспределенные товары. Этих товаров нет в базе.</h2>
 
 <a href="{% url 'url_from_load_error_inv' %}"><button class="error_inv">Скачать файл с ошибками</button></a>
 
@@ -82,9 +82,10 @@
 {% if inv_number_obj.state == False %}
 <a href="{% url 'inventory_add_group' number_inv %}"><h3>Добавить группу товара</h3></a>
 
-
+<br>
 <a href="{% url 'inventory_activate' number_inv %}"><button class="activate">Провести</button></a>
-
+<br>
+<h2>{{ undistributed_goods }}</h2>
 
 {% else %}
 <br>
