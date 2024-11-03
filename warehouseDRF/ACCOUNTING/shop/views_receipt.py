@@ -183,20 +183,83 @@ def receipt_load_file(request, number_doc):
 
         try:
             file_receipt = pd.read_excel(file)
-            for i in file_receipt.values:
-                try:
+
+            list_good_in_file = [i[0] for i in file_receipt.values]
+
+            query_objects_in_base = Goods.objects.filter(name_product__in=list_good_in_file)
+            goods_name_in_base = [i.name_product for i in query_objects_in_base]
+            
+
+            # list_goods = [
+            # tuple((j for j in query_objects_in_base if j.name_product == i))
+            # for i in list_good_in_file
+            # ]
+            
+            #алкгоритм аналогичен как в инвентаризации, только здесь каждый элемент это не список, а объект, либо если нет объекта, то 0 добавляем, а не пустую коллекцию. 
+            list_goods = []
+            for i in list_good_in_file:
+                if i not in goods_name_in_base:
+                    list_goods.append(0)
+                    continue
+                for j in query_objects_in_base:
+                    if j.name_product == i:
+                        list_goods.append(j)
+
+            # print(list_goods)
+
+            # for i in file_receipt.values:
+            #     try:
+            #         receipts.append(
+            #             Receipt_list(
+            #                 product=Goods.objects.get(name_product=i[0]),
+            #                 number_receipt=number_doc,
+            #                 quantity=i[1],
+            #                 user=request.user
+            #             ))
+            #     except ObjectDoesNotExist:
+            #         buffer_goods.append(Buffer_receipt(
+            #             product=i[0],
+            #             number_receipt=number_doc,
+            #             quantity=i[1],
+            #             user=request.user
+            #         ))
+
+            query_goods_in_receipt = list(Receipt_list.objects.filter(number_receipt=number_doc))
+            goods_in_receipt = [i.product.name_product for i in query_goods_in_receipt]#делаем список из названий товара текущей накладной
+            objs_in_receipt = []#это будет список объектов товаров из текущей накладной, в которых нужно обновить колво из загружаемого файла. 
+
+            #это для тоже самое что и выше, но для обновления колва в буффере накладной, то есть в списке товаров, которых еще нет в общем каталоге товаров. 
+            query_goods_in_receipt_buffer = list(Buffer_receipt.objects.filter(number_receipt=number_doc))
+            goods_in_receipt_buffer = [i.product for i in query_goods_in_receipt_buffer]
+            objs_in_receipt_buffer = []
+        
+
+            for i in range(len(list_good_in_file)):
+                if list_goods[i] != 0:#0 означает что товара нет в базе, и если не 0, значит товар есть в базе и его добавляем в накладную
+                    if list_good_in_file[i] in goods_in_receipt:#тут колво обновляться у существующего товара в накладной
+                        obj_receipt = query_goods_in_receipt[goods_in_receipt.index(list_good_in_file[i])]
+                        obj_receipt.quantity = file_receipt.values[i][1]                       
+                        objs_in_receipt.append(obj_receipt)
+                        continue
+
                     receipts.append(
                         Receipt_list(
-                            product=Goods.objects.get(name_product=i[0]),
-                            number_receipt=number_doc,
-                            quantity=i[1],
+                            product=list_goods[i],
+                            number_receipt=number_doc,                                                        
+                            quantity=file_receipt.values[i][1],
                             user=request.user
                         ))
-                except ObjectDoesNotExist:
+                else:
+                    if list_good_in_file[i] in goods_in_receipt_buffer:
+                        obj_receipt_buffer = query_goods_in_receipt_buffer[goods_in_receipt_buffer.index(list_good_in_file[i])]
+                        obj_receipt_buffer.quantity = file_receipt.values[i][1]
+                        objs_in_receipt_buffer.append(obj_receipt_buffer)
+                        continue
+
                     buffer_goods.append(Buffer_receipt(
-                        product=i[0],
-                        number_receipt=number_doc,
-                        quantity=i[1],
+                        product=file_receipt.values[i][0],
+                        number_receipt=number_doc,                        
+                        quantity=file_receipt.values[i][1],
                         user=request.user
                     ))
 
@@ -204,6 +267,10 @@ def receipt_load_file(request, number_doc):
                 receipts_create = Receipt_list.objects.bulk_create(receipts)
             if buffer_goods != []:
                 buffer_create = Buffer_receipt.objects.bulk_create(buffer_goods)
+            if objs_in_receipt != []:
+                receipt_update_file = Receipt_list.objects.bulk_update(objs=objs_in_receipt, fields=["quantity",])
+            if objs_in_receipt_buffer != []:
+                receipt_update_file_buffer = Buffer_receipt.objects.bulk_update(objs=objs_in_receipt_buffer, fields=["quantity",])
 
             return redirect('receipt_document_open', number_doc)
 
@@ -247,7 +314,7 @@ def receipt_add_if_not_in_base(request, number_good):
     return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
-# заменить если нет в бд
+# заменить на другой если нет в бд 
 def receipt_change_if_not_in_base(request, number_good):
     good_in_buffer = Buffer_receipt.objects.get(id=number_good)
     number_doc = good_in_buffer.number_receipt
@@ -255,22 +322,19 @@ def receipt_change_if_not_in_base(request, number_good):
         form = Receipt_add_goods_form_if_not_in_base(data=request.POST)
         if form.is_valid():
             good_in_form = form.cleaned_data.get("product")
-            good_in_receipt = Receipt_list.objects.filter(product=good_in_form)
+            good_in_receipt = Receipt_list.objects.filter(product=good_in_form) & Receipt_list.objects.filter(number_receipt=number_doc)             
             if good_in_receipt:#при добавлении товара который уже есть в документе, обновится колво в товаре
-                good_in_receipt.quantity = good_in_buffer.quantity
-                good_in_receipt.save()
+                good_in_receipt[0].quantity = good_in_buffer.quantity
+                good_in_receipt[0].save()
             else:
                 good = form.save(commit=False)
                 good.number_receipt = number_doc
                 good.quantity = good_in_buffer.quantity
                 good.user = request.user
-                good.save()
-            # good_in_buffer.delete()#не удаляется товар - потому что используется другой пост запрос. фотка товара не удаляется если она не существует, переделать
+                good.save()            
             good_in_buffer.delete()
             return redirect('receipt_document_open', number_doc)
-
-    else:
-        #тут пост запрос идет через другую УРЛ - receipt_add_goods
+    else:        
         form = Receipt_add_goods_form_if_not_in_base()
 
     context = {'form': form, "number_good": number_good}

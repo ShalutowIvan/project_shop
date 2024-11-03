@@ -187,37 +187,38 @@ def inventory_deactivate(request, inv_number):
 
 #загрузка файла
 def inventory_load_file(request, inv_number):
-	if request.method == 'POST':
-		p = request.POST
-		f = request.FILES  # тут мультивалуедикт
+	if request.method == 'POST':		
 		file = request.FILES['load_file']  # тут имя файла
 
-		list_inventory = []
-		buffer_inventory = []
+		list_inventory = []#список объектов инвенты
+		buffer_inventory = []#список объектов для буфера инвенты, то есть товаров которых нет в базе
 
 		try:
-			file_inventory = pd.read_excel(file)			
-
-			list_good_in_file = [i[0] for i in file_inventory.values]#взяли список названий товаров из файла
-
-			query_objects_in_base = Goods.objects.filter(name_product__in=list_good_in_file)#фильтр товаров из базы по списку товаров из файла
+			file_inventory = pd.read_excel(file)#прочитали файл excel, тут есть датафрейм, в нем есть таблица
 			
-			#ниже отсортировал объекты товаров из базы, чтобы порядок был такой же как из файла. Элементы с пустым списком это значит что товара нет в базе
+			list_good_in_file = [i[0] for i in file_inventory.values]#взяли список названий товаров из файла
+			#file_inventory.values - выцепляет строки, каждая строка из файла это список из значений столбцов. Берем первый столбец, это название товар в генераторе. Получается список названий товара из файла.
+
+			query_objects_in_base = Goods.objects.filter(name_product__in=list_good_in_file)#фильтр товаров из базы по списку товаров из файла. То есть берем товары из базы которые есть в списке товаров из файла. 
+			
+			#ниже отсортировал объекты товаров из базы, чтобы порядок был такой же как из файла. Элементы с пустым списком это значит что товара нет в базе. То есть если j.name_product == i не найдет товар, то запишется элемент пустой список - [].
 			list_goods = [
-			[j for j in query_objects_in_base if j.name_product == i]
+			tuple((j for j in query_objects_in_base if j.name_product == i))
 			for i in list_good_in_file
 			]
 			
+			#запрашиваем товары из текущей инвентаризации, чтобы потом их можно было проверить. 
 			query_goods_in_invent = list(Inventory_list.objects.filter(number_inventory=inv_number))
-			goods_in_invent = [i.product.name_product for i in query_goods_in_invent]
-			objs_in_invent = []
+			goods_in_invent = [i.product.name_product for i in query_goods_in_invent]#делаем список из названий товара текущей инвентаризации
+			objs_in_invent = []#это будет список объектов товаров из текущей инвенты, в которых нужно обновить колво из загружаемого файла. 
 
+			#это для тоже самое что и выше, но для обновления колва в буффере инвентаризации, то в списке товаров, которых еще нет в общем каталоге товаров. 
 			query_goods_in_invent_buffer = list(Inventory_buffer.objects.filter(number_inventory=inv_number))
 			goods_in_invent_buffer = [i.product for i in query_goods_in_invent_buffer]
 			objs_in_invent_buffer = []
 
 			for i in range(len(list_good_in_file)):
-				if list_goods[i] != []:
+				if list_goods[i] != ():#если товар в базе есть такой, то объект этого товара добавляем в инвенту
 					if list_good_in_file[i] in goods_in_invent:
 						obj_invent = query_goods_in_invent[goods_in_invent.index(list_good_in_file[i])]
 						obj_invent.quantity_new = file_inventory.values[i][1]						
@@ -227,13 +228,12 @@ def inventory_load_file(request, inv_number):
 					list_inventory.append(
                         Inventory_list(
                             product=list_goods[i][0],
-                            number_inventory=inv_number,
-                            #ост тут. В маркет при загрузке файла добавляются товары в инвенту новыми строками, и проставляется колво "стало". Если товар со штрих0-кодом не нашелся, то маркет кидает его в файл с ошибками и не загружает
+                            number_inventory=inv_number,                            
                             quantity_old=list_goods[i][0].stock,
                             quantity_new=file_inventory.values[i][1],
                             user=request.user
                         ))
-				else:
+				else:#иначе есть товара нет, то добавляем его в буфер, и в название пишем название из файла
 					if list_good_in_file[i] in goods_in_invent_buffer:
 						obj_invent_buffer = query_goods_in_invent_buffer[goods_in_invent_buffer.index(list_good_in_file[i])]
 						obj_invent_buffer.quantity_new = file_inventory.values[i][1]
@@ -257,8 +257,7 @@ def inventory_load_file(request, inv_number):
 			if objs_in_invent_buffer != []:
 				invent_update_file_buffer = Inventory_buffer.objects.bulk_update(objs=objs_in_invent_buffer, fields=["quantity_new",])
 
-			#доделать логику для товаров которых нет в БД, или в файл их кидать или в системе куда то перекидывать
-
+			
 			#запись файлов которых нет в базе в файл xlsx. Его можно потом скачать. Берется из буфера инвентаризации
 			name = [i.product for i in buffer_inventory]
 			quantity = [i.quantity_new for i in buffer_inventory]
