@@ -148,10 +148,13 @@ def receipt_add_goods(request, number_doc):
     if request.method == 'POST':
         form = Receipt_add_goods_form(data=request.POST)
         if form.is_valid():
-            good = form.save(commit=False)
-            good.number_receipt = number_doc
-            good.user = request.user
-            good.save()
+            good_in_form = form.cleaned_data.get("product")
+            good_in_receipt = Receipt_list.objects.filter(product=good_in_form) & Receipt_list.objects.filter(number_receipt=number_doc)             
+            if not good_in_receipt:                
+                good = form.save(commit=False)
+                good.number_receipt = number_doc
+                good.user = request.user
+                good.save()
 
             return redirect('receipt_document_open', number_doc)
 

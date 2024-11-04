@@ -513,26 +513,17 @@ async def get_order_status(request: Request, session: AsyncSession = Depends(get
         rq = requests.get("http://127.0.0.1:9999/api/get_order/")
         res = rq.json()
         #тут сделать логику по смене статуса у заказов. Сделать сравнение по номеру заказов и если заказ в res тру, то ставить его получен received в витрине. 
-        # print("!!!!!!!!!!!!!!!!!!!")
-        # print(res[4]["order_number"])
-        # print(res[4]["state_order"])
-        # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        # print(res)
-        query_order = await session.scalars(select(Order_list))
-        order_list = query_order.all()
-        print("!!!!!!!!!!!!!!!!!!!!!")
-        print(order_list)
-        for i in range(len(res)):
-            if res[i]["order_number"] == order_list[i].order_number:
-                # print("!!!!!!!!!!!!!!!!!!!")
-                # print(res[i]["order_number"])
-                # print(res[i]["state_order"])
+        
+        query_order = await session.scalars(select(Order_list).order_by(Order_list.order_number))
+        order_list = query_order.all()        
 
-                if res[i]["state_order"] == True:
+        for i in range(len(res)):
+            if res[i]["order_number"] == order_list[i].order_number:                
+
+                if res[i]["state_order"] == True:                    
                     order_list[i].state_order = "received"
                 elif res[i]["state_order"] == False:
                     order_list[i].state_order = "not_received"
-
 
         await session.commit()
 
@@ -546,11 +537,6 @@ async def get_order_status(request: Request, session: AsyncSession = Depends(get
         context['error'] = ex
 
         return templates.TemplateResponse("showcase/if_shop_not_work.html", context)
-#это json из учетной системы
-# [{'id': 9, 'fio': 'Вася', 'phone': '123', 'product_id_id': 8, 'quantity': 1.0, 'order_number': 15, 'delivery_address': 'фыв', 'state_order': True}, {'id': 8, 'fio': 'Вася', 'phone': '123', 'product_id_id': 1, 'quantity': 1.0, 'order_number': 15, 'delivery_address': 'фыв', 'state_order': True}, {'id': 10, 'fio': 'Вася', 'phone': '123', 'product_id_id': 7, 'quantity': 1.0, 'order_number': 15, 'delivery_address': 'фыв', 'state_order': True}, {'id': 11, 'fio': 'Вася', 'phone': '123', 'product_id_id': 1, 'quantity': 1.0, 'order_number': 16, 'delivery_address': 'фыв', 'state_order': False}, {'id': 12, 'fio': 'Вася', 'phone': '123', 'product_id_id': 8, 'quantity': 1.0, 'order_number': 17, 'delivery_address': 'фыв', 'state_order': False}, {'id': 13, 'fio': 'Jhon', 'phone': '89998887766', 'product_id_id': 3, 'quantity': 1.0, 'order_number': 18, 'delivery_address': 'фыв', 'state_order': True}, {'id': 14, 'fio': 'Вася', 'phone': '123', 'product_id_id': 3, 'quantity': 1.0, 'order_number': 19, 'delivery_address': 'фыв', 'state_order': True}]
-
-#это запрос из БД витрины. Почему если заказ не получен, то обратно не меняется статус
-# [<src.showcase.models.Order_list object at 0x00000170557FDC60>, <src.showcase.models.Order_list object at 0x00000170557FDD20>, <src.showcase.models.Order_list object at 0x00000170557FD2A0>, <src.showcase.models.Order_list object at 0x00000170557FDD50>, <src.showcase.models.Order_list object at 0x00000170557FD480>, <src.showcase.models.Order_list object at 0x00000170557FDF00>, <src.showcase.models.Order_list object at 0x00000170557FDBA0>]
 
 
 #конец роутеров для апи с учетной системой

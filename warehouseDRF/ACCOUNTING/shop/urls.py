@@ -73,6 +73,7 @@ urlpatterns = [
     # path('inventory/list/view/delete_position/<int:id_good_in_inventory>/', inventory_delete_position, name='inventory_delete_position'),
     path('inventory/list/url_from_load_template_inv/', url_from_load_template_inv, name='url_from_load_template_inv'),
     path('inventory/list/url_from_load_error_inv/', url_from_load_error_inv, name='url_from_load_error_inv'),
+    path('inventory/list/url_from_load_inventory/<int:inv_number>/', inventory_print, name='inventory_print'),
     path('inventory/list/delete_position_if_not_in_base/<int:id_good>/', inventory_delete_position_if_not_in_base, name='inventory_delete_position_if_not_in_base'),
     path('inventory/list/inventory_add_if_not_in_base/<int:number_good>/', inventory_add_if_not_in_base, name='inventory_add_if_not_in_base'),
     path('inventory/list/inventory_change_if_not_in_base/<int:number_good>/', inventory_change_if_not_in_base, name='inventory_change_if_not_in_base'),

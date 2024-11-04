@@ -402,10 +402,6 @@ def inventory_change_if_not_in_base(request, number_good):
 
 
 
-
-
-
-
 # def inventory_add_goods(request, number_inv):
 #
 # 	if request.method == 'POST':
@@ -447,6 +443,21 @@ def inventory_update_quantity(request, number_inv):
 
 	return redirect('inventory_open', number_inv)
 
+
+def inventory_print(request, inv_number):#ост тут
+	list_inventory = Inventory_list.objects.filter(number_inventory=inv_number)
+
+	name = [i.product for i in list_inventory]
+	quantity_old = [i.quantity_old for i in list_inventory]
+	quantity_new = [i.quantity_new for i in list_inventory]
+	data = {"Название": name, "Количество было": quantity_old, "Количество стало": quantity_new}
+	df = pd.DataFrame(data)
+	df.to_excel('shop/static/shop/xls/print_inventory.xlsx', index=False)
+	
+	path = os.path.abspath(r"shop\static\shop\xls\print_inventory.xlsx")
+	response = FileResponse(open(path, 'rb'))
+	#подумать что сделать со ссылкой на файл шаблона, он у меня берется по абсолютной ссылке, и на другом пк не будет работать
+	return response
 
 
 

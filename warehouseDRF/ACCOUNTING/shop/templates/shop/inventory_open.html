@@ -7,12 +7,6 @@
 <br><br>
 
 
-
-{% if inv_number_obj.state == False %}
-<a href="{% url 'inventory_load_file' number_inv %}"><button>Загрузить файл инвентаризации</button></a>
-{% endif %}
-
-
 <br><br>
 
 
@@ -20,6 +14,17 @@
 <h1> Дата {{ inv_number_obj.time_create }} </h1>
 
 <a href="{% url 'inventory_update_quantity' number_inv %}"><button>Обновить остаток из базы</button></a>
+
+&nbsp &nbsp
+
+{% if inv_number_obj.state == False %}
+<a href="{% url 'inventory_load_file' number_inv %}"><button>Загрузить файл инвентаризации</button></a>
+{% endif %}
+
+&nbsp &nbsp
+
+<a href="{% url 'inventory_print' number_inv %}"><button>Скачать инвентаризацию</button></a>
+
 
 <br>
 <h3>Название товара | Количество</h3>
