@@ -6,6 +6,10 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>УЧЕТ ТОВАРОВ</title>
+	<script src="../static/shop/js/myscript.js">
+		
+	</script>
+
 	<link rel="stylesheet" type="text/css" href="{% static 'shop/css/main.css' %}">
 	<!-- <link rel="stylesheet" type="text/css" href="{% static 'shop/css/bootstrap.css' %}"> -->
 	
@@ -21,6 +25,10 @@
 	<h1>{{ org.name_org }}</h1>
 	<h1>Выберите нужный раздел (слева) для ваших целей!</h1>
 	
+
+	<!-- <button type="button" onclick="openWindow()">Open window</button>
+		<br><br> -->
+<!-- кнопка джаваскрипт -->
 
 	{% if request.user.is_authenticated %}
 
@@ -43,6 +51,7 @@
 
 		<!--<span class="logo">Товары</span>-->
 		<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
 	<a href="{% url 'synchronization' %}"><button class="synchro">Синхронизация</button></a>
 
 <h2><a href="{% url 'order_list' %}">Список заказов</a></h2>

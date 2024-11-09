@@ -812,4 +812,11 @@ def sales_report_summary(request):
 # 	pass
 
 
+# pip install python-socketio
+#дударь чат через отдельный сервак, и там чат. Не понятно как это к моему фастапи прикрутить
+# видос про фастапи + сокеты
+# https://www.youtube.com/watch?v=GrQR4VhRsNA
+# рассмотреть ангуляр еще вместо реакта
 
+
+# ../../static/shop/
