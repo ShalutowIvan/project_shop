@@ -1,4 +1,5 @@
 from fastapi import FastAPI, status, Response, Path, Request, Depends
+from fastapi.middleware.cors import CORSMiddleware
 
 from fastapi.staticfiles import StaticFiles
 
@@ -8,6 +9,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Plai
 
 from src.regusers.router import router_reg
 from src.showcase.router import router_showcase
+from src.showcase.router_chat import router_showcase_chat
 
 #fastapi users - пока не юзаю
 # from fastapi_users import FastAPIUsers#это иморт класса с роутерами для авторизации, регистрации и тд.
@@ -19,8 +21,26 @@ from src.showcase.router import router_showcase
 # from fastapi.encoders import jsonable_encoder
 # from fastapi.responses import JSONResponse
 
+# useEffect(() => {
+#         synchro()
+#       }, [])
+
+
 
 app = FastAPI(title="Витрина интернет магазина", debug=True)#debug=True это для того чтобы в документации выводилсь ошибки как в консоли. 
+
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 app.mount("/static", StaticFiles(directory="src/static"), name="static")
@@ -29,7 +49,7 @@ app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
 #тут подключается роутер
 app.include_router(router_showcase)
-# app.include_router(router_showgroup)
+app.include_router(router_showcase_chat)
 app.include_router(router_reg)
 
 
@@ -89,5 +109,31 @@ if __name__ == "__main__":
 
 #с fast-api users
 # https://www.youtube.com/watch?v=nfueh3ei8HU&t=762s
+
+
+
+
+
+
+
+# Если ты хочешь проект, как сейчас делают большие дяди, то гугли:
+# 1. Что такое SPA и SSR
+# 2. React/Vue
+# 3. DRF
+# 4. Как связать фронт с бэком через API.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

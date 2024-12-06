@@ -1,0 +1,45 @@
+команда установки vite это сборщик проектов для react
+npm create vite@latest
+потом в консоли будут подсказки по типу:
+cd showcase_front это папка с проектом в нее надо перейти
+npm install потом установить пакеты
+npm run dev потом попробовать запустить проект сервак на реакте, запуск тестовой среды
+теперь почистим проект, 
+удалим из папки public svg файл
+в scr удалим папку assets
+app.css можно удалить, можно и оставить без разницы
+в файле main.jsx удалить строгий режим, он пока не нужен 
+// <StrictMode>
+// </StrictMode>,
+удалим почти все в файле App.jsx
+чтобы остался только функция и return и ее експорт. импорты пока тоже все удалим
+
+теперь установим библиотку tailwindcss
+ссылка на доку по tailwindcss
+https://tailwindcss.com/docs/guides/vite
+в доке 2 шаг
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+и сделать 3 шаг еще из доки
+Add the paths to all of your template files in your tailwind.config.js file.
+
+библиотка Ant Design для визуализации компонентов
+еще один сайт для компонентов
+https://ant.design/components/overview/
+
+ссылка на установку: https://ant.design/docs/react/introduce
+выбираем установку с vite
+https://ant.design/docs/react/use-with-vite
+команда установки: npm install antd --save
+
+с помощью tailwindcss можно писать стили в jsx коде
+сложно!!!!!!!!
+проще просто css
+
+не понятно в какую html идет код из проекта
+
+ставим библиотеку axios для запрос к апи
+npm install axios
+
+ост 36 мин
+
