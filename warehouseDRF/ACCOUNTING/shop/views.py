@@ -820,3 +820,7 @@ def sales_report_summary(request):
 
 
 # ../../static/shop/
+
+# уроки js
+# https://www.youtube.com/watch?v=dcnCI_-Uq4E&list=PLA0M1Bcd0w8x9TltCzZDhw0SatK1d10yy
+
