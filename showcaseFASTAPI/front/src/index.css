@@ -1,6 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
+
+
 
 
 :root {
@@ -8,10 +8,7 @@
   line-height: 1.5;
   font-weight: 400;
 
-  
-}
-
-  /*color-scheme: light dark;
+  color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
 
@@ -19,10 +16,24 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+
+.goods {
+   display: flex;
+height: 400px;
+display: inline-block;
+/*place-items: center;*/
+ justify-content: center;
+  border: 2px solid blue;
+}
 
 
 
-a {
+
+
+
+/*a {
   font-weight: 500;
   color: #646cff;
   text-decoration: inherit;
@@ -75,11 +86,3 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }*/
-
-
-
-
-
-
-
-

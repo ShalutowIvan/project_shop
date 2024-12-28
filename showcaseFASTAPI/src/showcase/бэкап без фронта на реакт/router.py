@@ -53,7 +53,7 @@ async def base_requisites(db, request, check=[False, None, " "]):#db - сесс�
 
 
 
-#вариант без фронта
+
 @router_showcase.get("/", response_class=HTMLResponse)
 async def home(request: Request, Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):    
 
@@ -76,37 +76,6 @@ async def home(request: Request, Authorization: str | None = Cookie(default=None
         response.set_cookie(key="Authorization", value=tokens[1])
 
     return response
-
-
-# @router_showcase.get("/")
-# async def home(request: Request, Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):    
-
-#     check = await access_token_decode(acces_token=Authorization)    
-    
-#     flag = False
-#     if type(check[0]) == ExpiredSignatureError:   
-#         tokens = await test_token_expire(RT=RT, db=session)        
-#         check = tokens[2]
-#         flag = True
-    
-#     context = await base_requisites(db=session, check=check, request=request)
-#     good = await session.execute(select(Goods))
-#     context["good"] = good.scalars()
-#     print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    
-#     for i in context["good"]:
-#         print(i.name_product)
-
-#     return {"Hello": "world"}
-    # response = templates.TemplateResponse("showcase/start.html", context)
-    # #если флаг, то надо куки новые закинуть
-    # if flag:
-    #     response.set_cookie(key="RT", value=tokens[0])
-    #     response.set_cookie(key="Authorization", value=tokens[1])
-
-    # return response
-
-
 
 
 @router_showcase.get("/{slug}", response_class=HTMLResponse)

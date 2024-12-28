@@ -1,26 +1,26 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
-# from regusers.schemas import *
+from regusers.schemas import *
 
 #есть такая штука как перечисления Enum. Это набор значений который можно использовать при валидации как в схемах pydentic так и в функциях или роутерах указывая аннотация на класс с перечислениями. Более подробно как работать с перечислениями можно почитать в документации фастапи раздел path-параметры
 
-class GroupShema(BaseModel):
-    id: int
-    name_group: str = Field(max_length=255)
-    slug: str = Field(max_length=255)
+class Group(BaseModel):
+	id: int
+	name_group: str = Field(max_length=255)
+	slug: str = Field(max_length=255)
 
-    class Config:
-        from_attributes = True
+    # class Config:
+    #     from_attributes = True
 
 
 class GoodsShema(BaseModel):
-    id: int
-    # id: Optional[int] = Field(default=1)
+    # id: int
+    id: Optional[int] = Field(default=1)
     name_product: str = Field(max_length=255)
     vendor_code: str = Field(max_length=20)
     stock: float	
-    price: float = Field(ge=0)
+    price: float
     slug: str = Field(max_length=255)
     photo: str
     availability: bool

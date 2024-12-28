@@ -1,21 +1,17 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+// import { StrictMode } from 'react'
+// import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
-import * as ReactDOMClient from 'react-dom/client'
-// import './css/main.css'
+import ReactDOM from 'react-dom/client'
 
 
-createRoot(document.getElementById('root')).render(
-  
-    <App />
-  
-)
 
-// const app = ReactDOMClient.createRoot(document.getElementById("app"))
-
-// app.render(<App />)
+// createRoot(document.getElementById('root')).render(
+//   <StrictMode>
+//     <App />
+//   </StrictMode>,
+// )
 
 
-// <StrictMode>
-// </StrictMode>,
+const root = document.getElementById('root')
+ReactDOM.createRoot(root).render(<App />)
