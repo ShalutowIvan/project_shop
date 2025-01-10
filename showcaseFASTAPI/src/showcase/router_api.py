@@ -93,7 +93,43 @@ async def goods_in_group(request: Request, slug: str, session: AsyncSession = De
 
 # ост тут, решил делать фронт для витрины
 
+@router_showcase_api.get("/basket/{good_id}")
+async def add_in_basket(request: Request, good_id, session: AsyncSession = Depends(get_async_session), Authorization: str | None = Cookie(default=None)):
+    #подтянул ид пользака из токена
+    check = await access_token_decode(acces_token=Authorization)
+    
+    if check[1] == None:#если нет токена то есть пользак вообще не вводил логин пас, то отображаем страницу следующую
+        context = await base_requisites(db=session, check=check, request=request)
 
+        return templates.TemplateResponse("showcase/if_not_auth.html", context)
+
+    try:
+        good_id = int(good_id)
+    except Exception as ex:
+        context = await base_requisites(db=session, check=check, request=request)
+        return templates.TemplateResponse("showcase/if_goods_none.html", context)
+
+    
+    good = await session.get(Goods, good_id)
+    if good is None:
+        context = await base_requisites(db=session, check=check, request=request)
+        return templates.TemplateResponse("showcase/if_goods_none.html", context)
+
+    query = select(Basket).where(Basket.product_id == good_id, Basket.user_id == int(check[1]))
+
+    basket = await session.scalars(query)
+    basket = basket.all()
+
+    if basket == []:#если в корзине нет такого товара, то добавляет товар в корзину
+        product = Basket(product_id=good_id, quantity=1, user_id=int(check[1]))
+        session.add(product)
+        await session.commit()
+    else:
+        basket[0].quantity += 1
+        await session.commit()
+
+    # http_referer = request.headers.get('referer')
+    # return RedirectResponse(http_referer)
 
 
 
