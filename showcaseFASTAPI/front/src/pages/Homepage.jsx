@@ -37,7 +37,7 @@ export default function Homepage() {
         </header>
 
       <aside>
-          <h1>Группы</h1>
+          
           <h3><NavLink to="/groups_all/" className={setActive}>Все группы</NavLink></h3>
 
             {

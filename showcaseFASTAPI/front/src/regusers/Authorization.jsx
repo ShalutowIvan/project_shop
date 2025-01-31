@@ -4,10 +4,6 @@ import { Link, Outlet, NavLink } from 'react-router-dom'
 
 
 
-
-
-
-
 export default function Authorization() {
 	const [form, setForm] = useState({        
         email: "",

@@ -2,6 +2,11 @@ import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import axios from "axios"
+import Button from '../components/Button/Button'
+
+
+
+
 
 export default function GoodsAll() {
 	// console.log(useParams().id);
@@ -16,6 +21,10 @@ export default function GoodsAll() {
 			.then(data => setGoods(data))
 
 	}, [])
+
+	function Add_in_basket(good_id) {
+		axios.get(`http://127.0.0.1:8000/api/basket/${good_id}`)		
+	}
 	
 
 	return (
@@ -30,7 +39,12 @@ export default function GoodsAll() {
 				)}*/}
 			
 			{goods?.map(good => (
-                        <h3 className="goods">{good.name_product}</h3>
+                        <div className="goods" key={good.id}>                        	
+                        	<h3>{good.name_product}</h3>
+                        	<h4>Цена: {good.price}</h4>
+                        	<h4>Остаток: {good.stock}</h4>
+                        	<Button onClick={() => Add_in_basket(good.id)}>Добавить в корзину</Button>
+                        </div>
                     ))}
 
 

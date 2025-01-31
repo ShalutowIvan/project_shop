@@ -3,6 +3,9 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import axios from "axios"
 
+import Button from '../components/Button/Button'
+
+
 export default function GoodsInGroup() {
 	// console.log(useParams().id);
 	const {slug} = useParams();
@@ -17,9 +20,15 @@ export default function GoodsInGroup() {
 
 	}, [slug])
 	
+	const url_basket_add = "http://127.0.0.1:8000/api/basket/"
+
+	function Add_in_basket(good_id) {
+		axios.get(`http://127.0.0.1:8000/api/basket/${good_id}`)		
+	}
+
 
 	return (
-		<div>
+		<>
 
 			{/*{goods && (
 				<>
@@ -30,12 +39,23 @@ export default function GoodsInGroup() {
 				)}*/}
 			{
                 goods?.map(good => (
-                        <h3 className="goods">{good.name_product}</h3>
+                        <div className="goods" key={good.id}>
+                        	
+                        	<h3>{good.name_product}</h3>
+                        	<h4>Цена: {good.price}</h4>
+                        	<h4>Остаток: {good.stock}</h4>
+                        	<Button onClick={() => Add_in_basket(good.id)}>Добавить в корзину</Button>
+                        </div>
                     ))
             }
 
 
-		</div>
+            	
+
+
+
+
+		</>
 		)
 
 }
