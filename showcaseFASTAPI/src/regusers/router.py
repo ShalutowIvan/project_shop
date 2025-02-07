@@ -54,6 +54,14 @@ async def registration_get(request: Request, session: AsyncSession = Depends(get
 @router_reg.post("/registration", response_model=UserReg, status_code=201)#response_model это валидация для запроса
 async def registration_post(request: Request, session: AsyncSession = Depends(get_async_session), name: str = Form(default="Empty"), email: EmailStr = Form(default="Empty"), password1: str = Form(default="Empty"), password2: str = Form(default="Empty")):
     
+
+    check_user_in_db = await session.scalar(select(User).where(User.email == email))
+    if check_user_in_db:
+        context = await base_requisites(db=session, request=request)
+        context["password_mismatch"] = "Такой пользователь уже зарегистрирован!"
+        response = templates.TemplateResponse("regusers/register.html", context)
+        return response
+    
     #подумать что делать с валидацией почты
     try:
         if password1 != password2:

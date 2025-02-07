@@ -107,7 +107,8 @@ class Order_counter(Base):
     __tablename__ = "order_counter"
     id: Mapped[int] = mapped_column(primary_key=True)    
     user_id: Mapped[int] = mapped_column(nullable=False)
-
+    time_create: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))
+    
 
 class State_order(enum.Enum):
     received = "Получен"
@@ -131,12 +132,12 @@ class Order_list(Base):
     # product_id: Mapped[int] = mapped_column(default=0)
     
     quantity: Mapped[float] = mapped_column(nullable=False)
-    time_create: Mapped[datetime] = mapped_column(server_default=text("TIMEZONE('utc', now())"))
+    
     
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
     user: Mapped["User"] = relationship(back_populates="order_list")
     
-    state: Mapped[bool] = mapped_column(default=True)#это параметр для отображения актуальности заказа. Например если товар удален, то заказ этого товара будет не актуален
+    state: Mapped[bool] = mapped_column(default=True)#это параметр для отображения актуальности заказа. Например если товар удален, то заказ этого товара будет не актуален. Типа нужно заказать другой товар.
 
     state_order: Mapped[State_order]#этот параметр для отображения получен ли заказ. Класс перечислений enum выше. 
     

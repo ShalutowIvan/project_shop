@@ -27,6 +27,7 @@ import { BrowserRouter, HashRouter, RouterProvider } from 'react-router-dom'
 
 
 import AppRouter from "./AppRouter"
+import { AuthProvider } from "./regusers/AuthProvider";
 
 
 function App() { 
@@ -65,10 +66,11 @@ function App() {
 
   return (
 
+    <AuthProvider>
 
-    <RouterProvider router={AppRouter} />
+        <RouterProvider router={AppRouter} />
 
-
+    </AuthProvider>
     
   )
 }

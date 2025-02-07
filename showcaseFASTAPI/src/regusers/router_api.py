@@ -32,41 +32,37 @@ from jose.exceptions import ExpiredSignatureError
 
 
 #мой роутер
-router_reg = APIRouter(
-    prefix="/regusers",
-    tags=["Regusers"]
+router_reg_api = APIRouter(
+    prefix="/api/regusers",
+    tags=["Regusers_api"]
 )
 
 
 
 #роутеры для реги
 
-@router_reg.get("/registration")
-async def registration_get(request: Request, session: AsyncSession = Depends(get_async_session)):
-    
-    context = await base_requisites(db=session, request=request)
+# name: str, email: EmailStr, password1: str, password2: str,
 
-    response = templates.TemplateResponse("regusers/register.html", context)
-    return response
+@router_reg_api.post("/registration")#response_model это валидация для запроса
+async def api_registration_post(request: Request, formData: UserReg, session: AsyncSession = Depends(get_async_session) ):
 
+    name = formData.name
+    email = formData.email
+    password1 = formData.password1
+    password2 = formData.password2
 
-
-@router_reg.post("/registration", response_model=UserReg, status_code=201)#response_model это валидация для запроса
-async def registration_post(request: Request, session: AsyncSession = Depends(get_async_session), name: str = Form(default="Empty"), email: EmailStr = Form(default="Empty"), password1: str = Form(default="Empty"), password2: str = Form(default="Empty")):
-    
-    #подумать что делать с валидацией почты
     try:
-        if password1 != password2:
-            context = await base_requisites(db=session, request=request)
-            context["password_mismatch"] = "Пароли не совпадают!"
-            response = templates.TemplateResponse("regusers/register.html", context)
-            return response
 
-        if len(password1) < 8 or password1.lower() == password1 or password1.upper() == password1 or not any(i.isdigit() for i in password1) or all(i.isdigit() for i in password1):
-            context = await base_requisites(db=session, request=request)
-            context["password_not_strong"] = "Пароль должен быть не менее 8 символов и должен содержать заглавные, строчные буквы и цифры!"
-            response = templates.TemplateResponse("regusers/register.html", context)
-            return response
+        check_user_in_db = await session.scalar(select(User).where(User.email == email))
+        if check_user_in_db:
+            return {"message": "Пользователь уже зарегистрирован"}
+        
+        if password1 != password2:            
+            return {"message": "Пароли не совпадают!"}
+            
+
+        if len(password1) < 8 or password1.lower() == password1 or password1.upper() == password1 or not any(i.isdigit() for i in password1) or all(i.isdigit() for i in password1):            
+            return {"message": "Пароль должен быть не менее 8 символов и должен содержать заглавные, строчные буквы и цифры!"}
 
         user = User(name=name, email=email, hashed_password=pwd_context.hash(password1))
 
@@ -74,16 +70,15 @@ async def registration_post(request: Request, session: AsyncSession = Depends(ge
         await session.commit()
 
         await send_email_verify(user=user)#в этой функции нужно зашифровать пользака и потом дешифровать
-
-        return RedirectResponse("/regusers/verification/check/", status_code=303)
+        
+        return {"message": "Все супер!"}
     except Exception as ex:
-        print("ОШИБКА ТУТ!!!!!!!!!!!!!!!!!!!!!!! - :", ex)
-        context = await base_requisites(db=session, request=request)
-        return templates.TemplateResponse("showcase/user_not_found.html", context)
+        return {"Error": ex}
+
 
 
 #это просто подсказка, о том что нужно зайти на почту и перейти по ссылке
-@router_reg.get("/verification/check/", response_model=None, status_code=201)
+@router_reg_api.get("/verification/check/", response_model=None, status_code=201)
 async def confirm_email(request: Request, session: AsyncSession = Depends(get_async_session)):
 
     t = "Перейдите в вашу почту и перейдите по ссылке из письма для подтверждения адреса почты и активации пользователя"
@@ -96,7 +91,7 @@ async def confirm_email(request: Request, session: AsyncSession = Depends(get_as
 
 
 #функция обработки ссылки из письма при активации пользака
-@router_reg.get("/verification/check_user/{token}", response_model=None, status_code=201)
+@router_reg_api.get("/verification/check_user/{token}", response_model=None, status_code=201)
 async def activate_user(request: Request, token: str, session: AsyncSession = Depends(get_async_session)):
     
     try:
@@ -115,17 +110,18 @@ async def activate_user(request: Request, token: str, session: AsyncSession = De
         return templates.TemplateResponse("showcase/user_not_found.html", context)
     
 
-    user = await session.scalar(select(User).where(User.id == int(user_id)))   
+    user = await session.scalar(select(User).where(User.id == int(user_id)))
     
     user.is_active = True
     session.add(user)
     await session.commit()
     
-    return RedirectResponse("/regusers/auth/", status_code=303) 
+    return {"message": "Все супер!"}
+    # return RedirectResponse("/regusers/auth/", status_code=303) 
 
 
 #функция get для страницы забыли пароль
-@router_reg.get("/forgot_password/", response_model=None, response_class=HTMLResponse)
+@router_reg_api.get("/forgot_password/", response_model=None, response_class=HTMLResponse)
 async def forgot_password_get(request: Request, session: AsyncSession = Depends(get_async_session)):
     
     context = await base_requisites(db=session, request=request)
@@ -135,7 +131,7 @@ async def forgot_password_get(request: Request, session: AsyncSession = Depends(
 
 
 #функция post для страницы забыли пароль
-@router_reg.post("/forgot_password/", response_model=None, response_class=HTMLResponse)
+@router_reg_api.post("/forgot_password/", response_model=None, response_class=HTMLResponse)
 async def forgot_password_post(request: Request, session: AsyncSession = Depends(get_async_session), email: EmailStr = Form(default="Empty")):
     user = await session.scalar(select(User).where(User.email == email))
 
@@ -151,7 +147,7 @@ async def forgot_password_post(request: Request, session: AsyncSession = Depends
 
 
 #это просто подсказка, о том что нужно зайти на почту и перейти по ссылке при сбросе пароля
-@router_reg.get("/restore/pass/", response_model=None, status_code=201)
+@router_reg_api.get("/restore/pass/", response_model=None, status_code=201)
 async def confirm_email_restore_pass(request: Request, session: AsyncSession = Depends(get_async_session)):
 
     t = "Перейдите в вашу почту и перейдите по ссылке из письма для восстановления пароля пользователя"
@@ -164,7 +160,7 @@ async def confirm_email_restore_pass(request: Request, session: AsyncSession = D
 #тут форма для ввода нового пароля, пароль нужно запрашивать дважды. при реге тоже. регу переделать. Затык с формой опять же.... УРЛ из письма должна запускать форму, а функция для формы должна забирать данные из html. Просто ввод нового пароля без токена не подходит, потому что теряется смысл безопаности и любой у кого есть ссылка напишет почту и новый пароль.
 
 #get запрос для отрисовки страницы формы восстановления пароля....
-@router_reg.get("/restore/password_user/{token}")
+@router_reg_api.get("/restore/password_user/{token}")
 async def restore_password_user_get(request: Request, token: str, session: AsyncSession = Depends(get_async_session)):
     
     context = await base_requisites(db=session, request=request)
@@ -175,7 +171,7 @@ async def restore_password_user_get(request: Request, token: str, session: Async
 
 
 #функция для обработки ссылки из письма для сброса пароля. token автоматом закидывается в форму, и поле с токеном в html сделал невидимым
-@router_reg.post("/restore/password_user/")
+@router_reg_api.post("/restore/password_user/")
 async def restore_password_user(request: Request, session: AsyncSession = Depends(get_async_session), password1: str = Form(default="Empty"), password2: str = Form(default="Empty"), token: str = Form(default="Empty")):
 
     try:
@@ -224,7 +220,7 @@ async def restore_password_user(request: Request, session: AsyncSession = Depend
 
 
 #функция get авторизации
-@router_reg.get("/auth", response_model=None, response_class=HTMLResponse)
+@router_reg_api.get("/auth", response_model=None, response_class=HTMLResponse)
 async def auth_get(request: Request, session: AsyncSession = Depends(get_async_session)):
     
     context = await base_requisites(db=session, request=request)
@@ -234,7 +230,7 @@ async def auth_get(request: Request, session: AsyncSession = Depends(get_async_s
 
 
 #функция post авторизации
-@router_reg.post("/auth", response_model=None, response_class=HTMLResponse)
+@router_reg_api.post("/auth", response_model=None, response_class=HTMLResponse)
 async def auth_user(request: Request, session: AsyncSession = Depends(get_async_session), email: EmailStr = Form(default="Empty"), password: str = Form(default="Empty")):
 
     user: User = await session.scalar(select(User).where(User.email == email))#ищем пользователя по емейл
@@ -307,7 +303,7 @@ async def auth_user(request: Request, session: AsyncSession = Depends(get_async_
     
 
 
-@router_reg.get("/logout")
+@router_reg_api.get("/logout")
 async def logout_user(request: Request, response: Response, Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
     
     context = await base_requisites(db=session, request=request)
@@ -337,7 +333,7 @@ async def logout_user(request: Request, response: Response, Authorization: str |
 
 
 # #функция проверки токена из кук. Пока роуты без схем, нужно сделать со схемами пайдентика
-# @router_reg.get("/self", response_model=None)
+# @router_reg_api.get("/self", response_model=None)
 # async def test_token(request: Request, RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
     
 #     response = templates.TemplateResponse("regusers/test2.html", {"request": request})
@@ -353,13 +349,13 @@ async def logout_user(request: Request, response: Response, Authorization: str |
 
 ################################################################################
 #просто ссылки для перехода на страницу тестовой авторизации. Потом удалить.
-# @router_reg.get("/registration")
+# @router_reg_api.get("/registration")
 # async def url_reg(request: Request):
 #     pass
 #     # return RedirectResponse("/auth", status_code=303)
 
 
-# @router_reg.get("/auth")
+# @router_reg_api.get("/auth")
 # async def url_auth(request: Request):
 #     pass
     # return RedirectResponse("", status_code=303)

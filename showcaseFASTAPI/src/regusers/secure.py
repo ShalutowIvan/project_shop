@@ -190,7 +190,7 @@ async def send_email_verify(user, use_https=False):
 	token = jwt.encode({"sub": str(user.id)}, KEY3, algorithm=ALG)
 	
 	#параметры из ссылки пойдут при запуске функции activate_user
-	email.set_content(f"<a href={http}://127.0.0.1:8000/regusers/verification/check_user/{token}><h1>ССЫЛКА</h1></a>" , subtype='html')
+	email.set_content(f"<a href={http}://localhost:5173/regusers/registration_verify/{token}><h1>ССЫЛКА</h1></a>" , subtype='html')
     
 	with smtplib.SMTP_SSL(HOST, PORT) as server:
 		server.login(HOST_USER, HOST_PASSWORD)

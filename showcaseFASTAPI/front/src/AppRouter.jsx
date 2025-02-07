@@ -12,9 +12,15 @@ import Forgot_password from './regusers/Forgot_password';
 import Registration_verify from './regusers/Registration_verify';
 
 import Basket_view from './components/Basket/Basket_view';
-import Orders_view from './components/Orders/Orders_view';
+import { Orders_view, orderNumberLoader } from './components/Orders/Orders_view';
+import { OrderOpen, orderOpenLoader } from './components/Orders/OrderOpen';
 
 import { OrderCreate, createOrderAction} from './components/Orders/OrderCreate'
+
+//авторизация
+import { Loginpage } from "./regusers/Loginpage";
+import { RequireAuth } from "./regusers/RequireAuth";
+
 
 
 const AppRouter = createBrowserRouter(createRoutesFromElements(
@@ -25,17 +31,34 @@ const AppRouter = createBrowserRouter(createRoutesFromElements(
           <Route path="regusers/registration/" element={<Registration />} />
           <Route path="regusers/logout/" element={<Logout />} />
           <Route path="regusers/forgot_password/" element={<Forgot_password />} />
-          <Route path="regusers/registration_verify/" element={<Registration_verify />} />
+          <Route path="regusers/registration_verify/:token"
+                 element={<Registration_verify />}
+                 
+           />
+
+          <Route path="login" element={<Loginpage />} />
+
 
           <Route path="groups_all/" element={<GoodsAll />} />
           <Route path="groups/:slug" element={<GoodsInGroup />} />
 
           
-          <Route path="basket/goods/" element={<Basket_view />} />
+          <Route path="basket/goods/" element={
+            <RequireAuth>
+                <Basket_view />
+            </RequireAuth>
+            } />
           
-          <Route path="basket/create/" element={<OrderCreate />} action={createOrderAction} />
+          <Route path="basket/create/" element={
+            <RequireAuth>
+                <OrderCreate />
+            </RequireAuth>
+            } 
+          action={createOrderAction} />
           
-          <Route path="checkout_list/orders/" element={<Orders_view />} />
+          <Route path="checkout_list/orders/" element={<Orders_view />} loader={orderNumberLoader} />
+          <Route path="checkout_list/orders/:id" element={<OrderOpen />} loader={orderOpenLoader} />
+
 
         
 

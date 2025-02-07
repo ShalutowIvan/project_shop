@@ -7,7 +7,7 @@
 
 {% for j in count_order %}
 
-<h3>Номер заказа: {{ j.id }}</h3>
+<h3>Номер заказа: {{ j.id }} Дата: {{ j.time_create }}</h3>
 
 {% for i in order_list %}
 
@@ -17,7 +17,7 @@
 
 {% if i.state == True %}
 
-<h4> Название товара: {{ i.product.name_product }} || Количество: {{ i.quantity }} || Цена: {{ i.product.price }} || Время создания: {{ i.time_create }} || Состояние: {{ i.state_order.value }} </h4>
+<h4> Название товара: {{ i.product.name_product }} || Количество: {{ i.quantity }} || Цена: {{ i.product.price }} || Состояние: {{ i.state_order.value }} </h4>
 
 {% else %}
 

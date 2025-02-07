@@ -2,6 +2,8 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 # from regusers.schemas import *
+from .models import State_order
+
 
 #есть такая штука как перечисления Enum. Это набор значений который можно использовать при валидации как в схемах pydentic так и в функциях или роутерах указывая аннотация на класс с перечислениями. Более подробно как работать с перечислениями можно почитать в документации фастапи раздел path-параметры
 
@@ -45,18 +47,17 @@ class GoodsShema(BaseModel):
     #     return self.model_dump(exclude={"id"})
 
 
-
-
-
-class Basket(BaseModel):    
+class BasketShema(BaseModel):    
     id: int
-    user: int
-    product: list[GoodsShema] = []
+    user_id: int
+    # product: list[GoodsShema] = []
+    product: GoodsShema
+    product_id: int
     quantity: float
     created_timestamp: datetime
 
 
-class Organization(BaseModel):
+class OrganizationShema(BaseModel):
     id: int
     name_org: str
     inn: int
@@ -71,28 +72,49 @@ class Organization(BaseModel):
     whatsApp: str
 
 
-class Order_list_bought(BaseModel):    
+class Order_counterShema(BaseModel):
     id: int
-    # name_product: list[Goods] = []
-    name_product: int
+    user_id: int
+    time_create: datetime
+
+
+class Order_list_form_Shema(BaseModel):
+    fio: str
+    phone: str
+    delivery_address: str
+    pay: str
+
+
+
+class Order_list_boughtShema(BaseModel):    
+    id: int
+    fio: str
+    delivery_address: str
+    phone: str    
+    product: GoodsShema
+    product_id: int  
     quantity: float
     order_number: int
-    time_create: datetime
-    user: int
+    user_id: int
+    state_order: State_order
+    state: bool
+
+    class Config:
+        from_attributes = True
 
 
-class Payment(BaseModel):  
+class PaymentShema(BaseModel):  
     id: int
     pay: str
 
 
-class Contacts(BaseModel):
+class ContactsShema(BaseModel):
     id: int
     user: int#это форинкей из таблицы юзеров, потом переделалать и везде юзера переделать потом
     fio: str
     phone: int
     delivery_address: str
-    pay: list[Payment] = []
+    pay: list[PaymentShema] = []
 
 
 

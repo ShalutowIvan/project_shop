@@ -25,7 +25,7 @@ export default function Basket_view() {
 			.then(res => res.json())
 			.then(data => setGoods_in_basket(data))		
 	}
-	//удаление работает, но нужно обновлять страницу чтобы увидеть изменения в базе. Если сюда закинуть состояние, то будет постоянный запрос в БД. Что делать пока не знаю. 
+	
 	
 
 
@@ -46,7 +46,7 @@ export default function Basket_view() {
 
 
 		
-		<h2><NavLink to="/basket/contacts/" className={setActive}>Перейти к оформлению заказа</NavLink></h2>
+		<h2><NavLink to="/basket/create/" className={setActive}>Перейти к оформлению заказа</NavLink></h2>
 
 
 		</>

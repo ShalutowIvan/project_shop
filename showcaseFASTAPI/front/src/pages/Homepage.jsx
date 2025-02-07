@@ -1,12 +1,13 @@
 import { Link, Outlet, NavLink } from 'react-router-dom'
 // import CustomLink from './CustomLink'
 import { useState, useEffect } from 'react'
-
+import { useAuth } from '../regusers/useAuth'
 
 
 export default function Homepage() {
 	const setActive = ({isActive}) => isActive ? 'active-link' : '';
     const [groups, setGroups] = useState([]);
+    const {signout} = useAuth()
 
 
     useEffect(() => {
@@ -26,13 +27,15 @@ export default function Homepage() {
             <p>Ссылки реги ></p>
             <h2><NavLink to="/regusers/authorization/" className={setActive}>Войти</NavLink></h2>
             <h2><NavLink to="/regusers/registration/" className={setActive}>Регистрация</NavLink></h2>
-            <h2><NavLink to="/regusers/logout/" className={setActive}>Выйти</NavLink></h2>
+            {/*<h2><NavLink to="/regusers/logout/" className={setActive}>Выйти</NavLink></h2>*/}
+            
             <h2><NavLink to="/regusers/registration_verify/" className={setActive}>Завершение регистрации</NavLink></h2>
 
             <p>Заказ товаров ></p>
             <h2><NavLink to="/checkout_list/orders/" className={setActive}>Мои покупки</NavLink></h2>
             <h2><NavLink to="/basket/goods/" className={setActive}>Корзина</NavLink></h2>
             
+            <button onClick={() => signout(() => navigate('/', {replace: true}))}>Выход</button>
 
         </header>
 

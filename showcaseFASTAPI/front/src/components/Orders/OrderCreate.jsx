@@ -27,9 +27,9 @@ async function createOrderRequest ({fio, phone, delivery_address, pay }) {
 		body: JSON.stringify({ fio, phone, delivery_address, pay })
 		})
 		
-	const newPost = await res.json()
+	const newOrder = await res.json()
 
-	return newPost
+	return newOrder
 }
 
 
@@ -42,11 +42,7 @@ async function createOrderAction ({request}) {
 		pay: formData.get('pay')		
 	}
 	
-	// const title = formData.get('title')
-	// const body = formData.get('body')
-	// const userId = formData.get('userId')
-
-	
+		
 	const order = await createOrderRequest(newOrderObj)
 	
 	return redirect('/checkout_list/orders/')
