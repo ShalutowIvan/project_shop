@@ -27,7 +27,7 @@ export default function Registration_verify() {
     //   setRes("Все плохо")
     // }
 
-    async function act() {
+    async function activ() {
     	try {
     		await fetch(`http://127.0.0.1:8000/api/regusers/verification/check_user/${token}`)
     		console.log("Успешно");
@@ -45,7 +45,7 @@ export default function Registration_verify() {
 		<>
 		<h1>Завершение регистрации</h1>
 
-		<button onClick={act}>РЕГА</button>
+		<button onClick={activ}>РЕГА</button>
 
 		<h2>{res}</h2>
 		

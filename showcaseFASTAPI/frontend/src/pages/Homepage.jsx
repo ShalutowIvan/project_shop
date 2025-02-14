@@ -2,6 +2,7 @@ import { Link, Outlet, NavLink } from 'react-router-dom'
 // import CustomLink from './CustomLink'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../regusers/useAuth'
+import Cookies from "js-cookie";
 
 
 export default function Homepage() {
@@ -9,11 +10,18 @@ export default function Homepage() {
     const [groups, setGroups] = useState([]);
     const {signout} = useAuth()
 
+    function TestCookie() {
+        const token = Cookies.get("Authorization");
+        console.log(token);
+    }
+
 
     useEffect(() => {
         fetch(`http://127.0.0.1:8000/api/groups_all/`)
             .then(res => res.json())
             .then(data => setGroups(data))
+
+        console.log("TEST!!!!!!!!!!!")
 
     }, [])
 
@@ -54,7 +62,7 @@ export default function Homepage() {
 
       <main>
 
-            
+            <button onClick={TestCookie}>Тест куки</button>
 
         <Outlet />
 

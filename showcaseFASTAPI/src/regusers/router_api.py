@@ -44,7 +44,7 @@ router_reg_api = APIRouter(
 # name: str, email: EmailStr, password1: str, password2: str,
 
 @router_reg_api.post("/registration")#response_model это валидация для запроса
-async def api_registration_post(request: Request, formData: UserReg, session: AsyncSession = Depends(get_async_session) ):
+async def api_registration_post(request: Request, formData: UserRegShema, session: AsyncSession = Depends(get_async_session) ):
 
     name = formData.name
     email = formData.email
@@ -78,21 +78,21 @@ async def api_registration_post(request: Request, formData: UserReg, session: As
 
 
 #это просто подсказка, о том что нужно зайти на почту и перейти по ссылке
-@router_reg_api.get("/verification/check/", response_model=None, status_code=201)
-async def confirm_email(request: Request, session: AsyncSession = Depends(get_async_session)):
+# @router_reg_api.get("/verification/check/", response_model=None, status_code=201)
+# async def confirm_email(request: Request, session: AsyncSession = Depends(get_async_session)):
 
-    t = "Перейдите в вашу почту и перейдите по ссылке из письма для подтверждения адреса почты и активации пользователя"
+#     t = "Перейдите в вашу почту и перейдите по ссылке из письма для подтверждения адреса почты и активации пользователя"
     
-    context = await base_requisites(db=session, request=request)
-    context["t"] = t
+#     context = await base_requisites(db=session, request=request)
+#     context["t"] = t
 
-    response = templates.TemplateResponse("regusers/check_email.html", context)
-    return response
+#     response = templates.TemplateResponse("regusers/check_email.html", context)
+#     return response
 
 
 #функция обработки ссылки из письма при активации пользака
-@router_reg_api.get("/verification/check_user/{token}", response_model=None, status_code=201)
-async def activate_user(request: Request, token: str, session: AsyncSession = Depends(get_async_session)):
+@router_reg_api.get("/verification/check_user/{token}", status_code=201)
+async def api_activate_user(request: Request, token: str, session: AsyncSession = Depends(get_async_session)):
     
     try:
         payload = jwt.decode(token, KEY3, algorithms=[ALG])#в acces_token передается просто строка
@@ -121,137 +121,118 @@ async def activate_user(request: Request, token: str, session: AsyncSession = De
 
 
 #функция get для страницы забыли пароль
-@router_reg_api.get("/forgot_password/", response_model=None, response_class=HTMLResponse)
-async def forgot_password_get(request: Request, session: AsyncSession = Depends(get_async_session)):
+# @router_reg_api.get("/forgot_password/", response_model=None, response_class=HTMLResponse)
+# async def forgot_password_get(request: Request, session: AsyncSession = Depends(get_async_session)):
     
-    context = await base_requisites(db=session, request=request)
+#     context = await base_requisites(db=session, request=request)
 
-    response = templates.TemplateResponse("regusers/forgot_password.html", context)
-    return response
+#     response = templates.TemplateResponse("regusers/forgot_password.html", context)
+#     return response
 
 
 #функция post для страницы забыли пароль
-@router_reg_api.post("/forgot_password/", response_model=None, response_class=HTMLResponse)
-async def forgot_password_post(request: Request, session: AsyncSession = Depends(get_async_session), email: EmailStr = Form(default="Empty")):
-    user = await session.scalar(select(User).where(User.email == email))
+@router_reg_api.post("/forgot_password/")
+async def api_forgot_password_post(request: Request, formData: EmailShema, session: AsyncSession = Depends(get_async_session)):
+    user = await session.scalar(select(User).where(User.email == formData.email))
 
-    if user is None:
-        context = await base_requisites(db=session, request=request)
-        context["user_not_found"] = "Пользователь не найден!"
-        response = templates.TemplateResponse("regusers/forgot_password.html", context)
-        return response
+    if user is None:        
+        return {"message": "Пользователь не найден! Проверьту почту для восстановления пароля!"}
 
     await send_email_restore_password(user=user)
 
-    return RedirectResponse("/regusers/restore/pass/", status_code=303)
+    # return RedirectResponse("/regusers/restore/pass/", status_code=303)
+    return {"message": "Все супер!"}
 
 
 #это просто подсказка, о том что нужно зайти на почту и перейти по ссылке при сбросе пароля
-@router_reg_api.get("/restore/pass/", response_model=None, status_code=201)
-async def confirm_email_restore_pass(request: Request, session: AsyncSession = Depends(get_async_session)):
+# @router_reg_api.get("/restore/pass/", response_model=None, status_code=201)
+# async def confirm_email_restore_pass(request: Request, session: AsyncSession = Depends(get_async_session)):
 
-    t = "Перейдите в вашу почту и перейдите по ссылке из письма для восстановления пароля пользователя"
+#     t = "Перейдите в вашу почту и перейдите по ссылке из письма для восстановления пароля пользователя"
     
-    context = await base_requisites(db=session, request=request)
-    context["t"] = t
-    response = templates.TemplateResponse("regusers/go_to_restore_password.html", context)
-    return response
+#     context = await base_requisites(db=session, request=request)
+#     context["t"] = t
+#     response = templates.TemplateResponse("regusers/go_to_restore_password.html", context)
+#     return response
 
 #тут форма для ввода нового пароля, пароль нужно запрашивать дважды. при реге тоже. регу переделать. Затык с формой опять же.... УРЛ из письма должна запускать форму, а функция для формы должна забирать данные из html. Просто ввод нового пароля без токена не подходит, потому что теряется смысл безопаности и любой у кого есть ссылка напишет почту и новый пароль.
 
 #get запрос для отрисовки страницы формы восстановления пароля....
-@router_reg_api.get("/restore/password_user/{token}")
-async def restore_password_user_get(request: Request, token: str, session: AsyncSession = Depends(get_async_session)):
+# @router_reg_api.get("/restore/password_user/{token}")
+# async def restore_password_user_get(request: Request, token: str, session: AsyncSession = Depends(get_async_session)):
     
-    context = await base_requisites(db=session, request=request)
-    context["token"] = token
+#     context = await base_requisites(db=session, request=request)
+#     context["token"] = token
 
-    response = templates.TemplateResponse("regusers/new_password.html", context)
-    return response
+#     response = templates.TemplateResponse("regusers/new_password.html", context)
+#     return response
 
 
 #функция для обработки ссылки из письма для сброса пароля. token автоматом закидывается в форму, и поле с токеном в html сделал невидимым
-@router_reg_api.post("/restore/password_user/")
-async def restore_password_user(request: Request, session: AsyncSession = Depends(get_async_session), password1: str = Form(default="Empty"), password2: str = Form(default="Empty"), token: str = Form(default="Empty")):
+@router_reg_api.post("/restore/password_user/{token}")
+async def api_restore_password_user(request: Request, token: str, formData: ForgotPasswordShema, session: AsyncSession = Depends(get_async_session)):
+
+    password1 = formData.password1
+    password2 = formData.password2
 
     try:
         payload = jwt.decode(token, KEY4, algorithms=[ALG])
         user_id = payload.get("sub")
-        if user_id is None:
-            context = await base_requisites(db=session, request=request)
-            context["user_not_found"] = "Пользователь не найден! Перейдите по ссылке из письма повторно и повторите попытку ввода нового пароля!"
-            response = templates.TemplateResponse("regusers/new_password.html", context)
-            # return RedirectResponse(f"/regusers/restore/password_user/{token}")
-            return response
+        if user_id is None:            
+            return {"message": "Ошибка, скорее всего нет такого пользователя!"}
 
-    except Exception as ex:
-        context = await base_requisites(db=session, request=request)
-        context["url_incorrect"] = "Некорректная ссылка! Перейдите по ссылке из письма повторно и повторите попытку ввода нового пароля!"
-        response = templates.TemplateResponse("regusers/new_password.html", context)
-        # return RedirectResponse(f"/regusers/restore/password_user/{token}")
-        return response
+    except Exception as ex:        
+        return {"message": f"Ошибка: {ex}"}
 
-    if password1 != password2:
-        context = await base_requisites(db=session, request=request)
-        context["password_mismatch"] = "Пароли не совпадают! Перейдите по ссылке из письма повторно и повторите попытку ввода нового пароля!"
-        response = templates.TemplateResponse("regusers/new_password.html", context)
-        # return RedirectResponse(f"/regusers/restore/password_user/{token}")
-        return response
+    if password1 != password2:        
+        return {"message": "Пароли не совпадают! Перейдите по ссылке из письма повторно и повторите попытку ввода нового пароля!"}
 
-    if len(password1) < 8 or password1.lower() == password1 or password1.upper() == password1 or not any(i.isdigit() for i in password1) or all(i.isdigit() for i in password1):
-        context = await base_requisites(db=session, request=request)
-        context["password_not_strong"] = "Пароль должен быть не менее 8 символов и должен содержать заглавные, строчные буквы и цифры! Перейдите по ссылке из письма повторно и повторите попытку ввода нового пароля!"
-        response = templates.TemplateResponse("regusers/new_password.html", context)
-        # return RedirectResponse(f"/regusers/restore/password_user/{token}")
-        return response
+    if len(password1) < 8 or password1.lower() == password1 or password1.upper() == password1 or not any(i.isdigit() for i in password1) or all(i.isdigit() for i in password1):        
+        return {"message": "Пароль должен быть не менее 8 символов и должен содержать заглавные, строчные буквы и цифры! Перейдите по ссылке из письма повторно и повторите попытку ввода нового пароля!"}
 
     user = await session.scalar(select(User).where(User.id == int(user_id)))
-    if user is None:
-        context = await base_requisites(db=session, request=request)
-        context["user_not_found"] = "Пользователь не найден! Перейдите по ссылке из письма повторно и повторите попытку ввода нового пароля!"
-        response = templates.TemplateResponse("regusers/new_password.html", context)
-        
-        return response
+    if user is None:        
+        return {"message": "Пользователь не найден! Перейдите по ссылке из письма повторно и повторите попытку ввода нового пароля!"}
 
     user.hashed_password = pwd_context.hash(password1)
     session.add(user)
     await session.commit()
-    return RedirectResponse("/regusers/auth/", status_code=303)
+    
+    # return RedirectResponse("/regusers/auth/", status_code=303)
+    return {"message": "Все супер!"}
 
 
 #функция get авторизации
-@router_reg_api.get("/auth", response_model=None, response_class=HTMLResponse)
-async def auth_get(request: Request, session: AsyncSession = Depends(get_async_session)):
+# @router_reg_api.get("/auth", response_model=None, response_class=HTMLResponse)
+# async def auth_get(request: Request, session: AsyncSession = Depends(get_async_session)):
     
-    context = await base_requisites(db=session, request=request)
+#     context = await base_requisites(db=session, request=request)
 
-    response = templates.TemplateResponse("regusers/login.html", context)
-    return response
+#     response = templates.TemplateResponse("regusers/login.html", context)
+#     return response
 
 
+
+# узнать как прокидывать куки............... пока не знаю как это сделать. Смотреть GPT, там вроде есть инфа
+# , response_model=TokenSheme
 #функция post авторизации
-@router_reg_api.post("/auth", response_model=None, response_class=HTMLResponse)
-async def auth_user(request: Request, session: AsyncSession = Depends(get_async_session), email: EmailStr = Form(default="Empty"), password: str = Form(default="Empty")):
+@router_reg_api.post("/auth")
+async def auth_user(response: Response, formData: AuthShema, session: AsyncSession = Depends(get_async_session)):
+
+    email = formData.email
+    password = formData.password
+    
 
     user: User = await session.scalar(select(User).where(User.email == email))#ищем пользователя по емейл
     
-    if not user:
-        context = await base_requisites(db=session, request=request)
-        context["user_not_found"] = "Пользователь не зарегистрирован!"
-        response = templates.TemplateResponse("regusers/login.html", context)
-        return response
+    if not user:        
+        return {"message": "Пользователь не зарегистрирован!"}
     
-    if not pwd_context.verify(password, user.hashed_password):#сверка пароля с БД
-        context = await base_requisites(db=session, request=request)
-        context["password_incorrect"] = "Неверный пароль!"
-        response = templates.TemplateResponse("regusers/login.html", context)
-        return response
+    if not pwd_context.verify(password, user.hashed_password):#сверка пароля с БД                       
+        return {"message": "Неверный пароль!"}
         
-    if user.is_active != True:
-        context = await base_requisites(db=session, request=request)
-        context["user_not_active"] = "Пользователь не активирован! Перейдите по ссылке из письма, которое пришло вам на почту для активации!"
-        response = templates.TemplateResponse("regusers/login.html", context)
-        return response
+    if user.is_active != True:        
+        return {"message": "Пользователь не активирован! Перейдите по ссылке из письма, которое пришло вам на почту для активации!"}
 
     
     refresh_token: Token = await session.scalar(select(Token).where(Token.user_id == user.id))
@@ -289,18 +270,78 @@ async def auth_user(request: Request, session: AsyncSession = Depends(get_async_
         access_token_jwt = create_access_token(data={"sub": str(user.id), "user_name": user.name}, expires_delta=access_token_expires)
     
     
-    context = await base_requisites(db=session, request=request)
-    context["user_name"] = user.name
-    context["check"] = True
-    good = await session.execute(select(Goods))
-    context["good"] = good.scalars()
+    # context = await base_requisites(db=session, request=request)
+    # context["user_name"] = user.name
+    # context["check"] = True
+    # good = await session.execute(select(Goods))
+    # context["good"] = good.scalars()
 
-    response = templates.TemplateResponse("showcase/start.html", context)    
-    response.set_cookie(key="RT", value=refresh_token.refresh_token)
-    response.set_cookie(key="Authorization", value=access_token_jwt)
+    # response = templates.TemplateResponse("showcase/start.html", context)    
+    # response.set_cookie(key="RT", value=refresh_token.refresh_token, httponly=True, secure=True, samesite="lax")
+    # response.set_cookie(key="Authorization", value=access_token_jwt, httponly=True, secure=True, samesite="lax")
+
    
-    return response
+
+   # , httponly=True, secure=True, samesite="lax"
     
+    # response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True)
+
+    return {"Authorization": access_token_jwt, "RT": refresh_token.refresh_token, "token_type": "bearer"}
+    # return {"message": "Все супер"}
+# возврат сделать токена....
+# эрик роби. в фастапи есть урл где он вводит логин и пароль и сверяет их с БД, и возвращает юзера.
+# затем создает токен и его возвращает также в виде словаря. 
+# Типа - {токен: значение токена, тип токена: бэрэр}.
+# сначала он берет данные с фронта логин пас, с помощью formData: OAuth2PasswordRequestForm = Depends()
+# сверяет их с БД с помощью отдельной функции
+# делает проверку юзера, есть он или нет, то есть сверка логина паса прошла или нет
+# потом создает токен и закидывает в пейлоад токена юзернейм
+# и его возвращает также в виде словаря. 
+# Типа - {токен: значение токена, тип токена: бэрэр}.
+# затем создает еще одну функцию для проверки токена, что он валидный. Декодирует, проверяет что в нем есть юзернейм.
+# def verify_token(token: str = Depends(oauth2scheme)) так пишет начало функции
+# потом делает роут с параметром и там запускает эту функцию
+# у него в фронте токен сохраняется в локальное хранилище
+# и там если токен будет не верный, то он удаляется. Это логика фронта
+
+# это вариант без куки выше
+# не понятно как установить куку в заголовок
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
+
+def verify_access_token(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = jwt.decode(token, KEY, algorithms=[ALG])        
+        user_id = payload.get("sub")#у меня тут user_id, а не юзернейм
+        # user_name = payload.get("user_name")
+        if user_id is None:
+            print("нет такого user_id")            
+            # return [False, None, " "]
+            raise HTTPException(status_code=403, detail="Не валидный токен или истек")
+
+    except Exception as ex:#если истек рефреш то его просто удаляем, и нужно заново логиниться
+        print("ОШИБКА ТОКЕНА ТУТ:")
+        print(ex)
+        # if type(ex) == ExpiredSignatureError:            
+        #     await session.delete(refresh_token)
+        #     await session.commit()
+        #     refresh_token = None
+        raise HTTPException(status_code=403, detail="Не валидный токен или истек")
+
+
+# , response_model=TokenSheme
+#роутер для проверки токена
+@router_reg_api.get("/auth/verify_access_token/{token}")
+async def uri_verify_access_token(token: str):
+    verify_access_token(token=token)
+    return {"message": "Token is valid"}
+
+
+
+
 
 
 @router_reg_api.get("/logout")

@@ -117,7 +117,7 @@ async def update_tokens(RT, db):#передаем сюда рефреш токе
 
 
 #функция проверки токена.
-async def access_token_decode(acces_token):#проверка аксес токена из куки  
+async def access_token_decode(acces_token: str):#проверка аксес токена из куки  
     
     try:
         payload = jwt.decode(acces_token, KEY, algorithms=[ALG])#в acces_token передается просто строка
@@ -178,7 +178,7 @@ from email.message import EmailMessage
 #     except Exception as e:
 #         return {"status": 500, "errors": e}
 
-
+#тут переделал, идет переадрессация на фронт в ссылке из письма, а фронт уже обрабатывает функции с бэка. При восстановлении пароля логика та же
 async def send_email_verify(user, use_https=False):
 	email = EmailMessage()
 	email['Subject'] = 'Подтверждение регистрации в интернет магазине'
@@ -208,7 +208,7 @@ async def send_email_restore_password(user, use_https=False):
 
 	token = jwt.encode({"sub": str(user.id)}, KEY4, algorithm=ALG)
 	
-	content = f"<a href={http}://127.0.0.1:8000/regusers/restore/password_user/{token}><h1>ССЫЛКА</h1></a>"
+	content = f"<a href={http}://localhost:5173/regusers/forgot_password_verify/{token}><h1>ССЫЛКА</h1></a>"
 	email.set_content(content , subtype='html')
     
 	with smtplib.SMTP_SSL(HOST, PORT) as server:

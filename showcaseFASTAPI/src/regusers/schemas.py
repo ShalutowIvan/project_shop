@@ -4,13 +4,32 @@ from datetime import datetime
 
 
 
-class UserReg(BaseModel):
+class UserRegShema(BaseModel):
     name: str
     email: EmailStr
     password1: str
     password2: str
 
 
+class ForgotPasswordShema(BaseModel):
+    password1: str
+    password2: str
+
+
+class EmailShema(BaseModel):
+    email: EmailStr
+
+
+class AuthShema(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class TokenSheme(BaseModel):
+    Authorization: str
+    RT: str
+    token_type: str
+    # live_time: int
 
 
 # class UserAuth(BaseModel):

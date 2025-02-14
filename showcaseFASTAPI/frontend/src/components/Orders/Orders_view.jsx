@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate, useLoaderData, Await, useAsyncValue } from 'react-router-dom'
 import { React, Suspense } from 'react';
-
+import Cookies from "js-cookie";
 
 
 
@@ -43,7 +43,9 @@ function Orders_view() {
 
 async function getOrderNumber() {
 	const res = await fetch('http://127.0.0.1:8000/api/checkout_list/orders/')
-			
+	const token = Cookies.get("Authorization");
+	console.log(token);
+
 	return res.json()
 }
 

@@ -151,6 +151,9 @@ export default function Registration() {
             <h1>{password2}</h1>*/}
 
 
+
+
+
 		</>
 		)
 
