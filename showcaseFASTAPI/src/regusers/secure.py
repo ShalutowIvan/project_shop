@@ -116,6 +116,63 @@ async def update_tokens(RT, db):#передаем сюда рефреш токе
 	return [refresh_token_jwt, access_token_jwt]
 
 
+
+#функция для обновления аксес по рефрешу, без обновления рефреш
+async def update_acces_token(RT, db):#передаем сюда рефреш токен и сессию с ДБ
+	#расшифровка рефреш токена
+	try:
+		payload = jwt.decode(RT, KEY2, algorithms=[ALG])
+		pl_id = payload.get("sub")		
+
+	except Exception as ex:#если истек рефреш то его просто удаляем, и нужно заново логиниться
+		print("ОШИБКА ОБНОВЛЕНИЯ ТУТ!!!!!!!!!")
+		print(ex)
+		if type(ex) == ExpiredSignatureError:
+			us_token: Token = await db.scalar(select(Token).where(Token.refresh_token == RT))
+			if us_token:
+				await db.delete(us_token)
+				await db.commit()
+		
+		return False
+
+    #создаем новый рефреш и аксес. Данные для создания токенов берем из декодированного токена из пейлоада
+        
+    #проверка совпадает ли токен из кук с базой для безопасности, в случае если злоумышленник обновил уже токен, а мы нет, то все токены должны удалиться
+	RT_in_db: Token = await db.scalar(select(Token).where(Token.refresh_token == RT))#ищем рефреш в ДБ по токену из кук	
+	
+	if not RT_in_db:
+		tk: Token = await db.scalar(select(Token).where(Token.user_id == int(pl_id)))#ищем токен по ID пользака и удаляем его, это мошенников чтобы их обезвредить
+		if tk:
+			await db.delete(tk)
+			await db.commit()
+			# await db.refresh(tk)
+		print("Токен не совпадает с базой!!!!!!!")
+		return False
+
+	#если токен совпал с базой, то мы обновляем оба токена
+	# #рефреш токен
+	# refresh_token_expires = timedelta(minutes=int(EXPIRE_TIME_REFRESH))    
+	# refresh_token_jwt = create_refresh_token(data={"sub": str(pl_id)}, expires_delta=refresh_token_expires)
+
+	#аксес токен
+	user: User = await db.scalar(select(User).where(User.id == int(pl_id)))
+	access_token_expires = timedelta(minutes=int(EXPIRE_TIME))
+	access_token_jwt = create_access_token(data={"sub": pl_id, "user_name": user.name}, expires_delta=access_token_expires)
+
+	#обновляем рефреш в базе	
+	# new_RT: Token = Token(user_id=int(pl_id), refresh_token=refresh_token_jwt)#для создания объекта нужен Ид пользака
+
+	# await db.delete(RT_in_db)
+	# db.add(new_RT)
+	# await db.commit()
+	# await db.refresh(new_RT)
+
+	return access_token_jwt
+
+
+
+
+
 #функция проверки токена.
 async def access_token_decode(acces_token: str):#проверка аксес токена из куки  
     
@@ -146,6 +203,7 @@ async def test_token_expire(RT, db):
     tokens = await update_tokens(RT=RT, db=db)
     check = await access_token_decode(acces_token=tokens[1])
     return (tokens[0], tokens[1], check)#рефреш, аксес, дешифровка аксес
+
 
 
 

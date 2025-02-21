@@ -14,7 +14,7 @@ import Forgot_password_verify from './regusers/Forgot_password_verify';
 import Logout from './regusers/Logout';
 
 
-import Basket_view from './components/Basket/Basket_view';
+import { Basket_view, basketLoader } from './components/Basket/Basket_view';
 import { Orders_view, orderNumberLoader } from './components/Orders/Orders_view';
 import { OrderOpen, orderOpenLoader } from './components/Orders/OrderOpen';
 
@@ -52,10 +52,10 @@ const AppRouter = createBrowserRouter(createRoutesFromElements(
 
           
           <Route path="basket/goods/" element={
-            <RequireAuth>
+            
                 <Basket_view />
-            </RequireAuth>
-            } />
+            
+            } loader={basketLoader} />
           
           <Route path="basket/create/" element={
             <RequireAuth>

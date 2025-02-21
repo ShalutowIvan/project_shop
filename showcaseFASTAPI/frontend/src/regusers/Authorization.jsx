@@ -2,6 +2,8 @@ import { useState, useRef } from 'react'
 import { Link, Outlet, NavLink, useNavigate } from 'react-router-dom'
 import axios from "axios";
 import Cookies from "js-cookie";
+import { API } from "../apiAxios/apiAxios"
+import { setAccessToken, setRefreshToken } from "./AuthService"
 
 
 export default function Authorization() {
@@ -39,11 +41,11 @@ export default function Authorization() {
                 email, 
                 password,
                 },
-                { withCredentials: true }
+                    { withCredentials: true }
                 );
             setLoading(false);
         
-
+        // 
         //это выводится
         // console.log("access: ", response.data["Authorization"]);
         // console.log("refresh: ", response.data["RT"]);
@@ -52,18 +54,20 @@ export default function Authorization() {
             
 
             
-            if (response.statusText==='OK') {
-                // const data = await response.json()
-                Cookies.set("Authorization", response.data["Authorization"], {
-                expires: 0.1, // Кука истечет через 30 дней, тут указывается колво дней
-                path: "/", // Кука будет доступна на всех страницах        
-                sameSite: "lax", // Защита от CSRF-атак
-                });
-                Cookies.set("RT", response.data["RT"], {
-                expires: 30, // Кука истечет через 30 дней, тут указывается колво дней
-                path: "/", // Кука будет доступна на всех страницах        
-                sameSite: "lax", // Защита от CSRF-атак
-                });
+            if (response.statusText==='OK') {                
+                setAccessToken(response.data["Authorization"])
+                // Cookies.set("Authorization", response.data["Authorization"], {
+                // expires: 0.0005, // Кука истечет через 30 дней, тут указывается колво дней
+                // path: "/", // Кука будет доступна на всех страницах        
+                // sameSite: "lax", // Защита от CSRF-атак
+                // });                
+
+                setRefreshToken(response.data["RT"])
+                // Cookies.set("RT", response.data["RT"], {
+                // expires: 30, // Кука истечет через 30 дней, тут указывается колво дней
+                // path: "/", // Кука будет доступна на всех страницах        
+                // sameSite: "lax", // Защита от CSRF-атак
+                // });
 
             } else {
                 const errorData = await response.data
@@ -85,6 +89,7 @@ export default function Authorization() {
 
         } catch (error) {
             setLoading(false);
+            console.log(error)
             setError('аутентификация не прошла, попробуйте еще раз');            
         }
     };

@@ -18,7 +18,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, OA
 
 from .schemas import *
 
-from .secure import pwd_context, create_access_token, create_refresh_token, update_tokens, send_email_verify, send_email_restore_password
+from .secure import pwd_context, create_access_token, create_refresh_token, update_tokens, send_email_verify, send_email_restore_password, update_acces_token
 
 import uuid
 
@@ -311,34 +311,68 @@ async def auth_user(response: Response, formData: AuthShema, session: AsyncSessi
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
+# фукнция для проверки токена
+# def verify_access_token(token: str = Depends(oauth2_scheme)):
+#     try:
+#         payload = jwt.decode(token, KEY, algorithms=[ALG])        
+#         user_id = payload.get("sub")#у меня тут user_id, а не юзернейм
+#         # user_name = payload.get("user_name")
+#         if user_id is None:
+#             print("нет такого user_id")            
+#             # return [False, None, " "]
+#             raise HTTPException(status_code=403, detail="Не валидный токен или истек")#это если токен просто не верный
 
-def verify_access_token(token: str = Depends(oauth2_scheme)):
+#     except Exception as ex:#если истек рефреш то его просто удаляем, и нужно заново логиниться
+#         print("ОШИБКА ТОКЕНА ТУТ:")
+#         print(ex)
+#         # if type(ex) == ExpiredSignatureError:            
+#         #     await session.delete(refresh_token)
+#         #     await session.commit()
+#         #     refresh_token = None
+#         raise HTTPException(status_code=403, detail="Не валидный токен или истек")
+
+#функция проверки токена.
+async def verify_access_token(acces_token: str):#проверка аксес токена из куки , возвращаем тру если токен надо обновить, и фолз если не надо
+    
     try:
-        payload = jwt.decode(token, KEY, algorithms=[ALG])        
+        payload = jwt.decode(acces_token, KEY, algorithms=[ALG])#в acces_token передается просто строка
+        
         user_id = payload.get("sub")#у меня тут user_id, а не юзернейм
-        # user_name = payload.get("user_name")
+        
         if user_id is None:
-            print("нет такого user_id")            
+            print("нет такого user_id")
             # return [False, None, " "]
-            raise HTTPException(status_code=403, detail="Не валидный токен или истек")
+            return {"res": True}
+                
+    except Exception as ex:
+                
+        if type(ex) == ExpiredSignatureError:#если время действия токена истекло, то вывод принта. Можно тут написать логику что будет если аксес токен истекает
+            
+            print("ОШИБКА АКСЕС ТУТ")
+            print(ex)
+            # return [ex, None, " "]#если токен истек то это
+            return {"res": True}
+    
+        return {"res": True}#если токена нет вообще, то это возвращается
+        
+    return {"res": False}
 
-    except Exception as ex:#если истек рефреш то его просто удаляем, и нужно заново логиниться
-        print("ОШИБКА ТОКЕНА ТУТ:")
-        print(ex)
-        # if type(ex) == ExpiredSignatureError:            
-        #     await session.delete(refresh_token)
-        #     await session.commit()
-        #     refresh_token = None
-        raise HTTPException(status_code=403, detail="Не валидный токен или истек")
 
 
 # , response_model=TokenSheme
-#роутер для проверки токена
+#роутер для проверки аксес токена
 @router_reg_api.get("/auth/verify_access_token/{token}")
-async def uri_verify_access_token(token: str):
-    verify_access_token(token=token)
-    return {"message": "Token is valid"}
+async def uri_verify_access_token(response: Response, token: str):
+    res = await verify_access_token(acces_token=token)
 
+    return res
+
+
+# роут для обновления аксес по рефрешу
+@router_reg_api.get("/auth/update_access_token/{refreshToken}")
+async def uri_update_access_token(response: Response, refreshToken: str, session: AsyncSession = Depends(get_async_session)):
+    access_token = await update_acces_token(RT=refreshToken, db=session)
+    return {"Authorization": access_token, "token_type": "bearer", "refresh_token": refreshToken}
 
 
 

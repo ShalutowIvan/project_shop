@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, Cookie, Form, Body
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, Cookie, Form, Body, Header
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, PlainTextResponse
 from sqlalchemy import insert, select, text
 from sqlalchemy.orm import joinedload
@@ -14,6 +14,8 @@ from src.regusers.secure import test_token_expire, access_token_decode
 from jose.exceptions import ExpiredSignatureError
 
 import requests
+
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, OAuth2PasswordRequestFormStrict
 
 
 
@@ -133,15 +135,78 @@ async def api_add_in_basket(request: Request, good_id: int, session: AsyncSessio
     return {"Все": "Супер"}
 
 
+# Authorization: Annotated[str | None, Header()] = None
+from typing import Annotated
 
+
+# def get_header_value(request: Request) -> str:
+#     header_value = request.headers.get("Authorization")
+#     if header_value is None:
+#         raise HTTPException(status_code=400, detail="Header not found")
+#     return header_value
+
+# Authorization: str = Depends(get_header_value), 
+
+######################################### тут решение по ответу GPT
+from jose import JWTError, jwt
+
+from src.regusers.schemas import UserSheme
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+def decode_token(token: str):
+    try:
+        payload = jwt.decode(token, KEY, algorithms=[ALG])
+        user_id = payload.get("sub")
+        # user_name: str = payload.get("user_name")
+        
+        if user_id is None:
+            print("!!!!!!!!!!!!!!!!!!")    
+            # raise HTTPException(
+            #     status_code=status.HTTP_401_UNAUTHORIZED,
+            #     detail="Invalid token",
+            # )
+        return user_id
+    except JWTError:
+        print("!!!!!!!!!!!!!!!!!!")
+        # print(user_id)
+        # raise HTTPException(
+        #     status_code=status.HTTP_401_UNAUTHORIZED,
+        #     detail="Invalid token",
+        # )
+
+
+# Зависимость для получения текущего пользователя
+async def get_current_user(token: str = Depends(oauth2_scheme), session: AsyncSession = Depends(get_async_session)):
+    user_id = decode_token(token)
+    # user = fake_users_db.get(username)
+    user = await session.scalar(select(User).where(User.id == user_id))
+
+    if user is None:
+        print("!!!!!!!!!!!!!!!!!!")
+        # raise HTTPException(
+        #     status_code=status.HTTP_401_UNAUTHORIZED,
+        #     detail="User not found",
+        # )
+    return UserSheme(**user)
+
+
+
+########################################
+# current_user: User = Depends(get_current_user)
+
+
+# Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None),
 @router_showcase_api.get("/basket/goods/", response_model=list[BasketShema])
-async def api_basket_view(request: Request, session: AsyncSession = Depends(get_async_session)):
+async def api_basket_view(request: Request, current_user: UserSheme = Depends(get_current_user), session: AsyncSession = Depends(get_async_session)):
 
-    # check = await access_token_decode(acces_token=Authorization)
+    # check = await access_token_decode(acces_token=request.headers.Authorization)
     
     # if check[1] == None:#если нет токена то есть пользак вообще не вводил логин пас, то отображаем страницу следующую
-    #     context = await base_requisites(db=session, check=check, request=request)
-    #     return templates.TemplateResponse("showcase/if_not_auth.html", context)
+    #     # context = await base_requisites(db=session, check=check, request=request)
+        # return templates.TemplateResponse("showcase/if_not_auth.html", context)
+        # return {"Все плохо": "Нет авторизации"}
 
     # flag = False
     # if type(check[0]) == ExpiredSignatureError:   
@@ -150,7 +215,9 @@ async def api_basket_view(request: Request, session: AsyncSession = Depends(get_
     #     flag = True
     
 
-    fake_user_id = 1
+    # fake_user_id = check[1]
+    fake_user_id = int(current_user["id"])
+
 
     query = select(Basket).options(joinedload(Basket.product)).where(Basket.user_id == fake_user_id)
     basket = await session.scalars(query)    

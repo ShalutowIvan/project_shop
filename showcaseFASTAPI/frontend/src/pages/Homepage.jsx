@@ -2,7 +2,30 @@ import { Link, Outlet, NavLink } from 'react-router-dom'
 // import CustomLink from './CustomLink'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../regusers/useAuth'
+
 import Cookies from "js-cookie";
+
+
+import axios from "axios";
+
+
+
+
+//функция для обновления аксес токена
+// const updateAccessTokenFromRefreshToken = async () => {
+//   const refreshToken = Cookies.get("RT");
+//   if (!refreshToken) {
+//     throw new Error("No refresh token found");
+//   }
+  
+//   const response = await fetch(`/api/regusers/auth/update_access_token/${refreshToken}`);
+
+//   return response.json()
+// };
+
+
+
+
 
 
 export default function Homepage() {
@@ -10,20 +33,42 @@ export default function Homepage() {
     const [groups, setGroups] = useState([]);
     const {signout} = useAuth()
 
-    function TestCookie() {
-        const token = Cookies.get("Authorization");
-        console.log(token);
+    async function TestCookie() {
+        const token = localStorage.getItem("Authorization"); 
+        const verifyAccess = await axios.get(`http://127.0.0.1:8000/api/regusers/auth/verify_access_token/${token}`)
+        const res = verifyAccess.data
+        console.log(res);
+        // console.log(token);
     }
+
+    // const updateAccessTokenFromRefreshToken = async () => {
+    //   const refreshToken = Cookies.get("RT");
+    // if (!refreshToken) {
+    //     throw new Error("No refresh token found");
+    // }
+  
+    // // const response = fetch(`http://127.0.0.1:8000/api/regusers/auth/update_access_token/${refreshToken}`);
+
+    // const response = await axios.post(`http://127.0.0.1:8000/api/regusers/auth/update_access_token/${refreshToken}`)
+
+    // // const res = response.json()
+    // console.log(response.data.Authorization)
+    // // return response.json()
+    // };
+
+
 
 
     useEffect(() => {
         fetch(`http://127.0.0.1:8000/api/groups_all/`)
             .then(res => res.json())
-            .then(data => setGroups(data))
+            .then(data => setGroups(data));
 
-        console.log("TEST!!!!!!!!!!!")
+
+                    
 
     }, [])
+
 
 
 
@@ -63,6 +108,8 @@ export default function Homepage() {
       <main>
 
             <button onClick={TestCookie}>Тест куки</button>
+            <br/>
+            {/*<button onClick={updateAccessTokenFromRefreshToken}>Тест обновления куки</button>*/}
 
         <Outlet />
 

@@ -31,6 +31,15 @@ class TokenSheme(BaseModel):
     token_type: str
     # live_time: int
 
+class AccessTokenSheme(BaseModel):
+    Authorization: str
+    token_type: str
+
+class UserSheme(BaseModel):
+    id: str
+    username: str
+    
+
 
 # class UserAuth(BaseModel):
 #     # id: UUID4
