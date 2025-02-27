@@ -7,7 +7,9 @@ import { setAccessToken, setRefreshToken } from "./AuthService"
 
 
 export default function Authorization() {
-    const [email, setEmail] = useState("");
+    // const [email, setEmail] = useState("");
+    const [username, setUsername] = useState("");
+    
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
@@ -15,7 +17,7 @@ export default function Authorization() {
     const navigate = useNavigate();
 
     const validateForm = () => {
-        if (!email || !password) {
+        if (!username || !password) {
             setError("не введены логин или пароль");
             return false;
         }
@@ -38,7 +40,7 @@ export default function Authorization() {
             const response = await axios.post(
                 "http://127.0.0.1:8000/api/regusers/auth",
                 {                 
-                email, 
+                username, 
                 password,
                 },
                     { withCredentials: true }
@@ -106,15 +108,15 @@ export default function Authorization() {
 		<form onSubmit={handleSubmit} style={{ marginBottom: '1rem' }}>
                 
 
-                <label htmlFor="id_email">Электронная почта: </label>
+                <label htmlFor="id_username">Электронная почта: </label>
                 <input 
                     placeholder="e-mail"
-                    name="email"                    
+                    name="username"                    
                     type="email"
-                    id="id_email"
+                    id="id_username"
                     className="control"                        
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}   
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}   
                 />
 
                 <br/><br/>
@@ -149,7 +151,7 @@ export default function Authorization() {
             <h2><NavLink to="/regusers/forgot_password/">Забыли пароль</NavLink></h2>
 
 
-            <h1>{email}</h1>
+            <h1>{username}</h1>
             <h1>{password}</h1>
 
             {/*<button onClick={TestCookie}>Тест куки</button>*/}

@@ -11,6 +11,7 @@ from src.regusers.router import router_reg
 from src.showcase.router import router_showcase
 from src.showcase.router_chat import router_showcase_chat
 from src.showcase.router_api import router_showcase_api
+from src.regusers.router_api import router_reg_api
 
 #fastapi users - пока не юзаю
 # from fastapi_users import FastAPIUsers#это иморт класса с роутерами для авторизации, регистрации и тд.
@@ -30,18 +31,7 @@ from src.showcase.router_api import router_showcase_api
 
 app = FastAPI(title="Витрина интернет магазина", debug=True)#debug=True это для того чтобы в документации выводилсь ошибки как в консоли. 
 
-origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 
 app.mount("/static", StaticFiles(directory="src/static"), name="static")
@@ -53,8 +43,26 @@ app.include_router(router_showcase)
 app.include_router(router_showcase_chat)
 app.include_router(router_reg)
 app.include_router(router_showcase_api)
+app.include_router(router_reg_api)
+
+origins = [
+    "http://localhost:5173",
+    "http://localhost:5173/",
+    
+    "http://localhost:5173/basket/goods/",
+]
+# "http://127.0.0.1:5173",
 
 
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 #fastapi users - пока не юзаю
 # fastapi_users = FastAPIUsers[User, int](

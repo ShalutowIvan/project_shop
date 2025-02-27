@@ -212,14 +212,15 @@ async def api_restore_password_user(request: Request, token: str, formData: Forg
 #     return response
 
 
-
+# form_data: OAuth2PasswordRequestForm = Depends()
+# formData: AuthShema
 # узнать как прокидывать куки............... пока не знаю как это сделать. Смотреть GPT, там вроде есть инфа
 # , response_model=TokenSheme
 #функция post авторизации
 @router_reg_api.post("/auth")
-async def auth_user(response: Response, formData: AuthShema, session: AsyncSession = Depends(get_async_session)):
+async def auth_user(response: Response, formData: OAuth2PasswordRequestForm = Depends(), session: AsyncSession = Depends(get_async_session)):
 
-    email = formData.email
+    email = formData.username#ост тут, у formData нет атрибута email. Понять как к нему обращаться
     password = formData.password
     
 

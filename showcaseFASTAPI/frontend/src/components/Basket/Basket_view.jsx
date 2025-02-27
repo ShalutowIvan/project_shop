@@ -3,6 +3,8 @@ import { Link, Outlet, NavLink, useLoaderData } from 'react-router-dom'
 import axios from "axios"
 import Button from '../Button/Button'
 import { API } from "../../apiAxios/apiAxios"
+import { updateAccessTokenFromRefreshToken, setAccessToken, getAccessToken } from "../../regusers/AuthService"
+
 
 
 function Basket_view() {
@@ -58,9 +60,17 @@ function Basket_view() {
 
 async function getBasket() {
 	// const res = await fetch('http://127.0.0.1:8000/api/basket/goods/')
-	const res = API.get("api/basket/goods/")
+	// const res = API.get("api/basket/goods/")
 	// const token = Cookies.get("Authorization");
 	// console.log(token);
+	const token = getAccessToken()
+	const res = await axios.get('http://127.0.0.1:8000/api/basket/goods/', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+	// попробовать просто сделать аксиос запрос
+
 
 	return res.data
 }

@@ -37,8 +37,9 @@ class AccessTokenSheme(BaseModel):
 
 class UserSheme(BaseModel):
     id: str
-    username: str
-    
+    username: str    
+    # email: str
+    # disabled: bool = False
 
 
 # class UserAuth(BaseModel):
