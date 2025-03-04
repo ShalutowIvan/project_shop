@@ -17,12 +17,18 @@ import Cookies from "js-cookie";
 // };
 
 const setAccessToken = (token) => { 
-  localStorage.setItem("Authorization", token);
+  Cookies.set("Authorization", token, {
+    expires: 0.0005, // Кука истечет через 30 дней, тут указывается колво дней
+    path: "/", // Кука будет доступна на всех страницах        
+    sameSite: "lax", // Защита от CSRF-атак
+    });
+  // localStorage.setItem("Authorization", token);
 };
 
 
 const getAccessToken = () => { 
-  return localStorage.getItem("Authorization"); 
+  // return localStorage.getItem("Authorization"); 
+  return Cookies.get("Authorization")
 };
 
 
@@ -69,4 +75,4 @@ const updateAccessTokenFromRefreshToken = async () => {
 //   return localStorage.getItem("access_token");
 // };
 
-export { updateAccessTokenFromRefreshToken, setAccessToken, setRefreshToken, getAccessToken };
+export { updateAccessTokenFromRefreshToken, setAccessToken, setRefreshToken, getAccessToken, getRefreshToken };

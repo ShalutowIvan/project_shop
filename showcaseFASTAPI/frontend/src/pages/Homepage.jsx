@@ -34,7 +34,7 @@ export default function Homepage() {
     const {signout} = useAuth()
 
     async function TestCookie() {
-        const token = localStorage.getItem("Authorization"); 
+        const token = Cookies.get("Authorization")
         const verifyAccess = await axios.get(`http://127.0.0.1:8000/api/regusers/auth/verify_access_token/${token}`)
         const res = verifyAccess.data
         console.log(res);

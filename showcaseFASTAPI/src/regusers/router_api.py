@@ -218,7 +218,7 @@ async def api_restore_password_user(request: Request, token: str, formData: Forg
 # , response_model=TokenSheme
 #функция post авторизации
 @router_reg_api.post("/auth")
-async def auth_user(response: Response, formData: OAuth2PasswordRequestForm = Depends(), session: AsyncSession = Depends(get_async_session)):
+async def auth_user(response: Response, formData: AuthShema, session: AsyncSession = Depends(get_async_session)):
 
     email = formData.username#ост тут, у formData нет атрибута email. Понять как к нему обращаться
     password = formData.password
@@ -270,24 +270,16 @@ async def auth_user(response: Response, formData: OAuth2PasswordRequestForm = De
         access_token_expires = timedelta(minutes=int(EXPIRE_TIME))
         access_token_jwt = create_access_token(data={"sub": str(user.id), "user_name": user.name}, expires_delta=access_token_expires)
     
-    
-    # context = await base_requisites(db=session, request=request)
-    # context["user_name"] = user.name
-    # context["check"] = True
-    # good = await session.execute(select(Goods))
-    # context["good"] = good.scalars()
-
-    # response = templates.TemplateResponse("showcase/start.html", context)    
+        
     # response.set_cookie(key="RT", value=refresh_token.refresh_token, httponly=True, secure=True, samesite="lax")
     # response.set_cookie(key="Authorization", value=access_token_jwt, httponly=True, secure=True, samesite="lax")
 
-   
-
-   # , httponly=True, secure=True, samesite="lax"
-    
+      
     # response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True)
 
     return {"Authorization": access_token_jwt, "RT": refresh_token.refresh_token, "token_type": "bearer"}
+
+
     # return {"message": "Все супер"}
 # возврат сделать токена....
 # эрик роби. в фастапи есть урл где он вводит логин и пароль и сверяет их с БД, и возвращает юзера.

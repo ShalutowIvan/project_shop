@@ -9,7 +9,7 @@ import { setAccessToken, setRefreshToken } from "./AuthService"
 export default function Authorization() {
     // const [email, setEmail] = useState("");
     const [username, setUsername] = useState("");
-    
+    //username - это почта
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);

@@ -63,12 +63,13 @@ async function getBasket() {
 	// const res = API.get("api/basket/goods/")
 	// const token = Cookies.get("Authorization");
 	// console.log(token);
-	const token = getAccessToken()
-	const res = await axios.get('http://127.0.0.1:8000/api/basket/goods/', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+	// const token = getAccessToken()
+	// const res = await axios.get('http://127.0.0.1:8000/api/basket/goods/', {
+    //       headers: {
+    //         Authorization: token,
+    //       },
+    //     });
+	const res = await API.get('http://127.0.0.1:8000/api/basket/goods/')
 	// попробовать просто сделать аксиос запрос
 
 

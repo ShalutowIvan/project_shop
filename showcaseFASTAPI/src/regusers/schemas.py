@@ -21,7 +21,7 @@ class EmailShema(BaseModel):
 
 
 class AuthShema(BaseModel):
-    email: EmailStr
+    username: EmailStr#тут почта,а не имя пользака
     password: str
 
 

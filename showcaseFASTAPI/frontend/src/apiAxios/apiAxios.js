@@ -40,7 +40,7 @@ API.interceptors.response.use(
     // const verifyAccess = axios.get(`http://127.0.0.1:8000/api/regusers/auth/verify_access_token/${getAccessToken()}`)
     const verifyAccess = true
 
-    if (verifyAccess.data["res"]) {
+    if (verifyAccess) {
       originalRequest._retry = true; // Помечаем запрос как повторный
 
       // ост тут, не обновляется. Сделать проверку токена через роут бэка. Если будет тру то делать обнову.!!!!!!!!!!!!!!!!
@@ -54,13 +54,13 @@ API.interceptors.response.use(
           setAccessToken(newTokens["Authorization"]);
 
           // Повторяем оригинальный запрос с новым токеном
-          originalRequest.headers.Authorization = `Bearer ${newTokens["Authorization"]}`;
+          originalRequest.headers.Authorization = newTokens["Authorization"];
           return API(originalRequest);
         }
       } catch (refreshError) {
         console.error("Failed to refresh token:", refreshError);
         // Если refresh токен тоже истек, перенаправляем на страницу входа
-        window.location.href = "/regusers/authorization";
+        // window.location.href = "/regusers/authorization";
         // return <Navigate to='/regusers/authorization/' />
         
       }

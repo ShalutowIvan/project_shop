@@ -92,9 +92,6 @@ async def goods_in_group(request: Request, slug: str, session: AsyncSession = De
 
 
 
-
-# ост тут, решил делать фронт для витрины
-
 @router_showcase_api.get("/basket/{good_id}")
 async def api_add_in_basket(request: Request, good_id: int, session: AsyncSession = Depends(get_async_session)):
     #подтянул ид пользака из токена
@@ -201,11 +198,11 @@ async def get_current_user(session: AsyncSession = Depends(get_async_session), t
 
 ########################################
 # current_user: User = Depends(get_current_user)
-
+# current_user: UserSheme = Depends(get_current_user)
 # UserSheme = Depends(get_current_user),
 # Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None),
 @router_showcase_api.get("/basket/goods/", response_model=list[BasketShema])
-async def api_basket_view(request: Request, current_user: UserSheme = Depends(get_current_user), session: AsyncSession = Depends(get_async_session)):
+async def api_basket_view(request: Request, session: AsyncSession = Depends(get_async_session)):
 
     # check = await access_token_decode(acces_token=request.headers.Authorization)
     
@@ -224,9 +221,13 @@ async def api_basket_view(request: Request, current_user: UserSheme = Depends(ge
     # user = await session.scalar(select(User).where(User.id == user_id))
     # fake_user_id = check[1]
     # user = user.first()
-    print("!!!!!!!!!!!!!!!!!!!!!!!")
-    print(current_user)
-    fake_user_id = current_user.id
+    token = request.headers.get("Authorization")
+    # print(token)
+    check = await access_token_decode(acces_token=str(token))
+
+
+    
+    fake_user_id = int(check[1])
 
 
     query = select(Basket).options(joinedload(Basket.product)).where(Basket.user_id == fake_user_id)

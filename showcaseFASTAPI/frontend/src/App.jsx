@@ -33,7 +33,7 @@ import { AuthProvider } from "./regusers/AuthProvider";
 import axios from "axios";
 import Cookies from "js-cookie";
 
-
+import { setAccessToken, setRefreshToken, getAccessToken, getRefreshToken } from "./regusers/AuthService"
 
 //функция для обновления аксес токена
 // const updateAccessTokenFromRefreshToken = async () => {
@@ -86,24 +86,29 @@ function App() {
 
         const fetchData = async () => {
             try {
-                const refreshToken = Cookies.get("RT");
-                const testAccessToken = localStorage.getItem("Authorization");
+                const refreshToken = getRefreshToken();
+                const testAccessToken = getAccessToken();
 
                 if (!testAccessToken) {
                 // Если access токена нет, пробуем обновить его с помощью refresh токена
-                    // if (refreshToken){
-                    // const responseUpdate = await axios.post(`http://127.0.0.1:8000/api/regusers/auth/update_access_token/${refreshToken}`)
+                    if (refreshToken){
+                    const responseUpdate = await axios.get(`http://127.0.0.1:8000/api/regusers/auth/update_access_token/${refreshToken}`)
 
                     // Cookies.set("Authorization", responseUpdate.data["Authorization"], {
                     // expires: 0.0005, // Кука истечет через 30 дней, тут указывается колво дней
                     // path: "/", // Кука будет доступна на всех страницах        
                     // sameSite: "lax", // Защита от CSRF-атак
                     // });
-                    // }
-                    console.log(1)               
+                    setAccessToken(responseUpdate.data["Authorization"])
+                    console.log("аксес токен истек, и обновлен")
+                    }
+                    else {
+                      console.log("Залогиньтесь повторно, рефреш истек")
+                    }
+                    
                 }
                 else {
-                  console.log("Эффект работает в app")
+                  console.log("Аксес токен не истек")
                 }
             // Здесь можно сделать запрос к защищенному эндпоинту
             } catch (error) {
