@@ -81,46 +81,41 @@ function App() {
 
 
   // это обновление токена с useEffect происходит только при обновлении страницы.
-  useEffect(() => {        
+  // useEffect(() => {
+  //       const fetchData = async () => {
+  //           try {
+  //               const refreshToken = getRefreshToken();
+  //               const testAccessToken = getAccessToken();
 
+  //               if (!testAccessToken) {
+  //               // Если access токена нет, пробуем обновить его с помощью refresh токена
+  //                   if (refreshToken){
+  //                   const responseUpdate = await axios.get(`http://127.0.0.1:8000/api/regusers/auth/update_access_token/${refreshToken}`)
 
-        const fetchData = async () => {
-            try {
-                const refreshToken = getRefreshToken();
-                const testAccessToken = getAccessToken();
-
-                if (!testAccessToken) {
-                // Если access токена нет, пробуем обновить его с помощью refresh токена
-                    if (refreshToken){
-                    const responseUpdate = await axios.get(`http://127.0.0.1:8000/api/regusers/auth/update_access_token/${refreshToken}`)
-
-                    // Cookies.set("Authorization", responseUpdate.data["Authorization"], {
-                    // expires: 0.0005, // Кука истечет через 30 дней, тут указывается колво дней
-                    // path: "/", // Кука будет доступна на всех страницах        
-                    // sameSite: "lax", // Защита от CSRF-атак
-                    // });
-                    setAccessToken(responseUpdate.data["Authorization"])
-                    console.log("аксес токен истек, и обновлен")
-                    }
-                    else {
-                      console.log("Залогиньтесь повторно, рефреш истек")
-                    }
+  //                   // Cookies.set("Authorization", responseUpdate.data["Authorization"], {
+  //                   // expires: 0.0005, // Кука истечет через 30 дней, тут указывается колво дней
+  //                   // path: "/", // Кука будет доступна на всех страницах        
+  //                   // sameSite: "lax", // Защита от CSRF-атак
+  //                   // });
+  //                   setAccessToken(responseUpdate.data["Authorization"])
+  //                   console.log("аксес токен истек, и обновлен")
+  //                   }
+  //                   else {
+  //                     console.log("Залогиньтесь повторно, рефреш истек")
+  //                   }
                     
-                }
-                else {
-                  console.log("Аксес токен не истек")
-                }
-            // Здесь можно сделать запрос к защищенному эндпоинту
-            } catch (error) {
-            console.error("Error:", error);
-            }
-            };
+  //               }
+  //               else {
+  //                 console.log("Аксес токен не истек")
+  //               }
+  //           // Здесь можно сделать запрос к защищенному эндпоинту
+  //           } catch (error) {
+  //           console.error("Error:", error);
+  //           }
+  //           };
 
-        fetchData();
-
-                
-
-    }, [])
+  //       fetchData();
+  //   }, [])
 
 
 

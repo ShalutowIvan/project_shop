@@ -1,9 +1,12 @@
 import axios from "axios";
-import { updateAccessTokenFromRefreshToken, setAccessToken, getAccessToken } from "../regusers/AuthService"
+import { updateAccessTokenFromRefreshToken, setAccessToken, getAccessToken, setRefreshToken } from "../regusers/AuthService"
 import { Navigate } from 'react-router-dom'
 
+import { apiKey } from "../config/config"
+
+
 //API_URL -это стартовая ссылка из сервера БЭКА для апи. Потом когда будем делать запросы, можно будет дописывать путь к БЭКУ, в виде строки когда будем делать запросы через экземпляр API
-const API_URL = "http://127.0.0.1:8000/";
+const API_URL = "http://127.0.0.1:8000";
 
 // Создаем экземпляр axios
 const API = axios.create({
@@ -20,6 +23,9 @@ API.interceptors.request.use(
       // config.headers.Authorization = `Bearer ${accessToken}`;
       console.log(config)
       config.headers.Authorization = accessToken;
+      config.headers.CLIENT_ID = apiKey; 
+      
+
     }
     return config;
   },
@@ -40,7 +46,7 @@ API.interceptors.response.use(
     // const verifyAccess = axios.get(`http://127.0.0.1:8000/api/regusers/auth/verify_access_token/${getAccessToken()}`)
     const verifyAccess = true
 
-    if (verifyAccess) {
+    if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true; // Помечаем запрос как повторный
 
       // ост тут, не обновляется. Сделать проверку токена через роут бэка. Если будет тру то делать обнову.!!!!!!!!!!!!!!!!
@@ -50,9 +56,9 @@ API.interceptors.response.use(
         // Пробуем обновить access токен с помощью refresh токена
         const newTokens = await updateAccessTokenFromRefreshToken();
         if (newTokens["Authorization"]) {
-          // Обновляем access токен в localStorage
-          setAccessToken(newTokens["Authorization"]);
-
+          // Обновляем access токен в куке
+          // setAccessToken(newTokens["Authorization"]);
+          // setRefreshToken(newTokens["refresh_token"])       
           // Повторяем оригинальный запрос с новым токеном
           originalRequest.headers.Authorization = newTokens["Authorization"];
           return API(originalRequest);

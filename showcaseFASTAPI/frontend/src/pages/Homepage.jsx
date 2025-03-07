@@ -41,6 +41,14 @@ export default function Homepage() {
         // console.log(token);
     }
 
+
+    // async function TestRout() {
+    //     const test = await axios.get("http://127.0.0.1:8000/api/regusers/protected")
+    //     console.log(test.data);
+    // }
+
+
+
     // const updateAccessTokenFromRefreshToken = async () => {
     //   const refreshToken = Cookies.get("RT");
     // if (!refreshToken) {
@@ -55,9 +63,9 @@ export default function Homepage() {
     // console.log(response.data.Authorization)
     // // return response.json()
     // };
-
-
-
+ 
+    
+    
 
     useEffect(() => {
         fetch(`http://127.0.0.1:8000/api/groups_all/`)
@@ -68,6 +76,8 @@ export default function Homepage() {
                     
 
     }, [])
+
+
 
 
 
@@ -109,6 +119,7 @@ export default function Homepage() {
 
             <button onClick={TestCookie}>Тест куки</button>
             <br/>
+            {/*<button onClick={TestRout}>Тест куки из запроса с бэка</button>*/}
             {/*<button onClick={updateAccessTokenFromRefreshToken}>Тест обновления куки</button>*/}
 
         <Outlet />

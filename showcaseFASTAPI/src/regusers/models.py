@@ -23,16 +23,28 @@ class User(Base):
     basket: Mapped["Basket"] = relationship(back_populates="user")
     order_list: Mapped["Order_list"] = relationship(back_populates="user")
     # order_counter: Mapped["Order_counter"] = relationship(back_populates="user")
+    client_generate: Mapped["Code_verify_client"] = relationship(back_populates="user")
 
 
 class Token(Base):
     __tablename__ = "token"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    refresh_token = mapped_column(String(length=320), unique=True, index=True, nullable=False)    
+    refresh_token = mapped_column(String(length=320), unique=True, index=True, nullable=False)
 
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
     
     user: Mapped["User"] = relationship(back_populates="tokens")
 
+
+#таблица с токеном клиента, тут зашифрованный client_token в виде jwt. Время жизни будет сутки, для боевого режима примерно час. Без клиент токена нужно заново логиниться
+class Code_verify_client(Base):
+    __tablename__ = "verify_client"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    client_token: Mapped[str] = mapped_column(String(length=320), unique=True, index=True, nullable=False)
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
+    
+    user: Mapped["User"] = relationship(back_populates="client_generate")
 

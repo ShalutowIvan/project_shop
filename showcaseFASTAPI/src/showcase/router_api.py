@@ -16,7 +16,7 @@ from jose.exceptions import ExpiredSignatureError
 import requests
 
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, OAuth2PasswordRequestFormStrict
-from src.settings import templates, EXPIRE_TIME, KEY, KEY2, ALG, EXPIRE_TIME_REFRESH, KEY3, KEY4
+from src.settings import templates, EXPIRE_TIME, KEY, KEY2, ALG, EXPIRE_TIME_REFRESH, KEY3, KEY4, CLIENT_ID
 
 
 router_showcase_api = APIRouter(
@@ -150,49 +150,49 @@ from jose import JWTError, jwt
 from src.regusers.schemas import UserSheme
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/regusers/auth")
+# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/regusers/auth")
 
-def decode_token(token: str):
-    try:
-        payload = jwt.decode(token, KEY, algorithms=[ALG])
-        user_id = payload.get("sub")
-        # user_name: str = payload.get("user_name")
+# def decode_token(token: str):
+#     try:
+#         payload = jwt.decode(token, KEY, algorithms=[ALG])
+#         user_id = payload.get("sub")
+#         # user_name: str = payload.get("user_name")
         
-        if user_id is None:
-            print("!!!!!!!!!!!!!!!!!!")    
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token",
-            )
+#         if user_id is None:
+#             print("!!!!!!!!!!!!!!!!!!")    
+#             raise HTTPException(
+#                 status_code=status.HTTP_401_UNAUTHORIZED,
+#                 detail="Invalid token",
+#             )
         
-    # except JWTError:
-    except Exception as ex:
-        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        print(ex)
-        # Not enough segments тут такая ошибка
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
-        )
-    # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    # print(user_id)
-    return user_id
+#     # except JWTError:
+#     except Exception as ex:
+#         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+#         print(ex)
+#         # Not enough segments тут такая ошибка
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="Invalid token",
+#         )
+#     # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+#     # print(user_id)
+#     return user_id
 
- # = Depends(oauth2_scheme)
-# Зависимость для получения текущего пользователя
-async def get_current_user(session: AsyncSession = Depends(get_async_session), token: str = Depends(oauth2_scheme)):
-    user_id = decode_token(token)
-    # user = fake_users_db.get(username)
-    user = await session.scalar(select(User).where(User.id == int(user_id)))
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    print(user)
-    if user is None:
-        print("!!!!!!!!!!!!!!!!!!")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-        )
-    return UserSheme(**user)
+#  # = Depends(oauth2_scheme)
+# # Зависимость для получения текущего пользователя
+# async def get_current_user(session: AsyncSession = Depends(get_async_session), token: str = Depends(oauth2_scheme)):
+#     user_id = decode_token(token)
+#     # user = fake_users_db.get(username)
+#     user = await session.scalar(select(User).where(User.id == int(user_id)))
+#     print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+#     print(user)
+#     if user is None:
+#         print("!!!!!!!!!!!!!!!!!!")
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="User not found",
+#         )
+#     return UserSheme(**user)
 
 
 
@@ -221,7 +221,19 @@ async def api_basket_view(request: Request, session: AsyncSession = Depends(get_
     # user = await session.scalar(select(User).where(User.id == user_id))
     # fake_user_id = check[1]
     # user = user.first()
+    client = request.headers.get("CLIENT_ID")
+    # #сравниваем клиент ид из хедера в запросе с клиент ид из env файла на бэке. На фронте он тоже тянется из env
+    if client != CLIENT_ID:
+        # print("не верный клиент!!")
+        raise HTTPException(status_code=401, detail="Клиент ID не сходится!!!!!!!!!!!!!!")
+        # return {"ОШИБКА": "Клиент ID не сходится!!!!!!!!!!!!!!"}
+
     token = request.headers.get("Authorization")
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+
+
     # print(token)
     check = await access_token_decode(acces_token=str(token))
 

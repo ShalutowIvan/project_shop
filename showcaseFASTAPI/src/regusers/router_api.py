@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field, EmailStr, validator, UUID4
 
 from src.db import get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.settings import templates, EXPIRE_TIME, KEY, KEY2, ALG, EXPIRE_TIME_REFRESH, KEY3, KEY4
+from src.settings import templates, EXPIRE_TIME, KEY, KEY2, ALG, EXPIRE_TIME_REFRESH, KEY3, KEY4, EXPIRE_TIME_CLIENT_TOKEN, CLIENT_ID
 
 from .models import *
 from src.showcase.models import *
@@ -18,7 +18,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, OA
 
 from .schemas import *
 
-from .secure import pwd_context, create_access_token, create_refresh_token, update_tokens, send_email_verify, send_email_restore_password, update_acces_token
+from .secure import pwd_context, create_access_token, create_refresh_token, update_tokens, send_email_verify, send_email_restore_password, create_client_token
 
 import uuid
 
@@ -220,7 +220,7 @@ async def api_restore_password_user(request: Request, token: str, formData: Forg
 @router_reg_api.post("/auth")
 async def auth_user(response: Response, formData: AuthShema, session: AsyncSession = Depends(get_async_session)):
 
-    email = formData.username#ост тут, у formData нет атрибута email. Понять как к нему обращаться
+    email = formData.username#тут у меня почта
     password = formData.password
     
 
@@ -260,24 +260,59 @@ async def auth_user(response: Response, formData: AuthShema, session: AsyncSessi
         access_token_expires = timedelta(minutes=int(EXPIRE_TIME))        
         access_token_jwt = create_access_token(data={"sub": str(user.id), "user_name": user.name}, expires_delta=access_token_expires)
         
-
+        #создаем объект рефреш токена
         token: Token = Token(user_id=user.id, refresh_token=refresh_token_jwt)
         session.add(token)       
-        await session.commit()
-        await session.refresh(token)
-        refresh_token: Token = await session.scalar(select(Token).where(Token.user_id == user.id))#перезаписываем в переменную объект рефреш токена, так как нужен именно объект токена
+        # await session.commit()
+        # await session.refresh(token)
+        # refresh_token: Token = await session.scalar(select(Token).where(Token.user_id == user.id))#перезаписываем в переменную объект рефреш токена, так как нужен именно объект токена
     else:
+        refresh_token_jwt = refresh_token.refresh_token
         access_token_expires = timedelta(minutes=int(EXPIRE_TIME))
         access_token_jwt = create_access_token(data={"sub": str(user.id), "user_name": user.name}, expires_delta=access_token_expires)
     
-        
+    #логика клиент токена
+    client_token: Code_verify_client = await session.scalar(select(Code_verify_client).where(Code_verify_client.user_id == user.id))
+    client_token_expires = timedelta(minutes=int(EXPIRE_TIME_CLIENT_TOKEN))        
+    client_token_jwt = create_client_token(data={"sub": str(user.id)}, expires_delta=client_token_expires)
+    if not client_token:#если в базе нет клиент токена
+        client_token: Code_verify_client = Code_verify_client(user_id=user.id, client_token=client_token_jwt)
+        session.add(client_token)       
+        # await session.commit()
+        # await session.refresh(token)
+        # refresh_token: Token = await session.scalar(select(Token).where(Token.user_id == user.id))
+    else:#иначе присваиваем новый jwt клиента
+        client_token.client_token = client_token_jwt
+        session.add(client_token)
+
+    await session.commit()
+
+
     # response.set_cookie(key="RT", value=refresh_token.refresh_token, httponly=True, secure=True, samesite="lax")
     # response.set_cookie(key="Authorization", value=access_token_jwt, httponly=True, secure=True, samesite="lax")
-
+    response.set_cookie(key="RT", value=refresh_token_jwt)
+    response.set_cookie(key="Authorization", value=access_token_jwt)
       
     # response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True)
 
-    return {"Authorization": access_token_jwt, "RT": refresh_token.refresh_token, "token_type": "bearer"}
+    return {"Authorization": access_token_jwt, "RT": refresh_token_jwt, "token_type": "bearer"}
+
+
+
+#тут проверка защищенного роута, для теста кук из респонса
+def get_current_user2(request: Request):
+    session_token = request.cookies.get("Authorization")
+    if not session_token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    # Здесь можно добавить логику проверки валидности токена
+    # Например, расшифровать токен и проверить его содержимое
+    return {"username": "example_user"}  # Возвращаем данные пользователя
+
+
+@router_reg_api.get("/protected")
+async def protected_route(user: dict = Depends(get_current_user2)):
+    return {"message": f"Hello, {user['username']}"}
+
 
 
     # return {"message": "Все супер"}
@@ -353,7 +388,7 @@ async def verify_access_token(acces_token: str):#проверка аксес т�
 
 
 # , response_model=TokenSheme
-#роутер для проверки аксес токена
+#роутер для проверки аксес токена - пока не использую
 @router_reg_api.get("/auth/verify_access_token/{token}")
 async def uri_verify_access_token(response: Response, token: str):
     res = await verify_access_token(acces_token=token)
@@ -364,8 +399,8 @@ async def uri_verify_access_token(response: Response, token: str):
 # роут для обновления аксес по рефрешу
 @router_reg_api.get("/auth/update_access_token/{refreshToken}")
 async def uri_update_access_token(response: Response, refreshToken: str, session: AsyncSession = Depends(get_async_session)):
-    access_token = await update_acces_token(RT=refreshToken, db=session)
-    return {"Authorization": access_token, "token_type": "bearer", "refresh_token": refreshToken}
+    tokens = await update_tokens(RT=refreshToken, db=session)
+    return {"Authorization": tokens[1], "token_type": "bearer", "refresh_token": tokens[0]}
 
 
 

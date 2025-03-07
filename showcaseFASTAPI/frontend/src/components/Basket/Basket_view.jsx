@@ -9,8 +9,10 @@ import { updateAccessTokenFromRefreshToken, setAccessToken, getAccessToken } fro
 
 function Basket_view() {
 	const setActive = ({isActive}) => isActive ? 'active-link' : '';
-	// const [goods_in_basket, setGoods_in_basket] = useState([]);
-	const {goods_in_basket} = useLoaderData()
+	
+	const {goods} = useLoaderData()
+	const [goods_in_basket, setGoods_in_basket] = useState(goods);
+
 
 
 	// useEffect(() => {
@@ -20,12 +22,13 @@ function Basket_view() {
 
 	// }, [])
 
-	function Delete_in_basket(good_id) {
-		API.get(`api/basket/goods/delete/${good_id}`)
+	async function Delete_in_basket(good_id) {
+		await API.get(`/api/basket/goods/delete/${good_id}`)
 		
-		const response = API.get('api/basket/goods/')
+		const response = await API.get('/api/basket/goods/')
 		setGoods_in_basket(response.data)
-			
+		
+
 		// fetch('http://127.0.0.1:8000/api/basket/goods/')
 		// 	.then(res => res.json())
 		// 	.then(data => setGoods_in_basket(data))		
@@ -69,7 +72,7 @@ async function getBasket() {
     //         Authorization: token,
     //       },
     //     });
-	const res = await API.get('http://127.0.0.1:8000/api/basket/goods/')
+	const res = await API.get('/api/basket/goods/')
 	// попробовать просто сделать аксиос запрос
 
 
@@ -79,7 +82,7 @@ async function getBasket() {
 
 const basketLoader = async () => {	
 	
-	return {goods_in_basket: await getBasket()}
+	return {goods: await getBasket()}
 }
 //переменная в функции выше в которую присваиваем useLoaderData() должна называться точно также как и переменная, которую возвращаем тут orderNumberLoader, то есть тоже orders, именно так. И дпругих хуках наверно тоже также работает. Иначе не распарсит.
 

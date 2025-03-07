@@ -7,13 +7,13 @@ from sqlalchemy.orm import Session
 from starlette.status import HTTP_404_NOT_FOUND
 from starlette.status import HTTP_400_BAD_REQUEST
 
-from .models import User, Token
+from .models import User, Token, Code_verify_client
 
 
 from fastapi.security import APIKeyHeader, APIKeyCookie, OAuth2PasswordBearer
 from passlib.context import CryptContext
 from jose import JWTError, jwt
-from src.settings import KEY, KEY2, ALG, EXPIRE_TIME, EXPIRE_TIME_REFRESH, KEY3, KEY4
+from src.settings import KEY, KEY2, ALG, EXPIRE_TIME, EXPIRE_TIME_REFRESH, KEY3, KEY4, KEY5, EXPIRE_TIME_CLIENT_TOKEN
 from datetime import datetime, timedelta
 from jose.exceptions import ExpiredSignatureError
 
@@ -60,17 +60,31 @@ def create_refresh_token(data: dict, expires_delta: timedelta | None = None):
 
 
 
+def create_client_token(data: dict, expires_delta: timedelta | None = None):
+	to_encode = data.copy()
+	if expires_delta:#если задано время истекания токена, то к текущему времени мы добавляем время истекания
+		expire = datetime.utcnow() + expires_delta
+    #expires_delta это если делать какую-то
+	else:#иначе задаем время истекания также 30 мин
+		expire = datetime.utcnow() + timedelta(minutes=int(EXPIRE_TIME_CLIENT_TOKEN))#протестить длительность токена с 0 минут
+	to_encode.update({"exp": expire})#тут мы добавили элемент в словарь который скопировали выше элемент с ключом "exp" и значением времени, которое сделали строкой выше. 
+	encoded_jwt = jwt.encode(to_encode, KEY5, algorithm=ALG)#тут мы кодируем наш токен.
+	return encoded_jwt
+
+
+
+
 async def update_tokens(RT, db):#передаем сюда рефреш токен и сессию с ДБ
 	#расшифровка рефреш токена
 	try:
 		payload = jwt.decode(RT, KEY2, algorithms=[ALG])
 		pl_id = payload.get("sub")
 		# pl_email = payload.get("iss")
-		print("ВАСЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯ!!!!!!!")
-		print(pl_id)
+		# print("ВАСЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯ!!!!!!!")
+		# print(pl_id)
 
 	except Exception as ex:#если истек рефреш то его просто удаляем, и нужно заново логиниться
-		print("ОШИБКА ОБНОВЛЕНИЯ ТУТ!!!!!!!!!")
+		print("ОШИБКА ОБНОВЛЕНИЯ РЕФРЕШ ТОКЕНА ТУТ!!!!!!!!!")
 		print(ex)
 		if type(ex) == ExpiredSignatureError:
 			us_token: Token = await db.scalar(select(Token).where(Token.refresh_token == RT))
@@ -88,10 +102,15 @@ async def update_tokens(RT, db):#передаем сюда рефреш токе
 	# print(RT_in_db)
 	if not RT_in_db:
 		tk: Token = await db.scalar(select(Token).where(Token.user_id == int(pl_id)))#ищем токен по ID пользака и удаляем его, это мошенников чтобы их обезвредить
+		client_token: Code_verify_client = await db.scalar(select(Code_verify_client).where(Code_verify_client.user_id == int(pl_id)))
 		if tk:
 			await db.delete(tk)
+			if client_token:
+				await db.delete(client_token)				
+			
 			await db.commit()
 			# await db.refresh(tk)
+
 		print("Токен не совпадает с базой!!!!!!!")
 		return [False, False]
 
@@ -114,6 +133,13 @@ async def update_tokens(RT, db):#передаем сюда рефреш токе
 	await db.refresh(new_RT)
 
 	return [refresh_token_jwt, access_token_jwt]
+
+
+
+
+
+
+
 
 
 
