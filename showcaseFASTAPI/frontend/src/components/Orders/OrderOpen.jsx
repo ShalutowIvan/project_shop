@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate, useLoaderData, Await, useAsyncValue } from 'react-router-dom'
 import { React, Suspense } from 'react';
-
+import { API } from "../../apiAxios/apiAxios"
 
 
 
@@ -36,6 +36,10 @@ function OrderOpen() {
 
 	const goBack = () => navigate(-1);
 
+	if (order === "error") {
+    	return <><h1>{"Вам нужно залогиниться!"}</h1></>;
+  	}
+
 	return (
 		<>
 
@@ -55,10 +59,17 @@ function OrderOpen() {
 
 
 
-async function getOrderOpen(id) {
-	const res = await fetch(`http://127.0.0.1:8000/api/checkout_list/orders/${id}`)
-			
-	return res.json()
+async function getOrderOpen(id) {	
+
+	try {
+        const res = await API.get(`/api/checkout_list/orders/${id}`)			
+		return res.data
+      } catch (error) {
+      	//если ошибка, то выдаем ошибку
+        console.error("Error here: ", error);
+        // setError("Failed to fetch user data. Please try again.");
+        return "error"
+      }
 }
 
 

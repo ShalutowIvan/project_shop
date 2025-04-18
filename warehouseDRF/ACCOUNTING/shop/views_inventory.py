@@ -8,7 +8,7 @@ import string
 import random
 import os
 from transliterate import translit
-from openpyxl import load_workbook
+# from openpyxl import load_workbook
 
 ###################################################################################
 #инвентаризация - начало

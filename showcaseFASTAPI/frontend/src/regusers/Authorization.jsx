@@ -1,9 +1,13 @@
 import { useState, useRef } from 'react'
-import { Link, Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { Link, Outlet, NavLink, useNavigate, redirect } from 'react-router-dom'
 import axios from "axios";
 import Cookies from "js-cookie";
 import { API } from "../apiAxios/apiAxios"
 import { setAccessToken, setRefreshToken } from "./AuthService"
+import { jwtDecode } from 'jwt-decode'
+
+import { useAuth } from './AuthProvider'
+
 
 
 export default function Authorization() {
@@ -13,8 +17,10 @@ export default function Authorization() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    // const [name, setName] = useState("")
+    // const history = useHistory();
 
-    const navigate = useNavigate();
+    const { login } = useAuth();
 
     const validateForm = () => {
         if (!username || !password) {
@@ -25,12 +31,18 @@ export default function Authorization() {
         return true;
     }
 
+    const navigate = useNavigate();
 
-	// const [form, setForm] = useState({        
+    // const goHome = () => navigate("/");
+	
+
+    // const [form, setForm] = useState({        
     //     email: "",
     //     password: "",        
     //     hasError: false,
     // })
+
+
     const handleSubmit = async (event) => {
         event.preventDefault();
         if (!validateForm()) return;
@@ -46,15 +58,6 @@ export default function Authorization() {
                     { withCredentials: true }
                 );
             setLoading(false);
-        
-        // 
-        //это выводится
-        // console.log("access: ", response.data["Authorization"]);
-        // console.log("refresh: ", response.data["RT"]);
-
-        // const cookies = response.headers["set-cookie"]; это не существует
-            
-
             
             if (response.statusText==='OK') {                
                 setAccessToken(response.data["Authorization"])
@@ -70,15 +73,22 @@ export default function Authorization() {
                 // path: "/", // Кука будет доступна на всех страницах        
                 // sameSite: "lax", // Защита от CSRF-атак
                 // });
+                
+                // setName(response.data["Authorization"].user_name)
+                // goHome()
+                // const decoded = jwtDecode(response.data["Authorization"]);
+
+                login(response.data["Authorization"]);
+
+                // navigate("/", { state: { fullName: decoded.user_name } });
+                navigate("/");
 
             } else {
                 const errorData = await response.data
                 console.log(errorData, 'тут ошибка после ввода кредов')
                 // setError(errorData.detail || 'аутентификация не прошла');
             }
-
-
-        
+    
         // const token = Cookies.get("theme");
         // console.log(document.cookie)
 
@@ -94,6 +104,10 @@ export default function Authorization() {
             console.log(error)
             setError('аутентификация не прошла, попробуйте еще раз');            
         }
+
+    
+    // return redirect('/')
+
     };
 
     // function TestCookie() {

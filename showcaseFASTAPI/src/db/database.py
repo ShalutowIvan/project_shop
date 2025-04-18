@@ -2,7 +2,7 @@ from typing import AsyncGenerator
 
 from fastapi import Depends
 
-from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
+# from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
 # from regusers.models import User
 
 from sqlalchemy.pool import NullPool

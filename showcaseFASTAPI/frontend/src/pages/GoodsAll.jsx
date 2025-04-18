@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import axios from "axios"
 import Button from '../components/Button/Button'
-
+import { API } from "../apiAxios/apiAxios"
 
 
 
@@ -12,18 +12,29 @@ export default function GoodsAll() {
 	// console.log(useParams().id);
 	// const {slug} = useParams();
 	const [goods, setGoods] = useState([]);
-	// const navigate = useNavigate();
+	const [error, setError] = useState("");
 
 
 	useEffect(() => {
 		fetch(`http://127.0.0.1:8000/api/goods_all/`)
 			.then(res => res.json())
 			.then(data => setGoods(data))
-
 	}, [])
 
 	function Add_in_basket(good_id) {
-		axios.get(`http://127.0.0.1:8000/api/basket/${good_id}`)		
+		// try {
+		// 	res = API.get(`http://127.0.0.1:8000/api/basket/${good_id}`)
+		// }
+		// catch (error) {
+		// 	setError("error");
+		// }
+
+		API.get(`/api/basket/${good_id}`)
+		// console.log(res)
+		//не знаю как уведомить пользака об ошибке при добавлении товара без авторизации. У меня просто ничего не происходит на странице. Трай кетч не работает и состояние не меняется
+
+
+		
 	}
 	
 
@@ -44,6 +55,7 @@ export default function GoodsAll() {
                         	<h4>Цена: {good.price}</h4>
                         	<h4>Остаток: {good.stock}</h4>
                         	<Button onClick={() => Add_in_basket(good.id)}>Добавить в корзину</Button>
+                        	<p>{error}</p>
                         </div>
                     ))}
 

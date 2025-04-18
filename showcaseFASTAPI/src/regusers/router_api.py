@@ -290,8 +290,8 @@ async def auth_user(response: Response, formData: AuthShema, session: AsyncSessi
 
     # response.set_cookie(key="RT", value=refresh_token.refresh_token, httponly=True, secure=True, samesite="lax")
     # response.set_cookie(key="Authorization", value=access_token_jwt, httponly=True, secure=True, samesite="lax")
-    response.set_cookie(key="RT", value=refresh_token_jwt)
-    response.set_cookie(key="Authorization", value=access_token_jwt)
+    # response.set_cookie(key="RT", value=refresh_token_jwt)
+    # response.set_cookie(key="Authorization", value=access_token_jwt)
       
     # response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True)
 
@@ -406,30 +406,26 @@ async def uri_update_access_token(response: Response, refreshToken: str, session
 
 
 
-@router_reg_api.get("/logout")
-async def logout_user(request: Request, response: Response, Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
+
+
+
+# @router_reg_api.get("/logout")
+# async def logout_user(request: Request, response: Response, Authorization: str | None = Cookie(default=None), RT: str | None = Cookie(default=None), session: AsyncSession = Depends(get_async_session)):
     
-    context = await base_requisites(db=session, request=request)
+#     context = await base_requisites(db=session, request=request)
 
-    response = templates.TemplateResponse("regusers/login.html", context)
+#     response = templates.TemplateResponse("regusers/login.html", context)
     
-    if RT != None:
-        us_token: Token = await session.scalar(select(Token).where(Token.refresh_token == RT))
-        if us_token:
-            await session.delete(us_token)
-            await session.commit()
-        response.delete_cookie("RT")
-        response.delete_cookie("Authorization")
+#     if RT != None:
+#         us_token: Token = await session.scalar(select(Token).where(Token.refresh_token == RT))
+#         if us_token:
+#             await session.delete(us_token)
+#             await session.commit()
+#         response.delete_cookie("RT")
+#         response.delete_cookie("Authorization")
 
-    return response
+#     return response
     
-
-
-
-
-
-
-
 
 
 

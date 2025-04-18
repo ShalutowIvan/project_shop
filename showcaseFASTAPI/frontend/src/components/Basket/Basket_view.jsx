@@ -7,12 +7,15 @@ import { updateAccessTokenFromRefreshToken, setAccessToken, getAccessToken } fro
 
 
 
-function Basket_view() {
-	const setActive = ({isActive}) => isActive ? 'active-link' : '';
-	
-	const {goods} = useLoaderData()
-	const [goods_in_basket, setGoods_in_basket] = useState(goods);
 
+
+function Basket_view() {
+	const setActive = ({isActive}) => isActive ? 'active-link' : '';	
+	// const [error, setError] = useState("");
+	const {goods} = useLoaderData()//по идеее тут запрос идет, но если в трай его закинуть, то его не видно вне трай кетч
+	
+	const [goods_in_basket, setGoods_in_basket] = useState(goods);
+	
 
 
 	// useEffect(() => {
@@ -23,18 +26,22 @@ function Basket_view() {
 	// }, [])
 
 	async function Delete_in_basket(good_id) {
-		await API.get(`/api/basket/goods/delete/${good_id}`)
+				
+		try {
+        	await API.get(`/api/basket/goods/delete/${good_id}`)
 		
-		const response = await API.get('/api/basket/goods/')
-		setGoods_in_basket(response.data)
-		
+			const response = await API.get('/api/basket/goods/')
+			setGoods_in_basket(response.data)
+      	} catch (error) {
+      		//если ошибка, то выдаем ошибку. Ошибка тут не выдается, но и не удаляет позицию из корзины без авторизации
+        	console.error("Error here: ", error);        	
+        	return <><h1>{"Вам нужно залогиниться!"}</h1></>;
+      	}			
+	}	
 
-		// fetch('http://127.0.0.1:8000/api/basket/goods/')
-		// 	.then(res => res.json())
-		// 	.then(data => setGoods_in_basket(data))		
-	}
-	
-	//не работает пока....после авторизаци товары не видны
+	if (goods === "error") {
+    	return <><h1>{"Вам нужно залогиниться!"}</h1></>;
+  	}
 
 
 	return (
@@ -72,17 +79,40 @@ async function getBasket() {
     //         Authorization: token,
     //       },
     //     });
-	const res = await API.get('/api/basket/goods/')
-	// попробовать просто сделать аксиос запрос
+	
+	
+	// const res = await API.get('/api/basket/goods/')
+	try {
+        // Запрос к защищенному эндпоинту FastAPI        
+        const res = await API.get('/api/basket/goods/')
+        //если все хорошо возвращаем данные
+        return res.data        
+      } catch (error) {
+      	//если ошибка, то выдаем ошибку
+        console.error("Error hear: ", error);
+        // setError("Failed to fetch user data. Please try again.");
+        return "error"
+      }
 
 
-	return res.data
+	
 }
 
 
-const basketLoader = async () => {	
+const basketLoader = async () => {
+
+	// try{
+		
+	// 	goods = await getBasket()
+
+	// }
+	// catch (error) {
+    //     console.error("Error HEAR:", error);
+    //     goods = "Error"
+    // }
 	
-	return {goods: await getBasket()}
+    return {goods: await getBasket()}	
+
 }
 //переменная в функции выше в которую присваиваем useLoaderData() должна называться точно также как и переменная, которую возвращаем тут orderNumberLoader, то есть тоже orders, именно так. И дпругих хуках наверно тоже также работает. Иначе не распарсит.
 

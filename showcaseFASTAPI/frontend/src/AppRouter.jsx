@@ -1,7 +1,7 @@
 import { Route, Navigate, createBrowserRouter, createRoutesFromElements } from "react-router-dom";
 import Aside from './components/Aside/Aside'
 import Header from './components/Header/Header'
-import Homepage from './pages/Homepage';
+import { Homepage } from './pages/Homepage';
 import GoodsInGroup from './pages/GoodsInGroup';
 import GoodsAll from './pages/GoodsAll';
 
@@ -11,7 +11,7 @@ import Registration_verify from './regusers/Registration_verify';
 
 import Forgot_password from './regusers/Forgot_password';
 import Forgot_password_verify from './regusers/Forgot_password_verify';
-import Logout from './regusers/Logout';
+// import Logout from './regusers/Logout';
 
 
 import { Basket_view, basketLoader } from './components/Basket/Basket_view';
@@ -21,14 +21,25 @@ import { OrderOpen, orderOpenLoader } from './components/Orders/OrderOpen';
 import { OrderCreate, createOrderAction} from './components/Orders/OrderCreate'
 
 //авторизация
-import { Loginpage } from "./regusers/Loginpage";
-import { RequireAuth } from "./regusers/RequireAuth";
-import { Profile } from "./regusers/Profile";
+// import { Loginpage } from "./regusers/Loginpage";
+// import { RequireAuth } from "./regusers/RequireAuth";
+// import { Profile } from "./regusers/Profile";
 
+// import { AuthProvider } from "./regusers/AuthProvider"
+import { Private } from "./regusers/Private";
+import { AuthProvider } from "./regusers/AuthProvider";
+
+
+
+//обернул только Homepage в AuthProvider, все приложение App не оборачивал в AuthProvider, и обновление токена работает как надо. Там где интерцептор в заказах срабатывает только интерцептор для обновления токена, а в Homepage и группах тоже срабатывает только эффект из AuthProvider. По логике в группах не должно обновляться, но обновляется. Я оставил так
 
 const AppRouter = createBrowserRouter(createRoutesFromElements(
-
-	<Route path="/" element={<Homepage />}>
+       
+	<Route path="/" element={
+        <AuthProvider>
+              <Homepage /> 
+        </AuthProvider>
+         } >
 
           <Route path="regusers/authorization/" element={<Authorization />} />
           
@@ -42,12 +53,17 @@ const AppRouter = createBrowserRouter(createRoutesFromElements(
                  element={<Forgot_password_verify />}                 
            />
 
-          <Route path="regusers/logout/" element={<Logout />} />
+          {/*<Route path="regusers/logout/" element={<Logout />} />*/}
 
-          <Route path="login" element={<Loginpage />} />
+          {/*<Route path="login" element={<Loginpage />} />*/}
 
 
-          <Route path="groups_all/" element={<GoodsAll />} />
+          <Route path="groups_all/" element={
+              // <Private>
+                     <GoodsAll />
+              // </Private>
+              }              
+               />
           <Route path="groups/:slug" element={<GoodsInGroup />} />
 
           
@@ -57,27 +73,24 @@ const AppRouter = createBrowserRouter(createRoutesFromElements(
             
             } loader={basketLoader} />
           
-          <Route path="basket/create/" element={
-            <RequireAuth>
-                <OrderCreate />
-            </RequireAuth>
-            } 
-          action={createOrderAction} />
+          <Route path="basket/create/" element={<OrderCreate />} action={createOrderAction} />
           
           <Route path="checkout_list/orders/" element={<Orders_view />} loader={orderNumberLoader} />
           <Route path="checkout_list/orders/:id" element={<OrderOpen />} loader={orderOpenLoader} />
 
-          <Route path="profile" element={<Profile />} />
+          {/*<Route path="profile" element={<Profile />} />*/}
         
 
         </Route>
 
-
+        
 
 
 	))
 
-
+// <RequireAuth>
+                
+// </RequireAuth>
 
 export default AppRouter    
      

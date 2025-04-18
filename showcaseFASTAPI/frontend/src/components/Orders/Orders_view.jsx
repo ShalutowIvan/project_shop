@@ -1,12 +1,16 @@
 import { useParams, Link, useNavigate, useLoaderData, Await, useAsyncValue } from 'react-router-dom'
 import { React, Suspense } from 'react';
 import Cookies from "js-cookie";
-
+import { API } from "../../apiAxios/apiAxios"
 
 
 
 function Orders_view() {
 	const {orders} = useLoaderData()
+
+	if (orders === "error") {
+    	return <><h1>{"Вам нужно залогиниться!"}</h1></>;
+  	}
 
 	return (
 		<>
@@ -42,11 +46,24 @@ function Orders_view() {
 
 
 async function getOrderNumber() {
-	const res = await fetch('http://127.0.0.1:8000/api/checkout_list/orders/')
-	const token = Cookies.get("Authorization");
-	console.log(token);
+	// const res = await fetch('http://127.0.0.1:8000/api/checkout_list/orders/')
+	// const res = await API.get('http://127.0.0.1:8000/api/checkout_list/orders/')
+	// const token = Cookies.get("Authorization");
+	// console.log(token);
 
-	return res.json()
+	try {
+        // Запрос к защищенному эндпоинту FastAPI        
+        const res = await API.get('/api/checkout_list/orders/')
+        //если все хорошо возвращаем данные
+        return res.data        
+      } catch (error) {
+      	//если ошибка, то выдаем ошибку
+        console.error("Error here: ", error);
+        // setError("Failed to fetch user data. Please try again.");
+        return "error"
+      }
+
+	
 }
 
 

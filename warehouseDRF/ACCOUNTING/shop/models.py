@@ -21,7 +21,7 @@ class Goods(models.Model):
 		verbose_name = "Товар"
 		verbose_name_plural = "Товары"
 		ordering = ['stock', 'name_product']
-		index_together = (('id', 'slug'),)
+		# index_together = (('id', 'slug'),)
 
 
 #модель групп. База наполняться и изменяться будет через API

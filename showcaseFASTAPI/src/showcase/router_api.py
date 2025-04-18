@@ -108,7 +108,21 @@ async def api_add_in_basket(request: Request, good_id: int, session: AsyncSessio
     #     context = await base_requisites(db=session, check=check, request=request)
     #     return templates.TemplateResponse("showcase/if_goods_none.html", context)
 
-    fake_user_id = 1
+    client = request.headers.get("CLIENT_ID")
+    # #сравниваем клиент ид из хедера в запросе с клиент ид из env файла на бэке. На фронте он тоже тянется из env
+    if client != CLIENT_ID:        
+        raise HTTPException(status_code=401, detail="Клиент ID не сходится!!!!!!!!!!!!!!")        
+
+    token = request.headers.get("Authorization")
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    check = await access_token_decode(acces_token=str(token))
+    
+    fake_user_id = int(check[1])
+
+
+
     good_id = int(good_id)
 
     good = await session.get(Goods, good_id)
@@ -232,12 +246,8 @@ async def api_basket_view(request: Request, session: AsyncSession = Depends(get_
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
-
-
     # print(token)
     check = await access_token_decode(acces_token=str(token))
-
-
     
     fake_user_id = int(check[1])
 
@@ -258,6 +268,7 @@ async def api_basket_view(request: Request, session: AsyncSession = Depends(get_
     #     response.set_cookie(key="Authorization", value=tokens[1])
 
     # return response
+    
     return basket
 
 
@@ -276,6 +287,16 @@ async def api_delete_in_basket(request: Request, basket_id: int, session: AsyncS
     #     context = await base_requisites(db=session, request=request)
     #     return templates.TemplateResponse("showcase/if_goods_none.html", context)
 
+    client = request.headers.get("CLIENT_ID")
+    # #сравниваем клиент ид из хедера в запросе с клиент ид из env файла на бэке. На фронте он тоже тянется из env
+    if client != CLIENT_ID:
+        # print("не верный клиент!!")
+        raise HTTPException(status_code=401, detail="Клиент ID не сходится!!!!!!!!!!!!!!")
+        # return {"ОШИБКА": "Клиент ID не сходится!!!!!!!!!!!!!!"}
+
+    token = request.headers.get("Authorization")
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
 
     basket = await session.get(Basket, basket_id)
 
@@ -355,7 +376,18 @@ async def api_delete_in_basket(request: Request, basket_id: int, session: AsyncS
 @router_showcase_api.post("/basket/contacts/")
 async def api_contacts_form(request: Request, formData: Order_list_form_Shema, session: AsyncSession = Depends(get_async_session)):
     
-    fake_user_id = 1
+    client = request.headers.get("CLIENT_ID")
+
+    if client != CLIENT_ID:        
+        raise HTTPException(status_code=401, detail="Клиент ID не сходится!!!!!!!!!!!!!!")
+        
+    token = request.headers.get("Authorization")
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    check = await access_token_decode(acces_token=str(token))
+
+    fake_user_id = int(check[1])
 
     #создаем объект в таблице счетчика заказов
     order_counter = Order_counter(user_id=fake_user_id)
@@ -398,8 +430,19 @@ async def checkout_number_view(request: Request, session: AsyncSession = Depends
     #     tokens = await test_token_expire(RT=RT, db=session)        
     #     check = tokens[2]
     #     flag = True
+
+    client = request.headers.get("CLIENT_ID")
+
+    if client != CLIENT_ID:        
+        raise HTTPException(status_code=401, detail="Клиент ID не сходится!!!!!!!!!!!!!!")
+        
+    token = request.headers.get("Authorization")
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
     
-    fake_user_id = 1
+    check = await access_token_decode(acces_token=str(token))
+
+    fake_user_id = int(check[1])    
 
     # query = select(Order_list).options(joinedload(Order_list.product)).where(Order_list.user_id == int(fake_user_id))    
 
@@ -437,7 +480,18 @@ async def checkout_number_view(request: Request, session: AsyncSession = Depends
 @router_showcase_api.get("/checkout_list/orders/{id}", response_model=list[Order_list_boughtShema])
 async def checkout_list_view(request: Request, id: int, session: AsyncSession = Depends(get_async_session)):
 
-    fake_user_id = 1
+    client = request.headers.get("CLIENT_ID")
+
+    if client != CLIENT_ID:        
+        raise HTTPException(status_code=401, detail="Клиент ID не сходится!!!!!!!!!!!!!!")
+        
+    token = request.headers.get("Authorization")
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    check = await access_token_decode(acces_token=str(token))
+
+    fake_user_id = int(check[1])    
 
     query = select(Order_list).options(joinedload(Order_list.product)).where(Order_list.user_id == fake_user_id, Order_list.order_number == id)
     
@@ -453,6 +507,29 @@ async def checkout_list_view(request: Request, id: int, session: AsyncSession = 
 
 
 
+#роут для обновления токена при обновлении страницы на фронте
+@router_showcase_api.get("/detect_user/")
+async def detect_user(request: Request, session: AsyncSession = Depends(get_async_session)):
+
+    client = request.headers.get("CLIENT_ID")
+    # #сравниваем клиент ид из хедера в запросе с клиент ид из env файла на бэке. На фронте он тоже тянется из env
+    if client != CLIENT_ID:
+        # print("не верный клиент!!")
+        raise HTTPException(status_code=401, detail="Клиент ID не сходится!!!!!!!!!!!!!!")
+        # return {"ОШИБКА": "Клиент ID не сходится!!!!!!!!!!!!!!"}
+
+    token = request.headers.get("Authorization")
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    # print(token)
+    # check = await access_token_decode(acces_token=str(token))
+    
+    # user_id = int(check[1])
+
+    # user: User = await session.scalar(select(User).where(User.id == user_id))#ищем пользователя по емейл
+
+    return {"Результат": "Все отлично!"}
 
 
 

@@ -1,6 +1,6 @@
 import Orders_contact_form from './Orders_contact_form'
 import { redirect, useNavigation } from 'react-router-dom'
-
+import { API } from "../../apiAxios/apiAxios"
 
 function OrderCreate() {
 
@@ -21,13 +21,17 @@ function OrderCreate() {
 
 
 async function createOrderRequest ({fio, phone, delivery_address, pay }) {
-	const res = await fetch('http://127.0.0.1:8000/api/basket/contacts/', {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ fio, phone, delivery_address, pay })
-		})
-		
-	const newOrder = await res.json()
+	// const res = await fetch('http://127.0.0.1:8000/api/basket/contacts/', {
+	// 	method: 'POST',
+	// 	headers: { 'Content-Type': 'application/json' },
+	// 	body: JSON.stringify({ fio, phone, delivery_address, pay })
+	// 	})
+	const res = await API.post("/api/basket/contacts/",
+				{ fio, phone, delivery_address, pay },
+                { withCredentials: true }
+                );
+
+	const newOrder = await res.data
 
 	return newOrder
 }

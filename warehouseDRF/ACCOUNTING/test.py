@@ -88,7 +88,8 @@
 # wb.close()
 
 
-
+import sys
+print(sys.path)
 
 
 

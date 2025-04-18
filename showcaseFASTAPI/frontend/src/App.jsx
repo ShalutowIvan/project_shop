@@ -30,6 +30,8 @@ import AppRouter from "./AppRouter"
 import { AuthProvider } from "./regusers/AuthProvider";
 
 
+
+
 import axios from "axios";
 import Cookies from "js-cookie";
 
@@ -122,11 +124,11 @@ function App() {
 
   return (
 
-    <AuthProvider>
+    // <AuthProvider>
 
         <RouterProvider router={AppRouter} />
 
-    </AuthProvider>
+    // </AuthProvider>
     
   )
 }
