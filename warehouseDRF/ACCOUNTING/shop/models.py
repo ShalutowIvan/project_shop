@@ -159,7 +159,7 @@ class Expense_number(models.Model):
 		verbose_name_plural = "Номера актов списания"
 		ordering = ['time_create']
 
-#таблица с товарами из приходных документов с номерами документов
+#таблица с товарами из расходных документов с номерами документов
 class Expense_list(models.Model):
 	product = models.ForeignKey(to=Goods, on_delete=models.CASCADE, verbose_name="Товар")
 	number_act = models.IntegerField(default=0, verbose_name="Номер акта списания")#этот номер берется из id таблицы Expense_number

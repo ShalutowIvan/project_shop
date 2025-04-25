@@ -43,6 +43,16 @@ display: inline-block;
 }
 
 
+header {
+  display: flex;
+  justify-content: space-between; /* равномерное распределение */
+  align-items: center; /* выравнивание по вертикали */
+  padding: 10px 20px; /* отступы внутри header */
+  background: #696969; /* фон (по желанию) */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* тень (опционально) */
+}
+
+
 main{
   text-align: center; 
   /*background-color: seagreen;*/

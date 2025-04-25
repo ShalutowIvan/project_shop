@@ -4,11 +4,20 @@ from shop.views_receipt import *
 from shop.views_expense import *
 from shop.views_inventory import *
 
+
+from shop.views_order_api import *
+from shop.views_goods_api import *
+from shop.views_receipt_api import *
+from shop.views_expense_api import *
+from shop.views_inventory_api import *
+from shop.views_report_api import *
+
 # app_name = 'showcase' #если прописать название приложения, то в шаблонах придется его везде дописать через двоеточие для каждоый ссылки функции. Возможно это будет понятнее если в проекте много приложений.
 
 urlpatterns = [
 
     path('', Home.as_view(), name='start'),
+    #заказы
     path('synchronization_order/', synchronization, name='synchronization'),
     path('order_list/', Order_list.as_view(), name='order_list'),
     path('order_list/completed/', order_completed, name='order_completed'),
@@ -17,7 +26,7 @@ urlpatterns = [
     path('order_list/open/<int:order_number>/', order_list_open, name='order_list_open'),
     path('order_list/open/activate/<int:order_activate>/', order_list_activate, name='order_list_activate'),
     path('order_list/open/deactivate/<int:order_deactivate>/', order_list_deactivate, name='order_list_deactivate'),
-    
+    #товары
     path('good_list/', Goods_list.as_view(), name='goods_list'),
     path('good_list/group_show/<slug:group_slug>/', group_show, name='group_show'),
     path('good_list/add/', Goods_add.as_view(), name='goods_add'),
@@ -83,11 +92,33 @@ urlpatterns = [
     # path('group/<slug:group_slug>/', GroupShow.as_view(), name='group'),
     # path('order/list/', Order_list_view.as_view(), name='order_list'),
     # path('order/list/<int:pk>', Order_list_view.as_view(), name='order_list_c'),
-
-    path('api/get_good/', Get_good.as_view(), name='get_good'),
-    path('api/get_group/', Get_group.as_view(), name='get_group'),
+    #тут будут апишные функции
+    #заказы
     path('api/get_order/', Get_order.as_view(), name='get_order'),
+    path('api/get_order/<int:order_number>/', Get_order_open.as_view(), name='get_order_open'),
+    path('api/get_order_completed/', Get_order_completed.as_view(), name='get_order_completed'),
+    path('api/get_order_not_completed/', Get_order_not_completed.as_view(), name='get_order_not_completed'),
+    path('api/order_list/open/activate/<int:order_activate>/', api_order_list_activate, name='api_order_list_activate'),
+    path('api/order_list/open/deactivate/<int:order_deactivate>/', api_order_list_deactivate, name='api_order_list_deactivate'),
 
+
+
+    #товары
+    path('api/get_good/', Get_good.as_view(), name='get_good'),
+    path('api/get_group/', Get_group.as_view(), name='get_group'),    
+    path('api/get_good_in_group/<slug:group_slug>/', Get_good_in_group.as_view(), name='get_good_in_group'),
+    path('api/add_group/', Group_add_api.as_view(), name='add_group'),    
+
+
+
+
+    #приходные документы
+    path('api/receipt_list_view/', Get_receipt_list.as_view(), name='receipt_list_view'),
+    #расходные документы
+    path('api/expense_list_view/', Get_expense_list.as_view(), name='expense_list_view'),
+    #инвентаризация
+    path('api/inventory_list_view/', Get_inventory_list.as_view(), name='inventory_list_view'),
+    #отчеты
 
 
 

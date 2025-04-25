@@ -46,11 +46,8 @@ app.include_router(router_showcase_api)
 app.include_router(router_reg_api)
 
 origins = [
-    "http://localhost:5173",
-    "http://localhost:5173/",
-    
-    "http://localhost:5173/basket/goods/",
-]
+    "http://localhost:5173",    
+   ]
 # "http://127.0.0.1:5173",
 
 

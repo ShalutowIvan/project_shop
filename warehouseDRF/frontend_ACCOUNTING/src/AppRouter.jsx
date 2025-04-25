@@ -1,9 +1,11 @@
 import { Route, Navigate, createBrowserRouter, createRoutesFromElements } from "react-router-dom";
 // import Aside from './components/Aside/Aside'
 // import Header from './components/Header/Header'
-import { Homepage } from './pages/Homepage';
-// import GoodsInGroup from './pages/GoodsInGroup';
-import GoodsAll from './pages/GoodsAll';
+import { Homepage } from './Start/Homepage';
+import GoodsInGroup from './Goods/GoodsInGroup';
+import GoodsAll from './Goods/GoodsAll';
+import GroupAdd from './Goods/GroupAdd';
+
 
 // import Authorization from './regusers/Authorization';
 // import Registration from './regusers/Registration';
@@ -15,8 +17,8 @@ import GoodsAll from './pages/GoodsAll';
 
 
 // import { Basket_view, basketLoader } from './components/Basket/Basket_view';
-// import { Orders_view, orderNumberLoader } from './components/Orders/Orders_view';
-// import { OrderOpen, orderOpenLoader } from './components/Orders/OrderOpen';
+import { Orders_view, orderNumberLoader } from './Orders/Orders_view';
+import { OrderOpen, orderOpenLoader } from './Orders/OrderOpen';
 
 // import { OrderCreate, createOrderAction} from './components/Orders/OrderCreate'
 
@@ -28,10 +30,20 @@ import GoodsAll from './pages/GoodsAll';
 // import { AuthProvider } from "./regusers/AuthProvider"
 // import { Private } from "./regusers/Private";
 // import { AuthProvider } from "./regusers/AuthProvider";
+//приходные документы
+import { Receipt_view, receiptNumberLoader } from './Receipt/Receipt_view';
+//расходные документы
+import { Expense_view, expenseNumberLoader } from './Expense/Expense_view';
+//инвентаризация
+import { Inventory_view, inventoryNumberLoader } from './Inventory/Inventory_view';
+//отчеты
+import { Reports } from './Reports/Reports';
 
 
 
-{/*<AuthProvider>*/}
+
+
+
 
 
 const AppRouter = createBrowserRouter(createRoutesFromElements(
@@ -42,16 +54,27 @@ const AppRouter = createBrowserRouter(createRoutesFromElements(
         
          } >
 
-          <Route path="groups_all/" element={
+
+          {/*заказы*/}
+          {/*loader={orderNumberLoader}*/}
+          <Route path="orders/" element={<Orders_view />}  />
+          {/*loader={orderOpenLoader}*/}
+          <Route path="orders/:order_number" element={<OrderOpen />}  />
+
+
+
+
+          {/*товары*/}
+          <Route path="goods_all/" element={
               // <Private>
                      <GoodsAll />
               // </Private>
               }              
                />
           
-          {/*<Route path="groups/:slug" element={<GoodsInGroup />} />*/}
+          <Route path="groups/:slug" element={<GoodsInGroup />} />
 
-          
+          <Route path="groups/add/" element={<GroupAdd />} />
           {/*<Route path="basket/goods/" element={
             
                 <Basket_view />
@@ -59,12 +82,18 @@ const AppRouter = createBrowserRouter(createRoutesFromElements(
             } loader={basketLoader} />*/}
           
           {/*<Route path="basket/create/" element={<OrderCreate />} action={createOrderAction} />*/}
-          
-          {/*<Route path="checkout_list/orders/" element={<Orders_view />} loader={orderNumberLoader} />
-          <Route path="checkout_list/orders/:id" element={<OrderOpen />} loader={orderOpenLoader} />*/}
+                
 
           {/*<Route path="profile" element={<Profile />} />*/}
-        
+          {/*приходные документы*/}
+          <Route path="incoming_documents/" element={<Receipt_view />} loader={receiptNumberLoader} />
+          {/*расходные документы*/}
+          <Route path="expense_documents/" element={<Expense_view />} loader={expenseNumberLoader} />
+          {/*инвентаризация*/}
+          <Route path="inventory/" element={<Inventory_view />} loader={inventoryNumberLoader} />
+          {/*отчеты*/}
+          <Route path="reports/" element={<Reports />} />
+
 
         </Route>
 

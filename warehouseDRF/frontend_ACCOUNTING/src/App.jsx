@@ -2,6 +2,9 @@
 import AppRouter from "./AppRouter"
 // import { AuthProvider } from "./regusers/AuthProvider";
 import { BrowserRouter, HashRouter, RouterProvider } from 'react-router-dom'
+// import './index.css'
+
+
 
 function App() {
   

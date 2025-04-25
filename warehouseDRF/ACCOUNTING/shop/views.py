@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 
 from rest_framework import generics, viewsets, mixins
 from .models import *
-from .serializers import *
+from .serializers_orders import *
 from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -282,33 +282,33 @@ def group_show(request, group_slug):
 
 
 
-#для получения списка товаров в витрине это для апи
-# @login_required
-class Get_good(APIView):
+# #для получения списка товаров в витрине это для апи
+# # @login_required
+# class Get_good(APIView):
 
-	def get(self, request):
-		good = Goods.objects.all()
+# 	def get(self, request):
+# 		good = Goods.objects.all()
 
-		return Response(GoodsSerializer(instance=good, many=True).data)
+# 		return Response(GoodsSerializer(instance=good, many=True).data)
 
 
-# для получения списка групп в витрине для апи
-# @login_required
-class Get_group(APIView):
+# # для получения списка групп в витрине для апи
+# # @login_required
+# class Get_group(APIView):
 
-	def get(self, request):
-		group = Group.objects.all()
+# 	def get(self, request):
+# 		group = Group.objects.all()
 
-		return Response(GroupSerializer(instance=group, many=True).data)
+# 		return Response(GroupSerializer(instance=group, many=True).data)
 		
 
-# @login_required
-class Get_order(APIView):
+# # @login_required
+# class Get_order(APIView):
 
-	def get(self, request):
-		order = Order_list_bought.objects.all()
+# 	def get(self, request):
+# 		order = Order_list_bought.objects.all()
 
-		return Response(Order_get_Serializer(instance=order, many=True).data)
+# 		return Response(Order_get_Serializer(instance=order, many=True).data)
 		
 
 #добавление группы товаров

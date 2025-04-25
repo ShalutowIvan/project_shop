@@ -45,11 +45,13 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -160,7 +162,8 @@ MEDIA_URL = '/media/'
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
     'rest_framework.renderers.JSONRenderer',
-    'rest_framework.renderers.BrowsableAPIRenderer', 
+    'rest_framework.renderers.BrowsableAPIRenderer',
+    # 'DATETIME_FORMAT': "%d.%m.%Y %H:%M:%S",
     ], 
     
     # 'DEFAULT_PERMISSION_CLASSES': [
@@ -221,3 +224,6 @@ SIMPLE_JWT = {
 
 
 
+CORS_ALLOWED_ORIGINS = ['http://localhost:5173']
+
+CORS_ALLOW_CREDENTIALS = True
