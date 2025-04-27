@@ -5,6 +5,7 @@ import { Homepage } from './Start/Homepage';
 import GoodsInGroup from './Goods/GoodsInGroup';
 import GoodsAll from './Goods/GoodsAll';
 import GroupAdd from './Goods/GroupAdd';
+import GoodsAdd from './Goods/GoodsAdd';
 
 
 // import Authorization from './regusers/Authorization';
@@ -75,6 +76,12 @@ const AppRouter = createBrowserRouter(createRoutesFromElements(
           <Route path="groups/:slug" element={<GoodsInGroup />} />
 
           <Route path="groups/add/" element={<GroupAdd />} />
+
+          <Route path="goods/add/" element={<GoodsAdd />} />
+
+
+
+          
           {/*<Route path="basket/goods/" element={
             
                 <Basket_view />

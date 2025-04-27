@@ -107,38 +107,11 @@ class Group_add_Serializer(serializers.Serializer):
     name_group = serializers.CharField(max_length=255)
     
 
-class Order_get_Serializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    fio = serializers.CharField(max_length=255)
-    phone = serializers.CharField(max_length=255)   
-    product_id_id = serializers.IntegerField()#тут связанное поле, там индекс типа инт
-    quantity = serializers.FloatField()  
-    order_number = serializers.IntegerField()
-    # time_create = serializers.DateTimeField()#время создания заказа покупателем
-    delivery_address = serializers.CharField(max_length=255)
-    state_order = serializers.BooleanField()
-
-
-class Order_number_Serializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    fio = serializers.CharField(max_length=255)        
-    order_number = serializers.IntegerField()
-    time_create = serializers.DateTimeField()#время создания заказа покупателем    
-    state_order = serializers.BooleanField()
-
-
-
-class Order_open_Serializer(serializers.ModelSerializer):
-    product_id = GoodsSerializer(many=False, read_only=True)
-
-    # user = serializers.HiddenField(default=serializers.CurrentUserDefault())#это чтобы поле с пользаком скрывалось при добавлении через форму в урлке от джанго, которое мы делаем через форму вьюшки. Мы тут создаем скрытое поле, и там по умолчанию прописываем текущего пользака. 
-    class Meta:
-        model = Order_list_bought#тут пишем модель с которой будем работать
-        # fields = ("name_product", "slug", "vendor_code", "price", "stock",  "group" )#тут пишем какие поля будем возвращать обратно клиенту. Причем тут поля с внешним ключем не нужно прописывать с _id. Пользак будет видеть число, а не группу из поля group. Также сразу доступны все виды запросов пост, гет и тд. Затрагиваться будут те поля, которые мы пропишем в запросах. 
-        #если нужно указать все поля в сериализаторе, то вручную их можно не писать.
-        # fields = "__all__"#вот если прописать, то в сериализатор будут попадать все поля. 
-        #сериализация с фото не работает почему то
-        fields = ('fio', 'phone', 'quantity', 'order_number', 'time_create', 'delivery_address', 'product_id', 'state_order')
-
+class Goods_add_Serializer(serializers.Serializer):
+    name_product = serializers.CharField(max_length=255)    
+    vendor_code = serializers.CharField(max_length=255, read_only=True)
+    price = serializers.DecimalField(max_digits=19, decimal_places=2)
+    stock = serializers.FloatField()
+    photo = models.ImageField(default="_", upload_to="photos/%Y/%m/%d/", verbose_name="Фото")
 
 

@@ -806,33 +806,6 @@ class Get_good_in_group(APIView):
 		return Response(GoodsSerializer(instance=goods_in_group, many=True).data)
 
 
-
-# class Group_add(CreateView):
-# 	form_class = Group_add_form
-# 	template_name = 'shop/group_add.html'
-# 	success_url = reverse_lazy('goods_list')
-# 	login_url = reverse_lazy('start')
-
-# 	def get_context_data(self, *, object_list=None, **kwargs):
-# 		context = super().get_context_data(**kwargs)
-# 		org = Organization.objects.all()
-# 		context["groups"] = Group.objects.all()
-# 		if org:
-# 			context['org'] = org[0]
-        
-# 		return context
-
-#     #передача юзера в форму автоматом от залогининного пользователя. В самой форме юзер не заполняется
-# 	def form_valid(self, form):
-# 		self.object = form.save(commit=False)
-# 		self.object.user = self.request.user
-# 		self.object.slug = translit(form.cleaned_data.get("name_group"), language_code='ru', reversed=True)
-# 		self.object.save()
-#         # возвращаем form_valid предка
-# 		return super().form_valid(form)
-
-
-
 class Group_add_api(APIView):
     def post(self, request):
         serializer = Group_add_Serializer(data=request.data)
@@ -848,5 +821,69 @@ class Group_add_api(APIView):
 
 
 # добавить товар ост
+# class Goods_add(CreateView):
+#     form_class = Goods_add_form
+#     template_name = 'shop/good_add.html'
+#     success_url = reverse_lazy('goods_list')
+#     login_url = reverse_lazy('start')
+
+
+#     def get_context_data(self, *, object_list=None, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         org = Organization.objects.all()
+#         context["groups"] = Group.objects.all()
+#         if org:
+#             context['org'] = org[0]
+        
+#         return context
+
+#     #передача юзера в форму автоматом от залогининного пользователя. В самой форме юзер не заполняется
+#     def form_valid(self, form):
+#         self.object = form.save(commit=False)
+#         self.object.slug = translit(form.cleaned_data.get("name_product"), language_code='ru', reversed=True)
+#         self.object.user = self.request.user        
+#         self.object.save()
+#         # возвращаем form_valid предка
+#         return super().form_valid(form)
+    
+
+
+class Goods_add_api(APIView):
+    def post(self, request):
+        serializer = Goods_add_Serializer(data=request.data)
+        if serializer.is_valid():
+            data = serializer.validated_data
+            slug = translit(name_group, language_code='ru', reversed=True)
+            new_group = Group(name_group=name_group, slug=slug)
+            new_group.save()
+            
+            return Response({"success": True, "data": serializer.validated_data})
+        else:
+            return Response({"error": serializer.errors}, status=400)
+
+
+# ост в джанго тут. Надо прописать логику роута для создания файла... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

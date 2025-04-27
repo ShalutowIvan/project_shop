@@ -39,7 +39,7 @@ export default function GoodsAll() {
 
 			<h1>Список товаров</h1>
 			<button><NavLink to="/groups/add/" className={setActive}>Добавить группу</NavLink></button>
-			<button><NavLink to="/groups/add/" className={setActive}>Добавить группу</NavLink></button>
+			<button><NavLink to="/goods/add/" className={setActive}>Добавить товар</NavLink></button>
 			<button><NavLink to="/groups/add/" className={setActive}>Добавить группу</NavLink></button>
 			<button><NavLink to="/groups/add/" className={setActive}>Добавить группу</NavLink></button>
 			<br/><br/>
