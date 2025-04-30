@@ -6,6 +6,13 @@ import GoodsInGroup from './Goods/GoodsInGroup';
 import GoodsAll from './Goods/GoodsAll';
 import GroupAdd from './Goods/GroupAdd';
 import GoodsAdd from './Goods/GoodsAdd';
+import GoodsLoadFile from './Goods/GoodsLoadFile';
+import ImageUploader from './Goods/ImageUploader';
+import FileCleaner from './Goods/FileCleaner';
+import GroupDelete from './Goods/GroupDelete';
+import SelectGroupAfterDelete from './Goods/SelectGroupAfterDelete';
+import GoodsModify from './Goods/GoodsModify';
+
 
 
 // import Authorization from './regusers/Authorization';
@@ -79,6 +86,17 @@ const AppRouter = createBrowserRouter(createRoutesFromElements(
 
           <Route path="goods/add/" element={<GoodsAdd />} />
 
+          <Route path="goods/load_file/" element={<GoodsLoadFile />} />
+
+          <Route path="goods/load_images/" element={<ImageUploader />} />
+
+          <Route path="goods/clean_images/" element={<FileCleaner />} />
+
+          <Route path="groups/delete/" element={<GroupDelete />} />
+
+          <Route path="groups/selectgroupafterdelete/:id" element={<SelectGroupAfterDelete />} />
+
+          <Route path="goods/modify/:id" element={<GoodsModify />} />
 
 
           

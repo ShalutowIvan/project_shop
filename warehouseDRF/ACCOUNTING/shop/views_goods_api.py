@@ -31,750 +31,12 @@ import pandas as pd
 from transliterate import translit
 from .utils import handle_uploaded_file
 from PIL import Image
+from rest_framework import status
+from rest_framework.decorators import api_view
+from django.conf import settings
+from rest_framework.parsers import MultiPartParser
+from django.core.files.storage import default_storage
 
-
-
-# class Home(ListView):
-#     # paginate_by = 11
-#     # model = Goods
-# 	template_name = 'shop/start.html'
-# 	context_object_name = 'home'
-
-# 	def get_queryset(self):
-# 		return
-        
-# 	def get_context_data(self, *, object_list=None, **kwargs):
-# 		context = super().get_context_data(**kwargs)		       		
-# 		org = Organization.objects.all()
-# 		if org:
-# 			context['org'] = org[0]
-
-# 		return context
-
-
-
-# #получение списка заказов с сайта витрины, поиск идет по артикулу, то есть в номере заказа идет артикул. Если ID совпадать в базах не будут ничего страшного, главное чтобы совпадали артикулы.
-# @login_required
-# def synchronization(request):
-# 	try:
-# 		rq = requests.get("http://127.0.0.1:8000/checkout_list/orders/all/")
-# 		res = rq.json()
-# 		db_order = Order_list_bought.objects.all()
-# 		order_number_list = list(i.order_number for i in db_order)		
-
-# 		for i in res:
-# 			if i["order_number"] not in order_number_list:
-# 				# vendor = i['product_id']
-# 				# i['product_id'] = Goods.objects.get(vendor_code=vendor).id
-# 				#сделать проверку на state, если фолз, то пропускаем или что то еще
-# 				if i["state"] == False:
-# 					continue
-
-# 				serializer = OrderSerializer(data=i)
-# 				serializer.is_valid(raise_exception=True)
-# 				serializer.save()
-
-# 		return HttpResponseRedirect(request.META['HTTP_REFERER'])
-
-# 	except Exception as ex:
-# 		context = {"error": ex}
-# 		org = Organization.objects.all()
-# 		if org:
-# 			context['org'] = org[0]
-
-# 		return render(request, "shop/synchro_error.html", context=context )
-
-# #список заказов
-# # class Order_list(ListView):
-# #     # paginate_by = 11
-# #     # model = Goods
-# # 	template_name = 'shop/order_list.html'
-# # 	context_object_name = 'order'
-
-# # 	def get_queryset(self):
-# # 		return
-        
-# # 	def get_context_data(self, *, object_list=None, **kwargs):
-# # 		context = super().get_context_data(**kwargs)
-# # 		db_order = Order_list_bought.objects.all()
-        		
-# # 		res = {}
-# # 		for i in db_order:
-# # 			if res.get(i.order_number) == None:
-# # 				res[i.order_number] = [i.fio, i.phone, i.time_create, i.state_order]
-			
-# # 		context["order_list"] = res
-
-# # 		org = Organization.objects.all()
-# # 		if org:
-# # 			context['org'] = org[0]
-
-# # 		return context
-
-
-
-
-# #фильтры заказов тут сделать. Можно просто функции, 3 кнопки, проведенные, не проведенные, все. Сделал их в отдельном блоке в html. 
-# def order_completed(request):
-# 	db_order = Order_list_bought.objects.filter(state_order=True)
-
-# 	context = {}
-# 	res = {}
-# 	for i in db_order:
-# 		if res.get(i.order_number) == None:
-# 			res[i.order_number] = [i.fio, i.phone, i.time_create, i.state_order]
-			
-# 	context["order_list"] = res
-
-# 	org = Organization.objects.all()
-# 	if org:
-# 		context['org'] = org[0]
-
-# 	return render(request, "shop/order_list_completed.html", context=context)
-
-
-# def order_not_completed(request):
-# 	db_order = Order_list_bought.objects.filter(state_order=False)
-
-# 	context = {}
-# 	res = {}
-# 	for i in db_order:
-# 		if res.get(i.order_number) == None:
-# 			res[i.order_number] = [i.fio, i.phone, i.time_create, i.state_order]
-			
-# 	context["order_list"] = res
-
-# 	org = Organization.objects.all()
-# 	if org:
-# 		context['org'] = org[0]
-
-# 	return render(request, "shop/order_list_completed.html", context=context)
-
-
-
-# #функция открыть заказ. 
-# @login_required
-# def order_list_open(request, order_number):	
-# 	context = {}
-# 	org = Organization.objects.all()
-# 	if org:
-# 		context['org'] = org[0]
-
-# 	try:
-# 		goods_in_order = Order_list_bought.objects.filter(order_number=order_number)#тут список, queryset
-	
-# 		context = {"goods_in_order": goods_in_order, "order_number": order_number}
-
-		
-
-# 		return render(request, "shop/order_list_open.html", context=context)
-# 	except Exception as ex:
-# 		context["error"] = ex
-
-# 		return render(request, "shop/error_with_loadfile_receipt.html", context=context)
-
-	
-# # Нужно еще сделать оповещение на сайте витрины на странице заказов
-
-
-# #функция проведения заказа
-# @login_required
-# def order_list_activate(request, order_activate):
-# 	order = Order_list_bought.objects.filter(order_number=order_activate)#запросили список товаров из заказа по номеру заказа
-
-
-# 	if order[0].state_order == False:
-		
-# 		gen_list = [i.product_id.id for i in order]
-
-# 		list_good = Goods.objects.filter(pk__in=gen_list)#не понятно почему, но тут список объектов получается неизменяемый, у них нельзя записать новые значения. Сделал queryset типом list, и все норм. Теперь значения полей объектов стали меняться.
-
-# 		list_good = list(list_good)
-		
-# 		for i in range(len(gen_list)):
-			
-# 			list_good[i].stock -= order[i].quantity			
-# 			order[i].state_order = True
-# 			order[i].save()
-
-# 		goods = Goods.objects.bulk_update(objs=list_good, fields=["stock",])
-			
-
-# 	return HttpResponseRedirect(request.META['HTTP_REFERER'])
-
-
-# #отмена проведения заказа
-# @login_required
-# def order_list_deactivate(request, order_deactivate):
-# 	order = Order_list_bought.objects.filter(order_number=order_deactivate)#запросили список товаров из заказа по номеру заказа
-
-
-# 	if order[0].state_order == True:
-		
-# 		gen_list = [i.product_id.id for i in order]
-
-# 		list_good = Goods.objects.filter(pk__in=gen_list)#не понятно почему, но тут список объектов получается неизменяемый, у них нельзя записать новые значения. Сделал queryset типом list, и все норм. Теперь значения полей объектов стали меняться.
-
-# 		list_good = list(list_good)
-		
-# 		for i in range(len(gen_list)):
-			
-# 			list_good[i].stock += order[i].quantity	
-# 			order[i].state_order = False
-# 			order[i].save()
-
-# 		goods = Goods.objects.bulk_update(objs=list_good, fields=["stock",])
-			
-
-# 	return HttpResponseRedirect(request.META['HTTP_REFERER'])
-
-
-# #отображение списка товаров
-# class Goods_list(ListView):
-#     paginate_by = 10
-#     model = Goods
-#     template_name = 'shop/good.html'
-#     context_object_name = 'gd'
-
-
-#     def get_queryset(self):#этот get_queryset для поиска товаров, товар ищется по названию всегда во всем каталоге, даже если зайти в группу то поиск будет также по всему каталогу. Потом доделать
-#         return Goods.objects.filter(name_product__icontains=self.request.GET.get('q', ''))
-    
-#     def get_context_data(self, *, object_list=None, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         org = Organization.objects.all()
-#         groups = Group.objects.all()
-#         # groups.append("Без группы")
-#         # print("!!!!!!!!!!!!!!!!")
-#         # print(groups)
-#         context["groups"] = groups
-#         context["no_group"] = "no_group"
-#         if org:
-#             context['org'] = org[0]
-
-#         # context['form'] = AddGoodForm()#форма для поиска не нужна
-        
-#         return context
-
-# # {% if i.slug == no_group %}
-
-# # 		<li>
-# # 			<a href="{% url 'group_show' no_group %}">Вася</a>
-# # 		</li>
-# # 		{{ i.name_group }}
-
-# # {{ continue }} 
-# # это не работает
-
-# # {% endif %}
-
-
-
-
-# @login_required
-# def group_show(request, group_slug):
-
-# 	goods_in_group = Goods.objects.filter(group__slug=group_slug)
-# 	groups = Group.objects.all()
-
-# 	context = {"goods_in_group": goods_in_group, "groups": groups}
-
-# 	org = Organization.objects.all()
-# 	if org:
-# 		context['org'] = org[0]
-
-# 	return render(request, "shop/good_group.html", context=context)
-
-
-# #добавление группы товаров
-
-# class Group_add(CreateView):
-# 	form_class = Group_add_form
-# 	template_name = 'shop/group_add.html'
-# 	success_url = reverse_lazy('goods_list')
-# 	login_url = reverse_lazy('start')
-
-# 	def get_context_data(self, *, object_list=None, **kwargs):
-# 		context = super().get_context_data(**kwargs)
-# 		org = Organization.objects.all()
-# 		context["groups"] = Group.objects.all()
-# 		if org:
-# 			context['org'] = org[0]
-        
-# 		return context
-
-#     #передача юзера в форму автоматом от залогининного пользователя. В самой форме юзер не заполняется
-# 	def form_valid(self, form):
-# 		self.object = form.save(commit=False)
-# 		self.object.user = self.request.user
-# 		self.object.slug = translit(form.cleaned_data.get("name_group"), language_code='ru', reversed=True)
-# 		self.object.save()
-#         # возвращаем form_valid предка
-# 		return super().form_valid(form)
-
-
-# def group_delete(request):
-# 	# good = Goods.objects.get(id=good_id)
-# 	groups = Group.objects.all()
-# 	# ост тут. Удаление группы, решил с помощью формы сделать как в modify goods
-# 	if request.method == 'POST':
-# 		try:
-# 			context = {}
-# 			group = Group.objects.get(id=int(request.POST["group"]))
-# 			goods_in_group = list(Goods.objects.filter(group__slug=group.slug))						
-# 			if goods_in_group != []:
-# 				#если группа не пустая, то нужен рендер на другую форму с выбором группы куда переносить товары. Закинем туда также контекст с группой которую удаляем и с списком объектов с товарами				
-# 				# context["group_delete_id"] = group.id			
-# 				return redirect('select_group_to_transfer', group.id)#ост сделать новую форму и урл
-# 			else:
-# 				group.delete()			
-	
-# 			return redirect('goods_list')
-# 		except Exception as ex:
-# 			context = {"groups": groups, "error": ex}
-
-# 			return render(request, 'shop/error_with_editfile.html', context=context)  
-
-		
-# 	context = {"groups": groups}
-	
-# 	return render(request, 'shop/good_group_delete.html', context=context)
-
-
-# #урл для переноса товаров в новую группу
-# def select_group_to_transfer(request, group_id):
-# 	groups = list(Group.objects.all())
-# 	group_delete = Group.objects.get(id=group_id)
-# 	groups.remove(group_delete)
-# 	if request.method == 'POST':		
-# 		group_new = Group.objects.get(id=int(request.POST["group_new"]))#берем из формы новую группу, в нее переносим товары
-# 		#тут логика переноса всех товаров из удаляемой группы в новую группу, потом удаляюему группу нужно удалить...
-# 		goods_in_group = list(Goods.objects.filter(group__id=group_id))#товары из удаляемой группы
-# 		for i in goods_in_group:
-# 			i.group = group_new
-
-# 		gd = Goods.objects.bulk_update(objs=goods_in_group, fields=["group",])#коммит в БД с изменениями группы
-
-# 		group_delete.delete()#удаление старой группы
-# 		#после того как убрали товары, не удаляется так как есть связь с таблицей инвенты.... Если инвенту по группе делали, то нельзя удалить так как есть связь. Как убрать связь не знаю. За счет связи удобно работает форма добавления группы. 
-# 		# чекбокс это boolfield
-		
-
-# 		return redirect('goods_list')
-
-	
-# 	context = {"groups": groups, "group_delete_id": group_id}#тут контекст без удаляемой группы
-
-# 	return render(request, 'shop/good_group_delete_if_not_empty.html', context=context)
-
-
-
-# # <a href="{% url 'group_show' None %}">Без группы</a>
-# # <br><br>
-# #добавление товара
-
-# class Goods_add(CreateView):
-#     form_class = Goods_add_form
-#     template_name = 'shop/good_add.html'
-#     success_url = reverse_lazy('goods_list')
-#     login_url = reverse_lazy('start')
-
-
-#     def get_context_data(self, *, object_list=None, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         org = Organization.objects.all()
-#         context["groups"] = Group.objects.all()
-#         if org:
-#             context['org'] = org[0]
-        
-#         return context
-
-#     #передача юзера в форму автоматом от залогининного пользователя. В самой форме юзер не заполняется
-#     def form_valid(self, form):
-#         self.object = form.save(commit=False)
-#         self.object.slug = translit(form.cleaned_data.get("name_product"), language_code='ru', reversed=True)
-#         self.object.user = self.request.user        
-#         self.object.save()
-#         # возвращаем form_valid предка
-#         return super().form_valid(form)
-
-
-# #загрузка файла с товарами
-# def goods_load_file(request):
-
-# 	if request.method == 'POST':		
-# 		# p = request.POST
-# 		# f = request.FILES#тут мультивалуедикт
-# 		# file = request.FILES['load_file']#тут имя файла
-# 		# context = {"goods_in_file": db_goods}#тут объект <class 'pandas.core.frame.DataFrame'>
-
-# 		groups_query = list(Group.objects.all())#можно пополнять этот лист при создании группы
-# 		groups = [i.name_group.lower() for i in groups_query]
-# 		goods_query = Goods.objects.all()
-# 		goods_in_base = { i.name_product: i.vendor_code for i in goods_query }		
-# 		goods = []
-# 		new_groups = []
-		
-# 		try:
-# 			file = request.FILES['load_file']#тут имя файла
-# 			db_goods = pd.read_excel(file)
-# 			db_goods.fillna(0, inplace=True)#эта строка заполняет пустые ячейки нулями 0.0
-# 			no_group = Group.objects.get(slug="no_group")
-			
-# 			letters = string.ascii_lowercase
-# 			# print("!!!!!!!!!!!!!!!!!!!!!!")			
-# 			# print(db_goods)
-# 			for i in db_goods.values:			
-# 				if goods_in_base.get(i[0]) != None or i[1] in goods_in_base.values():#если есть в базе товар с артикулом или названием, то не добавляем
-# 					continue
-
-# 				if i[4] == 0.0:#если группа не заполнена, то кидаем товар в "без группы"
-# 					goods.append(Goods(
-# 					name_product=i[0], 
-# 					slug=translit(i[0], language_code='ru', reversed=True), 
-# 					vendor_code=''.join(random.choice(letters) for i in range(15)), 
-# 					price=i[2],
-# 					stock=i[3],
-# 					group=no_group,
-# 					photo=i[5],
-# 					user=request.user
-# 					) )
-# 				elif i[4].lower() in groups:#если группа есть
-# 					gr = groups_query[groups.index(i[4].lower())]
-# 					goods.append(Goods(
-# 					name_product=i[0], 
-# 					slug=translit(i[0], language_code='ru', reversed=True), 
-# 					vendor_code=i[1],#тут если не в файле его нет, то проставится 0. Пока так оставил
-# 					price=i[2],
-# 					stock=i[3],
-# 					group=gr,
-# 					photo=i[5],
-# 					user=request.user
-# 					) )				
-# 				elif i[4].lower() not in groups:#если группа заполнена, но ее нет в базе
-# 					group_obj = Group(name_group=i[4].title(), slug=translit(i[4], language_code='ru', reversed=True))				
-# 					groups_query.append(group_obj)#то для обновления текущего списка объектов групп, чтобы в нем были новые группы. Это нужно в случае если появится новая группа и в нее товар грузим, выше в предыдущем условии пригождается
-# 					groups.append(group_obj.name_group.lower())#список названий групп пополняем, для дальнейших проверок
-# 					new_groups.append(group_obj)#список новых объектов групп, их потом в БД закинем после цикла					
-# 					goods.append(Goods(
-# 					name_product=i[0], 
-# 					slug=translit(i[0], language_code='ru', reversed=True), 
-# 					vendor_code=i[1], 
-# 					price=i[2],
-# 					stock=i[3],
-# 					group=group_obj,
-# 					photo=i[5],
-# 					user=request.user
-# 					) )
-# 				# else:#ост тут. Можно группу нулем заполнить и добавить без группы, но могут быть нюансы... подумать
-# 				# 	goods.append(
-# 				# 		Goods(
-# 				# 			name_product=i[0],
-# 				# 			slug=translit(i[0], language_code='ru', reversed=True),
-# 				# 			vendor_code=i[1],
-# 				# 			price=i[2],
-# 				# 			stock=i[3],
-# 				# 			group=Group.objects.get(name_group=i[4].title()),
-# 				# 			# лишний sql запрос. Переделать, чтобы в цикле каждый раз не было запроса, сюда нужен элемент группы
-# 				# 			photo=i[5],
-# 				# 			user=request.user
-# 				# 		))
-
-# 			# new_gr = Group.objects.update_or_create(defaults=groups_query)#пробую через update
-
-# 			if new_groups != []:
-# 				groups_create = Group.objects.bulk_create(new_groups)
-
-# 			if goods != []:
-# 				goods_create = Goods.objects.bulk_create(goods)
-
-# 			return redirect('goods_list')
-		
-# 		except Exception as ex:			
-# 			context = {"groups": groups_query, "error": ex}
-
-# 			return render(request, 'shop/error_with_loadfile.html', context=context)  
-
-			
-# 	groups = Group.objects.all()
-# 	context = {"groups": groups}
-
-# 	return render(request, 'shop/good_load_file.html', context=context)    
-
-
-# #скачивание шаблона для загрузки файла
-# def url_from_load_template(request):
-# 	# filepath = create_empty_excel(columns=["Название", "Артикул", "Цена", "Остаток", "Группа"], filename="Шаблон для загрузки товаров.xlsx")
-# 	path = os.path.abspath(r"shop\static\shop\xls\template.xlsx")
-# 	response = FileResponse(open(path, 'rb'))
-# 	#подумать что сделать со ссылкой на файл шаблона, он у меня берется по абсолютной ссылке, и на другом пк не будет работать
-# 	return response
-
-
-
-# #редактирование и удаление товара
-# def goods_modify(request, good_id):
-# 	good = Goods.objects.get(id=good_id)
-# 	group = Group.objects.all()
-
-# 	if request.method == 'POST':
-# 		try:			
-# 			file_photo = request.FILES['photo']#FILES это словарь с ключами из имен полей с файлами
-# 			# print("!!!!!!!!!!!!!!!!!!!!!")#пустое поле с фото не грузится
-# 			# print(file_photo)
-
-# 			image = Image.open(file_photo)
-# 			image.verify()
-
-# 			path = os.path.abspath("media/" + str(good.photo))#полный абсолютный путь к файлу из БД		
-# 			if os.path.exists(path):#если файл есть там, то удаляем, если нет, то не удаляем
-# 				f = str(good.photo)#берем путь к файлу из базы
-# 				new_file = f[:f.rfind('/') + 1] + file_photo.name#заменяем в пути к файлу имя файла, это потом в БД пойдет
-# 				os.remove(path)#удаляем сам файл на сервере
-# 				handle_uploaded_file(file_name=file_photo, path="media/" + f[:f.rfind('/') + 1])#загружаем новый файл в ту же самую папку
-# 			else:
-# 				new_file = file_photo.name
-# 				handle_uploaded_file(file_name=file_photo, path="media/")
-
-# 			good.name_product = request.POST["name_product"]
-# 			good.vendor_code = request.POST["vendor_code"]
-# 			good.price = float(request.POST["price"].replace(",", "."))
-# 			good.photo = new_file
-# 			good.group = Group.objects.get(id=int(request.POST["group"]))
-# 			good.save()			
-	
-# 			return redirect('goods_list')
-# 		except Exception as ex:
-# 			context = {"groups": group, "error": ex}
-
-# 			return render(request, 'shop/error_with_editfile.html', context=context)  
-
-
-# 	# else:		
-# 		# form = Goods_modify()
-# 		# form = Goods_modify(data={"name_product": good.name_product, "photo": good.photo})
-# 	#значения по умолчанию в форме джанго можно писать здесь при гет запросе в объекте формы в поле data, и передавать туда словарь
-	
-		
-# 	context = {"good_id": good_id, "good": good, "groups": group}
-	
-# 	return render(request, 'shop/good_modify.html', context=context)
-
-	
-# #удаление товара
-# def goods_delete(request, good_id):
-
-# 	good = Goods.objects.get(id=good_id)
-# 	path = os.path.abspath("media/" + str(good.photo))
-# 	if os.path.isfile(path):
-# 		os.remove(path)#удаляем сам файл на сервере
-	
-# 	good.delete()
-
-# 	return HttpResponseRedirect(request.META['HTTP_REFERER'])
-
-
-
-# #урл для создания файла. сохранится на сервер
-# # def create_empty_excel(columns: list, filename: str, sheet_name: str = 'Sheet1'):
-# #     df = pd.DataFrame(columns=columns)
-
-# #     if not os.path.exists('excel_files'):
-# #         os.makedirs('excel_files')
-
-# #     filepath = os.path.join('excel_files', filename)
-# #     excel_writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
-# #     df.to_excel(excel_writer, index=False, sheet_name=sheet_name, freeze_panes=(1, 0))
-# #     excel_writer._save()
-
-# #     return filepath
-
-
-# #код для загрузки файла
-# # https://stackoverflow.com/questions/36392510/django-download-a-file/36394206#36394206
-
-# # import os
-# # from django.conf import settings
-# # from django.http import HttpResponse, Http404
-
-# # def download(request, path):
-# #     file_path = os.path.join(settings.MEDIA_ROOT, path)
-# #     if os.path.exists(file_path):
-# #         with open(file_path, 'rb') as fh:
-# #             response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
-# #             response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
-# #             return response
-# #     raise Http404
-
-
-# #урл для парсинга файла с товарами и записи товаров в базу
-# # def goods_pars_file(request):#как сюда передать датафрейм или лист не знаю, в джанго урл надо это прописать хз как. Нужно закинуть в контекст фрейм
-
-# # 	#вариант с формой
-# # 	if request.method == 'POST':
-# # 		# form = Parse_file(data=request.POST)
-			
-# # 		return redirect('goods_list')
-
-# # 	# else:
-# # 	# 	form = Parse_file()
-
-# # 	# , "goods": goods
-# # 	# 'form': form,
-# # 	context = {}
-
-# # 	return render(request, 'shop/good_parse_file.html', context=context)    
-
-
-
-
-
-# #отчеты!!!!!!!!!!
-# #просто страница с отчетами
-# def reports(request):
-# 	context = {}
-# 	org = Organization.objects.all()
-# 	if org:
-# 		context['org'] = org[0]
-# 	return render(request, "shop/reports.html", context=context)
-
-
-# # <p><input type="date" label class="form-label" for="{{ form.date_by.id_for_label }}">Дата по: </label>{{ form.date_by }}</p>
-# #отчет по приходу
-# @login_required
-# def income_report(request):
-	
-# 	if request.method == 'POST':
-# 		form = Date_report_income(data=request.POST)
-# 		if form.is_valid():			
-# 			d_from = form.cleaned_data.get("date_from")
-# 			d_by = form.cleaned_data.get("date_by")
-
-# 			rec_list = Receipt_number.objects.filter(time_create__gte=d_from, time_create__lte=d_by)#тут сделать запрос
-
-# 			context = {"receipt_list_view": rec_list}
-# 			org = Organization.objects.all()
-# 			if org:
-# 				context['org'] = org[0]
-			
-# 			return render(request, "shop/report_list_income.html", context=context)
-
-# 	else:
-# 		form = Date_report_income()
-
-# 	context = {'form': form}
-
-# 	org = Organization.objects.all()
-# 	if org:
-# 		context['org'] = org[0]
-
-# 	return render(request, "shop/reports_income.html", context=context)
-
-
-# #отчет по расходу
-# def expense_report(request):
-
-# 	if request.method == 'POST':
-# 		form = Date_report_income(data=request.POST)
-# 		if form.is_valid():			
-# 			d_from = form.cleaned_data.get("date_from")
-# 			d_by = form.cleaned_data.get("date_by")
-
-# 			rec_list = Expense_number.objects.filter(time_create__gte=d_from, time_create__lte=d_by)
-
-# 			context = {"receipt_list_view": rec_list}
-# 			org = Organization.objects.all()
-# 			if org:
-# 				context['org'] = org[0]
-			
-# 			return render(request, "shop/report_list_expense.html", context=context)
-
-# 	else:
-# 		form = Date_report_income()
-
-# 	context = {'form': form}
-
-# 	org = Organization.objects.all()
-# 	if org:
-# 		context['org'] = org[0]
-
-# 	return render(request, "shop/reports_expense.html", context=context)
-	
-
-
-# # <a href="{% url 'order_list_open' i %}"><button class="open_order">Открыть заказ</button></a> тут ошибка
-# #отчет по продажам
-# def sales_report(request):
-
-# 	if request.method == 'POST':
-# 		form = Date_report_income(data=request.POST)
-# 		if form.is_valid():			
-# 			d_from = form.cleaned_data.get("date_from")
-# 			d_by = form.cleaned_data.get("date_by")
-			
-# 			order_list = Order_list_bought.objects.filter(time_create__gte=d_from, time_create__lte=d_by)#тут сделать запрос другой, подумать
-# 			print("!!!!!!!!!!!!!!!!!!!!")
-# 			print(order_list)
-
-# 			context = {"order_list": order_list}
-# 			org = Organization.objects.all()
-# 			if org:
-# 				context['org'] = org[0]
-			
-# 			return render(request, "shop/report_sales_list.html", context=context)
-
-# 	else:
-# 		form = Date_report_income()
-
-# 	context = {'form': form}
-
-# 	org = Organization.objects.all()
-# 	if org:
-# 		context['org'] = org[0]
-
-# 	return render(request, "shop/reports_sales.html", context=context)
-
-
-# #тут товар и сколько всего продано этого товара за период
-# def sales_report_summary(request):
-
-# 	if request.method == 'POST':
-# 		form = Date_report_income(data=request.POST)
-# 		if form.is_valid():			
-# 			d_from = form.cleaned_data.get("date_from")
-# 			d_by = form.cleaned_data.get("date_by")
-
-# 			order_list = Order_list_bought.objects.filter(time_create__gte=d_from, time_create__lte=d_by)
-			
-			
-# 			report_quantity = {}
-# 			for i in order_list:
-# 				if i.state_order == True:
-# 					if report_quantity.get(i.product_id) == None:
-# 						report_quantity[i.product_id] = i.quantity
-# 					else:
-# 						report_quantity[i.product_id] += i.quantity
-
-			
-# 			context = {"report_quantity": report_quantity}
-
-
-# 			org = Organization.objects.all()
-# 			if org:
-# 				context['org'] = org[0]
-			
-# 			return render(request, "shop/report_sales_summary_list.html", context=context)
-
-# 	else:
-# 		form = Date_report_income()
-
-# 	context = {'form': form}
-
-# 	org = Organization.objects.all()
-# 	if org:
-# 		context['org'] = org[0]
-
-# 	return render(request, "shop/reports_sales_summary.html", context=context)
 
 
 
@@ -795,6 +57,9 @@ class Get_group(APIView):
 		group = Group.objects.all()
 
 		return Response(GroupSerializer(instance=group, many=True).data)
+		# groups = Group.objects.all()
+        # serializer = GroupSerializer(groups, many=True)
+        # return Response(serializer.data)
 		
 
 class Get_good_in_group(APIView):
@@ -820,70 +85,373 @@ class Group_add_api(APIView):
             return Response({"error": serializer.errors}, status=400)
 
 
-# добавить товар ост
-# class Goods_add(CreateView):
-#     form_class = Goods_add_form
-#     template_name = 'shop/good_add.html'
-#     success_url = reverse_lazy('goods_list')
-#     login_url = reverse_lazy('start')
 
-
-#     def get_context_data(self, *, object_list=None, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         org = Organization.objects.all()
-#         context["groups"] = Group.objects.all()
-#         if org:
-#             context['org'] = org[0]
-        
-#         return context
-
-#     #передача юзера в форму автоматом от залогининного пользователя. В самой форме юзер не заполняется
-#     def form_valid(self, form):
-#         self.object = form.save(commit=False)
-#         self.object.slug = translit(form.cleaned_data.get("name_product"), language_code='ru', reversed=True)
-#         self.object.user = self.request.user        
-#         self.object.save()
-#         # возвращаем form_valid предка
-#         return super().form_valid(form)
     
-
-
+# from rest_framework import viewsets
+# class Goods_add_api(viewsets.ModelViewSet):
 class Goods_add_api(APIView):
-    def post(self, request):
-        serializer = Goods_add_Serializer(data=request.data)
-        if serializer.is_valid():
-            data = serializer.validated_data
-            slug = translit(name_group, language_code='ru', reversed=True)
-            new_group = Group(name_group=name_group, slug=slug)
-            new_group.save()
+
+	# def get(self, request):
+	# 	good = Goods.objects.all()
+
+	# 	return Response(GoodsSerializer(instance=good, many=True).data)
+
+
+	def post(self, request, *args, **kwargs):
+		# print(request.data["name_product"])
+		serializer = Goods_add_Serializer(data=request.data)
+
+		if serializer.is_valid():
+			# print(serializer.validated_data)
+			slug = translit(serializer.validated_data["name_product"], language_code='ru', reversed=True)
+			serializer.validated_data["slug"] = slug
+			# serializer.validated_data["user"] = self.request.user# юзера потом тянуть из токена, когда запилю авторизацию. 
+
+
+			serializer.save()
             
-            return Response({"success": True, "data": serializer.validated_data})
-        else:
-            return Response({"error": serializer.errors}, status=400)
+			return Response({"success": True, })
+		else:
+
+			return Response({"error": serializer.errors}, status=400)
 
 
-# ост в джанго тут. Надо прописать логику роута для создания файла... 
+# ост в джанго тут. нужно сделать роутер для DRF в urls.py или что-то подобное... разобраться, посмотреть видео selfedu чтобы память освежить. 
+
+#загрузка файла с товарами
+class Goods_load_file_api(APIView):
+
+	def post(self, request, *args, **kwargs):
+
+		
+		# p = request.POST
+		# f = request.FILES#тут мультивалуедикт
+		# file = request.FILES['load_file']#тут имя файла
+		# context = {"goods_in_file": db_goods}#тут объект <class 'pandas.core.frame.DataFrame'>
+		fake_user = User.objects.get(id=1)
+
+		groups_query = list(Group.objects.all())#можно пополнять этот лист при создании группы
+		groups = [i.name_group.lower() for i in groups_query]
+		goods_query = Goods.objects.all()
+		goods_in_base = { i.name_product: i.vendor_code for i in goods_query }		
+		goods = []
+		new_groups = []
+
+
+
+		try:
+			file = request.FILES['load_file']#тут имя файла
+			db_goods = pd.read_excel(file)
+			db_goods.fillna(0, inplace=True)#эта строка заполняет пустые ячейки нулями 0.0
+			no_group = Group.objects.get(slug="no_group")
+			
+			letters = string.ascii_lowercase
+			print("!!!!!!!!!!!!!!!!!!!!!!")		
+			print(db_goods)
+
+
+			for i in db_goods.values:			
+				if goods_in_base.get(i[0]) != None or i[1] in goods_in_base.values():#если есть в базе товар с артикулом или названием, то не добавляем
+					continue
+
+				if i[4] == 0.0:#если группа не заполнена, то кидаем товар в "без группы"
+					goods.append(Goods(
+					name_product=i[0], 
+					slug=translit(i[0], language_code='ru', reversed=True), 
+					vendor_code=''.join(random.choice(letters) for i in range(15)), 
+					price=i[2],
+					stock=i[3],
+					group=no_group,
+					photo=str(i[5]),
+					user=fake_user
+					) )
+				elif i[4].lower() in groups:#если группа есть
+					gr = groups_query[groups.index(i[4].lower())]
+					goods.append(Goods(
+					name_product=i[0], 
+					slug=translit(i[0], language_code='ru', reversed=True), 
+					vendor_code=i[1],#тут если не в файле его нет, то проставится 0. Пока так оставил
+					price=i[2],
+					stock=i[3],
+					group=gr,
+					photo=str(i[5]),
+					user=fake_user
+					) )				
+				elif i[4].lower() not in groups:#если группа заполнена, но ее нет в базе
+					group_obj = Group(name_group=i[4].title(), slug=translit(i[4], language_code='ru', reversed=True))				
+					groups_query.append(group_obj)#то для обновления текущего списка объектов групп, чтобы в нем были новые группы. Это нужно в случае если появится новая группа и в нее товар грузим, выше в предыдущем условии пригождается
+					groups.append(group_obj.name_group.lower())#список названий групп пополняем, для дальнейших проверок
+					new_groups.append(group_obj)#список новых объектов групп, их потом в БД закинем после цикла					
+					goods.append(Goods(
+					name_product=i[0], 
+					slug=translit(i[0], language_code='ru', reversed=True), 
+					vendor_code=i[1], 
+					price=i[2],
+					stock=i[3],
+					group=group_obj,
+					photo=str(i[5]),
+					user=fake_user
+					) )
+
+				
+				# else:#ост тут. Можно группу нулем заполнить и добавить без группы, но могут быть нюансы... подумать
+							
+			if new_groups != []:
+				groups_create = Group.objects.bulk_create(new_groups)
+
+			if goods != []:
+				goods_create = Goods.objects.bulk_create(goods)
+
+			return Response({
+                'message': 'File processed successfully',
+                # 'data': data,
+                # 'rows_count': len(data)
+            }, status=status.HTTP_200_OK)
+
+		except Exception as ex:
+			print(ex)
+			return Response(
+                {'error': str(ex)}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+#скачивание шаблона для загрузки файла
+@api_view(['GET'])
+def url_from_load_template_api(request):	
+	path = os.path.abspath(r"shop\static\shop\xls\template.xlsx")
+	response = FileResponse(open(path, 'rb'))
+	
+	return response
+	
+
+
+
+# это обработчик формы для загрузки нескольких файлов
+class BulkImageUploadView(APIView):
+    parser_classes = [MultiPartParser]  # Для обработки multipart/form-data
+    
+    def post(self, request, format=None):
+        if not request.FILES:
+            return Response(
+                {"error": "No files provided"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        saved_files = []
+        errors = []
+        
+        # Обрабатываем все файлы из запроса
+        for file_key in request.FILES:
+            uploaded_file = request.FILES[file_key]
+            
+            try:
+                # Сохраняем файл в папку 'uploads/' (автоматически создаётся)
+                file_path = default_storage.save(
+                    os.path.join('', uploaded_file.name),
+                    uploaded_file
+                )
+                saved_files.append({
+                    'name': uploaded_file.name,
+                    'url': default_storage.url(file_path),
+                    'size': uploaded_file.size
+                })
+            except Exception as e:
+                errors.append({
+                    'name': uploaded_file.name,
+                    'error': str(e)
+                })
+        
+        response_data = {
+            'saved_files': saved_files,
+            'errors': errors,
+            'total_uploaded': len(saved_files)
+        }
+        
+        return Response(response_data, status=status.HTTP_201_CREATED)
+
+
+#для проверки расширений при загрузке файлов фото
+# ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif']
+# if not uploaded_file.name.split('.')[-1].lower() in ALLOWED_EXTENSIONS:
+#     # Вернуть ошибку
+
+#роут для удаления лишних загруженных файлов с сервера. 
+class CleanUnusedFilesView(APIView):
+    def get(self, request, format=None):
+        # Получаем все используемые файлы из БД
+        used_files = set()
+        for product in Goods.objects.all():
+            if product.photo:
+                used_files.add(product.photo.name)
+        
+        # Сканируем медиа-папку
+        media_root = settings.MEDIA_ROOT
+        deleted_files = []
+        errors = []
+        
+        for root, _, files in os.walk(media_root):
+            for filename in files:
+                file_path = os.path.join(root, filename)
+                relative_path = os.path.relpath(file_path, media_root)
+                
+                # Проверяем, используется ли файл в БД
+                if relative_path not in used_files:
+                    try:
+                        os.remove(file_path)
+                        deleted_files.append(relative_path)
+                    except Exception as e:
+                        errors.append({
+                            'file': relative_path,
+                            'error': str(e)
+                        })
+        
+        return Response({
+            'deleted_files': deleted_files,
+            'errors': errors,
+            'total_deleted': len(deleted_files)
+        }, status=status.HTTP_200_OK)
+
+
+
+class Group_delete_api(APIView):
+	def post(self, request):
+		# good = Goods.objects.get(id=good_id)
+		# groups = Group.objects.all()
+		
+		
+		try:
+			#ищем группу			
+			group = Group.objects.get(id=int(request.data["group"]))
+			
+			#ищем товары с этой группой
+			goods_in_group = list(Goods.objects.filter(group__slug=group.slug))						
+			if goods_in_group != []:
+				#если группа не пустая, то нужен рендер на другую форму с выбором группы куда переносить товары. Закинем туда также контекст с группой которую удаляем и с списком объектов с товарами				
+				return Response({"success": True, "answer": group.id})
+				
+			elif goods_in_group == []:
+				#если группа пустая то удаляем группу, для метки передаем текст delete, его нужно будет проверять в ответе в data. Если ответ сервера в data равен delete, то удаляем группу и делаем редирект на список товаров в реакт.
+				group.delete()
+				
+				return Response({"success": True, "answer": "delete"})
+
+		
+		except Exception as ex:
+
+			return Response({"error": ex}, status=400)
+		
+		# из формы получаем группу ИД и далее нужно првоерить что группа пустая или нет, если не пустая, то выбрать группу куда перенести товар, если пустая просто удалить...
+
+
+
+#урл для переноса товаров в новую группу
+class Select_group_to_transfer_api(APIView):
+	def post(self, request, group_id):
+		try:
+			group_delete = Group.objects.get(id=group_id)#нашел объект группы		
+
+			group_new = Group.objects.get(id=int(request.data["group"]))#берем из формы новую группу, в нее переносим товары
+			
+			#тут логика переноса всех товаров из удаляемой группы в новую группу, потом удаляемую группу нужно удалить...
+			goods_in_group = list(Goods.objects.filter(group__id=group_id))#товары из удаляемой группы
+			for i in goods_in_group:#меняем группу у всех товаров
+				i.group = group_new
+
+			gd = Goods.objects.bulk_update(objs=goods_in_group, fields=["group",])#коммит в БД с изменениями группы
+
+			group_delete.delete()#удаление старой группы
+			#после того как убрали товары, не удаляется так как есть связь с таблицей инвенты.... Если инвенту по группе делали, то нельзя удалить так как есть связь. Как убрать связь не знаю. За счет связи удобно работает форма добавления группы. 
+			# чекбокс это boolfield
+			return Response({"success": True}, status=status.HTTP_200_OK)
+		except Exception as ex:
+
+			return Response({"error": ex}, status=400)
+
+
+
+@api_view(['GET'])
+def group_without_delete(request, group_id):
+	groups = list(Group.objects.all())
+	group_delete = Group.objects.get(id=group_id)
+	groups.remove(group_delete)
+	return Response(GroupSerializer(instance=groups, many=True).data)
+
+
+# далее поиск товара, изменение товара, удаление товара. 3 кнопки еще в товарах. Ост редакт товара
+class Goods_modify_api(APIView):
+	
+	def post(self, request, good_id):
+		good = Goods.objects.get(id=good_id)
+		# group = Group.objects.all()
+		serializer = Goods_add_Serializer(data=request.data)
+	
+		if serializer.is_valid():
+			# file_photo = request.FILES['photo']#FILES это словарь с ключами из имен полей с файлами
+			# # print("!!!!!!!!!!!!!!!!!!!!!")#пустое поле с фото не грузится
+			# # print(file_photo)
+
+			# image = Image.open(file_photo)
+			# image.verify()
+
+			path = os.path.abspath("media/" + str(good.photo))#полный абсолютный путь к файлу из БД		
+			if os.path.exists(path):#если файл есть там, то удаляем, если нет, то не удаляем
+				f = str(good.photo)#берем путь к файлу из базы
+				new_file = f[:f.rfind('/') + 1] + serializer.validated_data["photo"].name#заменяем в пути к файлу имя файла, это потом в БД пойдет
+				os.remove(path)#удаляем сам файл на сервере
+				handle_uploaded_file(file_name=file_photo, path="media/" + f[:f.rfind('/') + 1])#загружаем новый файл в ту же самую папку
+			else:
+				new_file = file_photo.name
+				handle_uploaded_file(file_name=file_photo, path="media/")
+
+			good.name_product = serializer.validated_data["name_product"]
+			good.vendor_code = serializer.validated_data["vendor_code"]
+			good.price = float(serializer.validated_data["price"].replace(",", "."))
+			good.photo = new_file
+			good.group = Group.objects.get(id=int(serializer.validated_data["group"]))
+			good.save()			
+	
+			return Response({"success": True, })
+		else:	
+
+			return Response({"error": serializer.errors}, status=400)
+
+
+# def post(self, request, *args, **kwargs):
+# 		# print(request.data["name_product"])
+# 		serializer = Goods_add_Serializer(data=request.data)
+
+# 		if serializer.is_valid():
+# 			# print(serializer.validated_data)
+# 			slug = translit(serializer.validated_data["name_product"], language_code='ru', reversed=True)
+# 			serializer.validated_data["slug"] = slug
+# 			# serializer.validated_data["user"] = self.request.user# юзера потом тянуть из токена, когда запилю авторизацию. 
+
+
+# 			serializer.save()
+            
+# 			return Response({"success": True, })
+# 		else:
+
+# 			return Response({"error": serializer.errors}, status=400)
 
 
 
 
+	
+#удаление товара
+def goods_delete(request, good_id):
+
+	good = Goods.objects.get(id=good_id)
+	path = os.path.abspath("media/" + str(good.photo))
+	if os.path.isfile(path):
+		os.remove(path)#удаляем сам файл на сервере
+	
+	good.delete()
+
+	return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+		
 
 

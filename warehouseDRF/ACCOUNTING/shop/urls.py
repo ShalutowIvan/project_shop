@@ -108,7 +108,19 @@ urlpatterns = [
     path('api/get_group/', Get_group.as_view(), name='get_group'),    
     path('api/get_good_in_group/<slug:group_slug>/', Get_good_in_group.as_view(), name='get_good_in_group'),
     path('api/add_group/', Group_add_api.as_view(), name='add_group'),    
+    path('api/add_good/', Goods_add_api.as_view()),    
+    path('api/add_good/load_file/', Goods_load_file_api.as_view()),    
+    path('api/add_good/url_from_load_template/', url_from_load_template_api),    
+    path('api/upload-images/', BulkImageUploadView.as_view(), name='bulk-image-upload'),
+    path('api/clean-unused-files/', CleanUnusedFilesView.as_view(), name='clean-unused-files'),
+    path('api/delete_group/', Group_delete_api.as_view(), name='delete_group'),
+    path('api/select_group_to_transfer/<int:group_id>', Select_group_to_transfer_api.as_view(), name='select_group_to_transfer'),
+    path('api/group_without_delete/<int:group_id>', group_without_delete, name='group_without_delete'),
+    path('api/goods_modify/<int:good_id>', Goods_modify_api.as_view(), name='goods_modify'),
 
+
+
+    
 
 
 

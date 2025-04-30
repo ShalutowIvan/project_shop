@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Link, Outlet, NavLink, useNavigate, redirect } from 'react-router-dom'
+import { Link, Outlet, NavLink, useNavigate, redirect, useParams } from 'react-router-dom'
 import axios from "axios";
 import Cookies from "js-cookie";
 // import { API } from "../apiAxios/apiAxios"
@@ -10,8 +10,11 @@ import GroupsAll from "./Groups"
 
 
 
-export default function GoodsAdd() {
+export default function GoodsModify() {
+    // параметры грузить надо в состояния юз парамс... в джанго урл сделать для подгрузки. Ссылки сделать и тд. ОСТ ТУТ
     //поля формы
+    const {id} = useParams();
+
     const [name_product, setName_product] = useState("_");    
     const [vendor_code, setVendor_code] = useState("_");
     const [price, setPrice] = useState(0.0);

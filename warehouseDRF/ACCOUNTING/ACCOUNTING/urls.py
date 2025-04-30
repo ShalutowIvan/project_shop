@@ -18,18 +18,23 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from shop.views import *
 from regusers.views import *
+from shop.views_goods_api import *
 from rest_framework import routers
 from django.conf.urls.static import static
 from django.conf import settings
 #для jwt
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
-
+from rest_framework.routers import DefaultRouter
 
 
 
 
 # router = routers.SimpleRouter()
 # router.register(r'goods', GoodsViewSet)
+# router = DefaultRouter()
+# router.register(r'api/app_goods', ProductViewSet)
+
+
 
 
 urlpatterns = [
@@ -38,6 +43,7 @@ urlpatterns = [
     path('', include('shop.urls')),#тут указали стартовую страницу от которой будут идти все другие ссылки приложения
     path('', include('regusers.urls')),
     # path('api/v1/', include(router.urls)),
+    # path('', include(router.urls)),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 

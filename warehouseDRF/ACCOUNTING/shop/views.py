@@ -444,11 +444,13 @@ def goods_load_file(request):
 			file = request.FILES['load_file']#тут имя файла
 			db_goods = pd.read_excel(file)
 			db_goods.fillna(0, inplace=True)#эта строка заполняет пустые ячейки нулями 0.0
+			print(db_goods)
 			no_group = Group.objects.get(slug="no_group")
 			
 			letters = string.ascii_lowercase
 			# print("!!!!!!!!!!!!!!!!!!!!!!")			
 			# print(db_goods)
+			#перебираем загруженный файл
 			for i in db_goods.values:			
 				if goods_in_base.get(i[0]) != None or i[1] in goods_in_base.values():#если есть в базе товар с артикулом или названием, то не добавляем
 					continue
@@ -461,7 +463,7 @@ def goods_load_file(request):
 					price=i[2],
 					stock=i[3],
 					group=no_group,
-					photo=i[5],
+					photo=str(i[5]),
 					user=request.user
 					) )
 				elif i[4].lower() in groups:#если группа есть
@@ -473,7 +475,7 @@ def goods_load_file(request):
 					price=i[2],
 					stock=i[3],
 					group=gr,
-					photo=i[5],
+					photo=str(i[5]),
 					user=request.user
 					) )				
 				elif i[4].lower() not in groups:#если группа заполнена, но ее нет в базе
@@ -488,7 +490,7 @@ def goods_load_file(request):
 					price=i[2],
 					stock=i[3],
 					group=group_obj,
-					photo=i[5],
+					photo=str(i[5]),
 					user=request.user
 					) )
 				# else:#ост тут. Можно группу нулем заполнить и добавить без группы, но могут быть нюансы... подумать
