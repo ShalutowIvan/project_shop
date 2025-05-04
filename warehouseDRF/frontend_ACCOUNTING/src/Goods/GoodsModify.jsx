@@ -19,9 +19,9 @@ export default function GoodsModify() {
     const [vendor_code, setVendor_code] = useState("_");
     const [price, setPrice] = useState(0.0);
     const [stock, setStock] = useState(0.0);
-    const [photo, setPhoto] = useState(null);
+    const [photo, setPhoto] = useState("_");
     const [group, setGroup] = useState("");
-    const [user, setUser] = useState(1);
+    // const [user, setUser] = useState(1);
 
     const [groupss, setGroupss] = useState([]);
 
@@ -38,7 +38,19 @@ export default function GoodsModify() {
     useEffect(() => {
             fetch(`http://127.0.0.1:9999/api/get_group/`)
                 .then(res => res.json())
-                .then(data => setGroupss(data));        
+                .then(data => {setGroupss(data)});
+            
+            fetch(`http://127.0.0.1:9999/api/load_good_to_modify/${id}`)
+                .then(res => res.json())
+                .then(data => {
+                    setName_product(data[0].name_product)
+                    setVendor_code(data[0].vendor_code)
+                    setPrice(data[0].price)
+                    setStock(data[0].stock)
+                    setPhoto(data[0].photo)
+                    setGroup(data[0].group)
+                });
+            
         }, [])
 
 
@@ -62,8 +74,8 @@ export default function GoodsModify() {
         setLoading(true);
 
         try {            
-            const response = await axios.post(
-                "http://127.0.0.1:9999/api/add_good/",
+            const response = await axios.patch(
+                `http://127.0.0.1:9999/api/goods_modify/${id}`,
                 {                 
                     name_product,
                     // slug,
@@ -72,7 +84,7 @@ export default function GoodsModify() {
                     stock,
                     photo,
                     group,
-                    user,
+                    // user,
                 },
                 {
                     headers: {
@@ -123,7 +135,8 @@ export default function GoodsModify() {
                     id="id_name_product"
                     className="control"                        
                     value={name_product}
-                    onChange={(e) => setName_product(e.target.value)}   
+                    onChange={(e) => setName_product(e.target.value)}
+                    required   
                 />
 
                 <br/><br/>                
@@ -136,7 +149,8 @@ export default function GoodsModify() {
                     id="id_vendor_code"
                     className="control"                        
                     value={vendor_code}
-                    onChange={(e) => setVendor_code(e.target.value)}   
+                    onChange={(e) => setVendor_code(e.target.value)}  
+                    required 
                 />
 
                 <br/><br/>
@@ -150,7 +164,8 @@ export default function GoodsModify() {
                     id="id_price"
                     className="control"                        
                     value={price}
-                    onChange={(e) => setPrice(e.target.value)}   
+                    onChange={(e) => setPrice(e.target.value)}  
+                    required 
                 />
 
                 <br/><br/>
@@ -163,7 +178,8 @@ export default function GoodsModify() {
                     id="id_stock"
                     className="control"                        
                     value={stock}
-                    onChange={(e) => setStock(e.target.value)}   
+                    onChange={(e) => setStock(e.target.value)}  
+                    required 
                 />
 
                 <br/><br/>
@@ -177,7 +193,8 @@ export default function GoodsModify() {
                     className="control"                        
                     // value={photo}
                     accept="image/*"
-                    onChange={(e) => setPhoto(e.target.files[0])}   
+                    onChange={(e) => setPhoto(e.target.files[0])}  
+                     
                 />
 
                 <br/><br/>
@@ -189,7 +206,7 @@ export default function GoodsModify() {
                     // className="control"                        
                     value={group}
                     onChange={(e) => setGroup(e.target.value)}   
-                    // required
+                    required
                 >
                     <option value="">Выберите группу</option>
                     {groupss?.map(group => (
@@ -202,7 +219,7 @@ export default function GoodsModify() {
                 <br/><br/>
 
                 <button type="submit" disabled={loading}>                    
-                    {loading ? 'Сохраняем...' : 'Добавить'}
+                    {loading ? 'Загрузка...' : 'Сохранить'}
                 </button>
                 <br/>
 

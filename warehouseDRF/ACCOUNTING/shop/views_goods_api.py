@@ -36,7 +36,7 @@ from rest_framework.decorators import api_view
 from django.conf import settings
 from rest_framework.parsers import MultiPartParser
 from django.core.files.storage import default_storage
-
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
 
 
@@ -344,7 +344,6 @@ class Group_delete_api(APIView):
 		# из формы получаем группу ИД и далее нужно првоерить что группа пустая или нет, если не пустая, то выбрать группу куда перенести товар, если пустая просто удалить...
 
 
-
 #урл для переноса товаров в новую группу
 class Select_group_to_transfer_api(APIView):
 	def post(self, request, group_id):
@@ -368,8 +367,7 @@ class Select_group_to_transfer_api(APIView):
 
 			return Response({"error": ex}, status=400)
 
-
-
+#урл для выпадающего списка в момент переноса при удалении группы. То есть мы выбрали группу для удаления, далее смотрим куда перенести, и список будет без группы которую удаляем
 @api_view(['GET'])
 def group_without_delete(request, group_id):
 	groups = list(Group.objects.all())
@@ -378,37 +376,55 @@ def group_without_delete(request, group_id):
 	return Response(GroupSerializer(instance=groups, many=True).data)
 
 
-# далее поиск товара, изменение товара, удаление товара. 3 кнопки еще в товарах. Ост редакт товара
+
+#изменение товара
 class Goods_modify_api(APIView):
 	
-	def post(self, request, good_id):
+	def patch(self, request, good_id):
 		good = Goods.objects.get(id=good_id)
-		# group = Group.objects.all()
-		serializer = Goods_add_Serializer(data=request.data)
-	
-		if serializer.is_valid():
-			# file_photo = request.FILES['photo']#FILES это словарь с ключами из имен полей с файлами
-			# # print("!!!!!!!!!!!!!!!!!!!!!")#пустое поле с фото не грузится
-			# # print(file_photo)
+		# user = good.user
+		product = get_object_or_404(Goods, pk=good_id)
+		flag = 1#это для пропуска загрузки фото когда файл фото не грузим со стороны фронта
+		# если не грузить фото то приходит строковый тип вместо объекта памяти
+        # Удаляем фото из данных, если оно не передано
+		# InMemoryUploadedFile
+		# if type(request.data["photo"][0]) == str:
+		if type(request.data["photo"]) != InMemoryUploadedFile:
 
-			# image = Image.open(file_photo)
-			# image.verify()
+			flag = 0
+			request.data._mutable = True
+			request.data["photo"] = good.photo			
+			# request.data.pop('photo', None)			
+			request.data._mutable = False
+
+		
+		serializer = Goods_modify_Serializer(data=request.data)
+	
+		if serializer.is_valid():			
+			file_photo = serializer.validated_data["photo"]
+			# print(file_photo)
+			# print(file_photo.name)
 
 			path = os.path.abspath("media/" + str(good.photo))#полный абсолютный путь к файлу из БД		
-			if os.path.exists(path):#если файл есть там, то удаляем, если нет, то не удаляем
-				f = str(good.photo)#берем путь к файлу из базы
-				new_file = f[:f.rfind('/') + 1] + serializer.validated_data["photo"].name#заменяем в пути к файлу имя файла, это потом в БД пойдет
-				os.remove(path)#удаляем сам файл на сервере
-				handle_uploaded_file(file_name=file_photo, path="media/" + f[:f.rfind('/') + 1])#загружаем новый файл в ту же самую папку
-			else:
-				new_file = file_photo.name
-				handle_uploaded_file(file_name=file_photo, path="media/")
+			if flag == 1:
+				if os.path.exists(path):#если файл есть там, то удаляем, если нет, то не удаляем
+					f = str(good.photo)#берем путь к файлу из базы
+					new_file = f[:f.rfind('/') + 1] + serializer.validated_data["photo"].name#заменяем в пути к файлу имя файла, это потом в БД пойдет
+					os.remove(path)#удаляем сам файл на сервере
+					handle_uploaded_file(file_name=file_photo, path="media/" + f[:f.rfind('/') + 1])#загружаем новый файл в ту же самую папку
+				else:
+					new_file = file_photo
+					handle_uploaded_file(file_name=file_photo, path="media/")
+				good.photo = new_file
 
 			good.name_product = serializer.validated_data["name_product"]
+			good.slug = translit(serializer.validated_data["name_product"], language_code='ru', reversed=True)
 			good.vendor_code = serializer.validated_data["vendor_code"]
-			good.price = float(serializer.validated_data["price"].replace(",", "."))
-			good.photo = new_file
-			good.group = Group.objects.get(id=int(serializer.validated_data["group"]))
+			good.price = serializer.validated_data["price"]			
+			
+			
+			good.group = serializer.validated_data["group"]
+			
 			good.save()			
 	
 			return Response({"success": True, })
@@ -416,30 +432,15 @@ class Goods_modify_api(APIView):
 
 			return Response({"error": serializer.errors}, status=400)
 
-
-# def post(self, request, *args, **kwargs):
-# 		# print(request.data["name_product"])
-# 		serializer = Goods_add_Serializer(data=request.data)
-
-# 		if serializer.is_valid():
-# 			# print(serializer.validated_data)
-# 			slug = translit(serializer.validated_data["name_product"], language_code='ru', reversed=True)
-# 			serializer.validated_data["slug"] = slug
-# 			# serializer.validated_data["user"] = self.request.user# юзера потом тянуть из токена, когда запилю авторизацию. 
-
-
-# 			serializer.save()
-            
-# 			return Response({"success": True, })
-# 		else:
-
-# 			return Response({"error": serializer.errors}, status=400)
-
-
-
+#урл для подгрузки данных для редактируемого товара
+@api_view(['GET'])
+def load_good_to_modify(request, good_id):
+	good = [Goods.objects.get(id=good_id)]
+	return Response(Goods_add_Serializer(instance=good, many=True).data)
 
 	
 #удаление товара
+@api_view(['GET'])
 def goods_delete(request, good_id):
 
 	good = Goods.objects.get(id=good_id)
@@ -449,9 +450,16 @@ def goods_delete(request, good_id):
 	
 	good.delete()
 
-	return HttpResponseRedirect(request.META['HTTP_REFERER'])
+	return Response({"success": True, })
 
 
 		
+#  далее поиск товара, 
+# class ProductListAPIView(generics.ListAPIView):
+#     serializer_class = Goods_add_Serializer
+#     queryset = Product.objects.all()
+
+
+
 
 

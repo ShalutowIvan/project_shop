@@ -61,7 +61,9 @@ function OrderOpen() {
 
 	const navigate = useNavigate();
 
-	const goBack = () => navigate(-1);
+	const goBack = () => {
+		return navigate(-1);
+	}
 
 	// if (order === "error") {
   //   	return <><h1>{"Вам нужно залогиниться!"}</h1></>;

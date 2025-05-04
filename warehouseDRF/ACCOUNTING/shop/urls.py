@@ -117,9 +117,9 @@ urlpatterns = [
     path('api/select_group_to_transfer/<int:group_id>', Select_group_to_transfer_api.as_view(), name='select_group_to_transfer'),
     path('api/group_without_delete/<int:group_id>', group_without_delete, name='group_without_delete'),
     path('api/goods_modify/<int:good_id>', Goods_modify_api.as_view(), name='goods_modify'),
-
-
-
+    path('api/load_good_to_modify/<int:good_id>', load_good_to_modify, name='load_good_to_modify'),
+    path('api/goods_delete/<int:good_id>', goods_delete, name='goods_delete'),
+    path('api/products_find/', ProductListAPIView.as_view(), name='products_find'),
     
 
 
