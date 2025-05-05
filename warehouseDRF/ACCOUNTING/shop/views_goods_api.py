@@ -46,7 +46,7 @@ class Get_good(APIView):
 	def get(self, request):
 		good = Goods.objects.all()
 
-		return Response(GoodsSerializer(instance=good, many=True).data)
+		return Response(GoodsFoto(instance=good, many=True).data)
 
 
 # для получения списка групп в витрине для апи
@@ -64,11 +64,20 @@ class Get_group(APIView):
 
 class Get_good_in_group(APIView):
 
-	def get(self, request, group_slug):
-		# group = Goods.objects.filter(state_order=group_slug)
-		goods_in_group = Goods.objects.filter(group__slug=group_slug)
+	# def get(self, request, group_slug):
+	# 	# group = Goods.objects.filter(state_order=group_slug)
+	# 	goods_in_group = Goods.objects.filter(group__slug=group_slug)
 
-		return Response(GoodsSerializer(instance=goods_in_group, many=True).data)
+	# 	return Response(GoodsFoto(instance=goods_in_group, many=True).data)
+
+	def get(self, request, group_slug):
+		goods_in_group = Goods.objects.filter(group__slug=group_slug)
+		serializer = GoodsFoto(
+			goods_in_group,
+			many=True,
+			context={'request': request}  # Передаём request для build_absolute_uri
+		)
+		return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class Group_add_api(APIView):
@@ -452,12 +461,28 @@ def goods_delete(request, good_id):
 
 	return Response({"success": True, })
 
-
+from django.db.models import Q
 		
-#  далее поиск товара, 
-# class ProductListAPIView(generics.ListAPIView):
-#     serializer_class = Goods_add_Serializer
-#     queryset = Product.objects.all()
+#  далее поиск товара
+class ProductSearchAPIView(generics.ListAPIView):
+	serializer_class = GoodsFoto
+    
+	def get_queryset(self):
+		queryset = Goods.objects.all()
+		search_query = self.request.query_params.get('Q', None)
+        
+		if search_query:
+			queryset = queryset.filter(
+                Q(name_product__icontains=search_query) |
+                # Q(description__icontains=search_query) |
+                Q(group__name_group__icontains=search_query)
+            )
+		return queryset
+
+	def list(self, request, *args, **kwargs):
+		queryset = self.filter_queryset(self.get_queryset())
+		serializer = self.get_serializer(queryset, many=True)
+		return Response(serializer.data)  # Убедитесь, что возвращается массив
 
 
 

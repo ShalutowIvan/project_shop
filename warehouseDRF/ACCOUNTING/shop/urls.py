@@ -106,7 +106,7 @@ urlpatterns = [
     #товары
     path('api/get_good/', Get_good.as_view(), name='get_good'),
     path('api/get_group/', Get_group.as_view(), name='get_group'),    
-    path('api/get_good_in_group/<slug:group_slug>/', Get_good_in_group.as_view(), name='get_good_in_group'),
+    path('api/products/search/<slug:group_slug>/', Get_good_in_group.as_view(), name='get_good_in_group'),
     path('api/add_group/', Group_add_api.as_view(), name='add_group'),    
     path('api/add_good/', Goods_add_api.as_view()),    
     path('api/add_good/load_file/', Goods_load_file_api.as_view()),    
@@ -119,7 +119,7 @@ urlpatterns = [
     path('api/goods_modify/<int:good_id>', Goods_modify_api.as_view(), name='goods_modify'),
     path('api/load_good_to_modify/<int:good_id>', load_good_to_modify, name='load_good_to_modify'),
     path('api/goods_delete/<int:good_id>', goods_delete, name='goods_delete'),
-    path('api/products_find/', ProductListAPIView.as_view(), name='products_find'),
+    path('api/products/search/', ProductSearchAPIView.as_view(), name='product-search'),
     
 
 

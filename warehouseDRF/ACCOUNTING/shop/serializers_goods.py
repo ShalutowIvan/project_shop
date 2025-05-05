@@ -143,4 +143,21 @@ class Goods_modify_Serializer(serializers.ModelSerializer):
         #     'photo': {'required': False, 'allow_null': True}  # Ключевое изменение
         # }
 
+#сериализатор товаров с фото 
+class GoodsFoto(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()#тут всегда поле называется image. 
+
+    def get_image(self, obj):
+        if obj.photo:#тут имя поля из БД
+            return self.context['request'].build_absolute_uri(obj.photo.url)#тут имя поля из БД
+        return None
+
+    class Meta:
+        model = Goods#тут пишем модель с которой будем работать        
+        fields = "__all__"#вот если прописать, то в сериализатор будут попадать все поля. 
+        
+
+
+
+
 
