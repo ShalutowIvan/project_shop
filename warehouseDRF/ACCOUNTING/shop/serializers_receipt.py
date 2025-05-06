@@ -33,5 +33,8 @@ class Receipt_number_serializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class Receipt_list_serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Receipt_list
 
-
+        fields = "__all__"

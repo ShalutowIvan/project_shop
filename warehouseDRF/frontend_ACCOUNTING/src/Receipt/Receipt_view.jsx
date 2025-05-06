@@ -1,4 +1,4 @@
-import { useParams, Link, useNavigate, useLoaderData, Await, useAsyncValue } from 'react-router-dom'
+import { useParams, Link, useNavigate, useLoaderData, Await, useAsyncValue, NavLink } from 'react-router-dom'
 import { React, Suspense } from 'react';
 import Cookies from "js-cookie";
 // import { API } from "../../apiAxios/apiAxios"
@@ -6,15 +6,25 @@ import Cookies from "js-cookie";
 
 
 function Receipt_view() {
+	const setActive = ({isActive}) => isActive ? 'active-link' : '';
 	const {receipts} = useLoaderData()
 
 	// if (orders === "error") {
   //   	return <><h1>{"Вам нужно залогиниться!"}</h1></>;
   // 	}
 
+
+	function receipt_create() {
+
+
+	}
+
+
 	return (
 		<>
 			<h1>Приходные документы</h1>
+
+			<h2><NavLink to="/incoming_documents/create/">Создать документ</NavLink></h2>
 
 					<Suspense fallback={<h2>Loading...</h2>}>
 						<Await resolve={receipts}>

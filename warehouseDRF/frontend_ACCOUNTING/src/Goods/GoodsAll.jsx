@@ -106,7 +106,7 @@ export default function GoodsAll() {
 			{/*группы рисуются сбоку*/}
 			<GroupsAll />
 
-			<h1>Список товаров</h1>
+			<h1>Каталог товаров</h1>
 			<button><NavLink to="/groups/add/" className={setActive}>Добавить группу</NavLink></button>
 			&nbsp;&nbsp;&nbsp;
 			<button><NavLink to="/goods/add/" className={setActive}>Добавить товар</NavLink></button>
@@ -120,7 +120,7 @@ export default function GoodsAll() {
 			<button><NavLink to="/groups/delete/" className={setActive}>Выбрать группу для удаления</NavLink></button>
 			
 
-			<h1>Каталог товаров</h1>
+						<br/><br/>
       			<SearchBox
 		        searchTerm={searchTerm}
 		        onSearchChange={setSearchTerm}

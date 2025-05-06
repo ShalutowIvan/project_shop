@@ -121,11 +121,16 @@ urlpatterns = [
     path('api/goods_delete/<int:good_id>', goods_delete, name='goods_delete'),
     path('api/products/search/', ProductSearchAPIView.as_view(), name='product-search'),
     
-
-
-
     #приходные документы
     path('api/receipt_list_view/', Get_receipt_list.as_view(), name='receipt_list_view'),
+    path('api/receipt_list_create/', Receipt_document_create_api.as_view(), name='receipt_list_create'),
+    path('api/receipt_list_open/<int:number_receipt>', Receipt_document_open_api.as_view(), name='receipt_list_open'),
+
+
+
+
+
+
     #расходные документы
     path('api/expense_list_view/', Get_expense_list.as_view(), name='expense_list_view'),
     #инвентаризация

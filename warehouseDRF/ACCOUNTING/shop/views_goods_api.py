@@ -70,14 +70,26 @@ class Get_good_in_group(APIView):
 
 	# 	return Response(GoodsFoto(instance=goods_in_group, many=True).data)
 
-	def get(self, request, group_slug):
-		goods_in_group = Goods.objects.filter(group__slug=group_slug)
+	#реализация отображения поиска товара и отображения фото товара с классом APIView и фильтром по группе товара. Фронт смотреть в реакт. Поиск идет по группе товара и названию.
+	def get(self, request, group_slug):		
+
+		search_query = request.query_params.get('Q', '').strip()
+        
+		if search_query:
+			goods_in_group = Goods.objects.filter(group__slug=group_slug).filter(
+                Q(name_product__icontains=search_query) |
+                Q(group__name_group__icontains=search_query)
+            )
+		else:
+			goods_in_group = Goods.objects.filter(group__slug=group_slug)
+            
 		serializer = GoodsFoto(
 			goods_in_group,
-			many=True,
-			context={'request': request}  # Передаём request для build_absolute_uri
-		)
+            many=True,
+            context={'request': request}  # Передаём request для build_absolute_uri
+			)
 		return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 class Group_add_api(APIView):
@@ -94,17 +106,7 @@ class Group_add_api(APIView):
             return Response({"error": serializer.errors}, status=400)
 
 
-
-    
-# from rest_framework import viewsets
-# class Goods_add_api(viewsets.ModelViewSet):
 class Goods_add_api(APIView):
-
-	# def get(self, request):
-	# 	good = Goods.objects.all()
-
-	# 	return Response(GoodsSerializer(instance=good, many=True).data)
-
 
 	def post(self, request, *args, **kwargs):
 		# print(request.data["name_product"])
@@ -125,18 +127,11 @@ class Goods_add_api(APIView):
 			return Response({"error": serializer.errors}, status=400)
 
 
-# ост в джанго тут. нужно сделать роутер для DRF в urls.py или что-то подобное... разобраться, посмотреть видео selfedu чтобы память освежить. 
-
 #загрузка файла с товарами
 class Goods_load_file_api(APIView):
 
-	def post(self, request, *args, **kwargs):
-
+	def post(self, request, *args, **kwargs):		
 		
-		# p = request.POST
-		# f = request.FILES#тут мультивалуедикт
-		# file = request.FILES['load_file']#тут имя файла
-		# context = {"goods_in_file": db_goods}#тут объект <class 'pandas.core.frame.DataFrame'>
 		fake_user = User.objects.get(id=1)
 
 		groups_query = list(Group.objects.all())#можно пополнять этот лист при создании группы
@@ -463,7 +458,7 @@ def goods_delete(request, good_id):
 
 from django.db.models import Q
 		
-#  далее поиск товара
+#далее поиск товара
 class ProductSearchAPIView(generics.ListAPIView):
 	serializer_class = GoodsFoto
     
@@ -482,7 +477,7 @@ class ProductSearchAPIView(generics.ListAPIView):
 	def list(self, request, *args, **kwargs):
 		queryset = self.filter_queryset(self.get_queryset())
 		serializer = self.get_serializer(queryset, many=True)
-		return Response(serializer.data)  # Убедитесь, что возвращается массив
+		return Response(serializer.data)
 
 
 

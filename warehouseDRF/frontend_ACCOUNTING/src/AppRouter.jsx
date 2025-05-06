@@ -40,6 +40,12 @@ import { OrderOpen, orderOpenLoader } from './Orders/OrderOpen';
 // import { AuthProvider } from "./regusers/AuthProvider";
 //приходные документы
 import { Receipt_view, receiptNumberLoader } from './Receipt/Receipt_view';
+import { Receipt_create } from './Receipt/Receipt_create';
+import { Receipt_open, receiptOpenLoader } from './Receipt/Receipt_open';
+
+
+
+
 //расходные документы
 import { Expense_view, expenseNumberLoader } from './Expense/Expense_view';
 //инвентаризация
@@ -112,6 +118,10 @@ const AppRouter = createBrowserRouter(createRoutesFromElements(
           {/*<Route path="profile" element={<Profile />} />*/}
           {/*приходные документы*/}
           <Route path="incoming_documents/" element={<Receipt_view />} loader={receiptNumberLoader} />
+          <Route path="incoming_documents/create/" element={<Receipt_create />} />
+          <Route path="incoming_documents/:number_doc" element={<Receipt_open />} loader={<receiptOpenLoader />} />
+
+
           {/*расходные документы*/}
           <Route path="expense_documents/" element={<Expense_view />} loader={expenseNumberLoader} />
           {/*инвентаризация*/}

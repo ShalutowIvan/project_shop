@@ -5,17 +5,16 @@ import { React, Suspense, useState, useEffect } from 'react';
 
 // ост тут....
 
-const Order = () => {
-	const order = useAsyncValue()
+const Receipt = () => {
+	const receipt = useAsyncValue()
 
 	return (
 		<div>			
 			{order?.map( (element) => (
 				<>						
 					<li>Название товара: {element.product_id.name_product}</li>
-					<li>Количество: {element.quantity}</li>									
-					<li>Адрес доставки: {element.delivery_address}</li>
-					<li>Телефон: {element.phone}</li>					
+					<li>Количество: {element.quantity}</li>														
+					
 					{/*{element.state_order && <h3>Состояние заказа: Проведен</h3>}
 					{!element.state_order && <h3>Состояние заказа: Не Проведен</h3>}*/}	
 					<p>____________________________________________</p>
@@ -31,14 +30,15 @@ const Order = () => {
 
 //order_state не сработает через состояние надо
 
-function OrderOpen() {
+function Receipt_open() {
 	// const {order, order_number, order_state} = useLoaderData()
 	//как я понял order подставляется в компонент Order который прописали выше
 	//<Await resolve={order}> тут происходит перебор элементов как в map. Только для каждого элемента еще применяется функция компонента Order
-	const {order_number} = useParams();
-	const [goods, setGoods] = useState([]);//состояние для товаров из накладной из заказа
+	const {receipt} = useParams();
+	const [goods, setGoods] = useState([]);//состояние для товаров из накладной
 	const [state_order, setState_order] = useState(null);
 
+	// ост тут, надо понять как делать открытие без таких состояний, смотреть наверно проект витрины, там я делал открытие заказа ордера, делать по аналогии
 
 
 	useEffect(() => {
@@ -118,8 +118,8 @@ function OrderOpen() {
 
 
 
-async function getOrderOpen(order_number) {	
-	const res = await fetch(`http://127.0.0.1:9999/api/get_order/${order_number}`)//тут берутся все элементы с одним и тем же номером заказа
+async function getReceiptOpen(number_receipt) {	
+	const res = await fetch(`http://127.0.0.1:9999/api/receipt_list_open/${number_receipt}`)//тут берутся все элементы с одним и тем же номером заказа
 
 	// try {
   //       const res = await API.get(`/api/checkout_list/orders/${id}`)			
@@ -136,12 +136,11 @@ async function getOrderOpen(order_number) {
 }
 
 
-const orderOpenLoader = async ({params}) => {
-	const order_number = params.id
-	const order_state = params.state_order
+const receiptOpenLoader = async ({params}) => {
+	const receipt_number = params.number_receipt
+	// const receipt_state = params.state_order
 	
-	
-	return {order: await getOrderOpen(order_number), order_number, order_state}
+	return {receipt: await getReceiptOpen(receipt_number), receipt_number}
 }
 //переменная в функции выше в которую присваиваем useLoaderData() должна называться точно также как и переменная, которую возвращаем тут orderNumberLoader, то есть тоже orders, именно так. И дпругих хуках наверно тоже также работает. Иначе не распарсит.
 
@@ -150,4 +149,4 @@ const orderOpenLoader = async ({params}) => {
 
 
 
-export { OrderOpen, orderOpenLoader }
+export { Receipt_open, receiptOpenLoader }

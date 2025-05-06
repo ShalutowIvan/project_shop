@@ -7,11 +7,8 @@ import usePersistedState from './filterGoods/usePersistedState';
 import SearchBox from './filterGoods/SearchBox';
 
 
-// import Button from '../components/Button/Button'
-// import { API } from "../apiAxios/apiAxios"
-
 export default function GoodsInGroup() {
-	// console.log(useParams().id);
+	
 	const setActive = ({isActive}) => isActive ? 'active-link' : '';
 	const {slug} = useParams();
 
@@ -28,7 +25,7 @@ export default function GoodsInGroup() {
     setLoading(true);
     try {
       const url = searchQuery 
-        ? `http://127.0.0.1:9999/api/products/search/${slug}/?Q=${encodeURIComponent(searchQuery)}`
+        ? `http://127.0.0.1:9999/api/products/search/${slug}?Q=${encodeURIComponent(searchQuery)}`
         : `http://127.0.0.1:9999/api/products/search/${slug}`;
       
       const response = await axios.get(url);

@@ -11,6 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers_receipt import *
+from .serializers_goods import *
 
 
 
@@ -36,24 +37,33 @@ class Get_receipt_list(APIView):
         return Response(Receipt_number_serializer(instance=rec_list, many=True).data)
 
 
+#создание документа
+class Receipt_document_create_api(APIView):
+    
+    def post(self, request, *args, **kwargs):
+        
+        serializer = Receipt_number_serializer(data=request.data)
 
-# создание документа - добавить документ с добавлением коммента. После создания документа он сразу открывается - редирект на урл receipt_document_open
-@login_required
-def receipt_document_create(request):
-    if request.method == 'POST':
-        form = Receipt_number_form(data=request.POST)
-        if form.is_valid():
-            comm = form.save(commit=False)
-            comm.save()
+        if serializer.is_valid():            
+            # serializer.validated_data["user"] = self.request.user# юзера потом тянуть из токена, когда запилю авторизацию. 
+            serializer.save()
+            
+            return Response({"success": True, })
+        else:
 
-            return redirect('receipt_document_open', comm.id)
+            return Response({"error": serializer.errors}, status=400)
 
-    else:
-        form = Receipt_number_form()
 
-    context = {'form': form}
+#открытие документа
+class Receipt_document_open_api(APIView):
 
-    return render(request, 'shop/receipt_create.html', context=context)
+    def get(self, request, number_receipt):
+        goods_in_receipt = Receipt_list_serializer.objects.filter(number_receipt=number_receipt)#тут список, queryset
+
+        return Response(Receipt_list_serializer(instance=goods_in_receipt, many=True).data)
+
+
+
 
 
 # приходный документ - открытие
@@ -71,6 +81,20 @@ def receipt_document_open(request, open_receipt):
         context['org'] = org[0]
 
     return render(request, "shop/receipt_open.html", context=context)
+
+
+
+
+#редактирование позиции в накладной
+class Receipt_document_edit_api(APIView):
+
+    def patch(self, request):
+        pass
+
+
+
+
+
 
 
 # редактирование позиции в накладной
