@@ -119,7 +119,7 @@ const AppRouter = createBrowserRouter(createRoutesFromElements(
           {/*приходные документы*/}
           <Route path="incoming_documents/" element={<Receipt_view />} loader={receiptNumberLoader} />
           <Route path="incoming_documents/create/" element={<Receipt_create />} />
-          <Route path="incoming_documents/:number_doc" element={<Receipt_open />} loader={<receiptOpenLoader />} />
+          <Route path="incoming_documents/:number_doc" element={<Receipt_open />} loader={receiptOpenLoader} />
 
 
           {/*расходные документы*/}

@@ -1,22 +1,23 @@
 import { useParams, Link, useNavigate, useLoaderData, Await, useAsyncValue, NavLink } from 'react-router-dom'
-import { React, Suspense } from 'react';
+import { React, Suspense, useState } from 'react';
 import Cookies from "js-cookie";
 // import { API } from "../../apiAxios/apiAxios"
-
+import axios from "axios"
 
 
 function Receipt_view() {
 	const setActive = ({isActive}) => isActive ? 'active-link' : '';
 	const {receipts} = useLoaderData()
-
+	const [list_receipts, setList_receipts] = useState(receipts)
 	// if (orders === "error") {
   //   	return <><h1>{"Вам нужно залогиниться!"}</h1></>;
   // 	}
+	console.log(list_receipts[0].state)
 
-
-	function receipt_create() {
-
-
+	function deleteDoc(receipt_number) {		
+		axios.get(`http://127.0.0.1:9999/api/receipt_delete/${receipt_number}`)		
+		setList_receipts(currentState => currentState.filter(item => item.id !== receipt_number));
+		
 	}
 
 
@@ -27,7 +28,7 @@ function Receipt_view() {
 			<h2><NavLink to="/incoming_documents/create/">Создать документ</NavLink></h2>
 
 					<Suspense fallback={<h2>Loading...</h2>}>
-						<Await resolve={receipts}>
+						<Await resolve={list_receipts}>
 						{
 						(resolvedReceipts) => (
 							<>
@@ -37,9 +38,17 @@ function Receipt_view() {
 									<h3>Номер документа: {receipt.id}</h3>
 									
 									<h4>Дата: {receipt.time_create}</h4>
+
+									{receipt.state && <h3>Состояние документа: Проведен</h3>}
+									{!receipt.state && <h3>Состояние документа: Не Проведен</h3>}
+
 									<Link key={receipt.id} to={`/incoming_documents/${receipt.id}`}>
 										<button>Открыть документ</button>
-									</Link>									
+									</Link>							
+									&nbsp;&nbsp;&nbsp;																		
+									{!receipt.state &&
+									<button onClick={() => deleteDoc(receipt.id)}>Удалить документ</button>		
+									}									
 									<p>__________________________________________________________</p>
 									</>
 								))

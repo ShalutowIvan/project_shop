@@ -125,10 +125,16 @@ urlpatterns = [
     path('api/receipt_list_view/', Get_receipt_list.as_view(), name='receipt_list_view'),
     path('api/receipt_list_create/', Receipt_document_create_api.as_view(), name='receipt_list_create'),
     path('api/receipt_list_open/<int:number_receipt>', Receipt_document_open_api.as_view(), name='receipt_list_open'),
+    path('api/receipt_number_open/<int:number_receipt>', Receipt_number_open_api.as_view(), name='receipt_number_open'),
+    path('api/receipt_number_open/activate/<int:receipt_activate>/', api_receipt_list_activate, name='api_receipt_list_activate'),
+    path('api/receipt_number_open/deactivate/<int:receipt_deactivate>/', api_receipt_list_deactivate, name='api_receipt_list_deactivate'),
+    path('api/receipt_delete/<int:number_delete_receipt>/', api_receipt_document_delete, name='api_receipt_document_delete'),
+    path('api/receipt_goods_add/<int:number_doc>/', Receipt_add_goods_api.as_view(), name='receipt_goods_add'),
+    path('api/receipt_goods_delete/<int:id_delete_good>/', api_receipt_delete_goods, name='receipt_goods_delete'),
+    path('api/receipt_goods_save/', Receipt_save_api.as_view(), name='receipt_goods_save'),
 
 
-
-
+    
 
 
     #расходные документы

@@ -117,7 +117,7 @@ function OrderOpen() {
 }
 
 
-
+//тут лоадер не использую
 async function getOrderOpen(order_number) {	
 	const res = await fetch(`http://127.0.0.1:9999/api/get_order/${order_number}`)//тут берутся все элементы с одним и тем же номером заказа
 

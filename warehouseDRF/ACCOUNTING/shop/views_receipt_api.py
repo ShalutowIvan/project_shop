@@ -12,8 +12,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers_receipt import *
 from .serializers_goods import *
-
-
+from rest_framework.decorators import api_view
+from rest_framework import status
 
 #список накладных просто вывод
 # @login_required
@@ -58,29 +58,145 @@ class Receipt_document_create_api(APIView):
 class Receipt_document_open_api(APIView):
 
     def get(self, request, number_receipt):
-        goods_in_receipt = Receipt_list_serializer.objects.filter(number_receipt=number_receipt)#тут список, queryset
+        goods_in_receipt = Receipt_list.objects.filter(number_receipt=number_receipt)#тут список, queryset
 
         return Response(Receipt_list_serializer(instance=goods_in_receipt, many=True).data)
 
 
+#получение позиции из таблицы с номерами документов. Роут относится к открытию дока
+class Receipt_number_open_api(APIView):
+
+    def get(self, request, number_receipt):
+        number_receipt = Receipt_number.objects.get(id=number_receipt)
+
+        return Response(Receipt_number_serializer(instance=number_receipt, many=False).data)
+
+
+#проведение документа
+@api_view(['GET'])
+def api_receipt_list_activate(request, receipt_activate):
+    doc = Receipt_number.objects.get(id=receipt_activate)
+
+    data = {'state_receipt': doc.state}
+
+    if doc.state == False:
+        list_goods_to_add = Receipt_list.objects.filter(number_receipt=receipt_activate)
+        gen_list = [i.product.id for i in list_goods_to_add]
+
+        #список товаров из таблицы товары, которые содержатся в документе
+        list_good = Goods.objects.filter(
+            pk__in=gen_list)# не понятно почему, но тут список объектов получается неизменяемый, у них нельзя записать новые значения. Сделал queryset типом list, и все норм. Теперь значения полей объектов стали меняться.
+
+        list_good = list(list_good)
+
+        #перебираем сгенерированный лист товаров и добавляем остаток по документу к каждому товару
+        for i in range(len(gen_list)):
+            list_good[i].stock += list_goods_to_add[i].quantity        
+
+        #пишем товары в базу
+        goods = Goods.objects.bulk_update(objs=list_good, fields=["stock", ])
+        #меняем состояние на тру - проведен и кидаем в базу
+        doc.state = True
+        doc.save()
+        data = {'state_receipt': doc.state}
+
+    return Response(data, status=status.HTTP_200_OK)
+
+
+#отмена проведения документа
+@api_view(['GET'])
+def api_receipt_list_deactivate(request, receipt_deactivate):
+    doc = Receipt_number.objects.get(id=receipt_deactivate)
+    data = {'state_receipt': doc.state}
+
+    if doc.state == True:
+        list_goods_to_add = Receipt_list.objects.filter(number_receipt=receipt_deactivate)
+        gen_list = [i.product.id for i in list_goods_to_add]
+
+        list_good = Goods.objects.filter(pk__in=gen_list)
+
+        list_good = list(list_good)
+
+        for i in range(len(gen_list)):
+            list_good[i].stock -= list_goods_to_add[i].quantity
+
+        goods = Goods.objects.bulk_update(objs=list_good, fields=["stock", ])
+
+        doc.state = False
+        doc.save()
+        data = {'state_receipt': doc.state}
+
+    return Response(data, status=status.HTTP_200_OK)
+
+
+# приходный документ - удаление, удаляется и таблица с номером документа и товары с этим же номером документа
+@api_view(['GET'])
+def api_receipt_document_delete(request, number_delete_receipt):
+    try:
+        rec = Receipt_number.objects.get(id=number_delete_receipt)
+        good_list_delete = Receipt_list.objects.filter(number_receipt=number_delete_receipt)
+
+        rec.delete()
+        good_list_delete.delete()
+        print("Приходный документ удален.")
+        return Response({"success": True}, status=status.HTTP_200_OK)    
+    except Exception as ex:
+        print("Ошибка при удалении документа:", ex)
+        return Response({"success": True}, status=status.HTTP_400_BAD_REQUEST)
+
+
+#добавление товара в накладную. Это будет постоянно открытая форма
+class Receipt_add_goods_api(APIView):
+
+
+    def post(self, request, number_doc):
+        serializer = Receipt_add_good_serializer(data=request.data)
+
+        if serializer.is_valid():#тут допилить логику, чтобы одинаковые позиции повторно не добавлялись
+            user = User.objects.get(id=1)            
+            good = Goods.objects.get(name_product=serializer.validated_data["newGood"])
+            new_good_in_receipt = Receipt_list(product=good, number_receipt=number_doc, quantity=1, user=user)
+            new_good_in_receipt.save()            
+            return Response(Receipt_list_serializer(instance=new_good_in_receipt, many=False).data)
+        else:
+            return Response({"error": serializer.errors}, status=400)
+
+
+#удаление позиции
+@api_view(['DELETE'])
+def api_receipt_delete_goods(request, id_delete_good):
+    try:
+        list_delete = Receipt_list.objects.get(id=id_delete_good)
+        list_delete.delete()
+        return Response({"success": True}, status=status.HTTP_200_OK)    
+    except Exception as ex:
+        print("Ошибка при удалении товара:", ex)
+        return Response({"success": True}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
-# приходный документ - открытие
-@login_required
-def receipt_document_open(request, open_receipt):
-    receipt_open = Receipt_number.objects.get(id=int(open_receipt))
-    receipt_good_list = Receipt_list.objects.filter(number_receipt=int(open_receipt))
-    receipt_buffer = Buffer_receipt.objects.filter(number_receipt=int(open_receipt))
-    context = {"number": open_receipt, 'receipt_good_list': receipt_good_list, "receipt_doc": receipt_open,
-               "receipt_buffer": receipt_buffer}
+class Receipt_save_api(APIView):
 
-    org = Organization.objects.all()
+    def put(self, request):
+        serializer = Receipt_save_good_serializer(data=request.data)
 
-    if org:
-        context['org'] = org[0]
 
-    return render(request, "shop/receipt_open.html", context=context)
+        if serializer.is_valid():
+            print(serializer.data['items'])#тут я получаю данные с колвом и ИД позиций в накладной. Нужно найти соответствуюзщие позиции в таблице в джанго и в них перезаписать колво. Осталось только логику тут в питоне допилить. 
+
+
+
+
+            # user = User.objects.get(id=1)            
+            # good = Goods.objects.get(name_product=serializer.validated_data["newGood"])
+            # new_good_in_receipt = Receipt_list(product=good, number_receipt=number_doc, quantity=1, user=user)
+            # new_good_in_receipt.save()            
+            # return Response(Receipt_list_serializer(instance=new_good_in_receipt, many=False).data)
+            return Response({"Все": "Супер"})
+        else:
+            return Response({"error": serializer.errors}, status=400)
+
+
 
 
 
@@ -90,10 +206,6 @@ class Receipt_document_edit_api(APIView):
 
     def patch(self, request):
         pass
-
-
-
-
 
 
 
@@ -118,97 +230,9 @@ def receipt_document_edit(request, number_edit_good):
     return render(request, "shop/receipt_goods_edit.html", context=context)
 
 
-# проведение документа - то функция после которой меняется статус документа и добавляется товар на остаток на основании документа
-@login_required
-def receipt_document_activate(request, receipt_activate):
-    doc = Receipt_number.objects.get(id=receipt_activate)
-    if doc.state == False:
-        list_goods_to_add = Receipt_list.objects.filter(number_receipt=receipt_activate)
-        gen_list = [i.product.id for i in list_goods_to_add]
-
-        list_good = Goods.objects.filter(
-            pk__in=gen_list)  # не понятно почему, но тут список объектов получается неизменяемый, у них нельзя записать новые значения. Сделал queryset типом list, и все норм. Теперь значения полей объектов стали меняться.
-
-        list_good = list(list_good)
-
-        for i in range(len(gen_list)):
-            list_good[i].stock += list_goods_to_add[i].quantity
-
-        # print(list_good[i].stock)
-
-        goods = Goods.objects.bulk_update(objs=list_good, fields=["stock", ])
-
-        doc.state = True
-        doc.save()
-
-    return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
-# отмена проведения документа
-@login_required
-def receipt_document_deactivate(request, receipt_deactivate):
-    doc = Receipt_number.objects.get(id=receipt_deactivate)
 
-    if doc.state == True:
-        list_goods_to_add = Receipt_list.objects.filter(number_receipt=receipt_deactivate)
-        gen_list = [i.product.id for i in list_goods_to_add]
-
-        list_good = Goods.objects.filter(pk__in=gen_list)
-
-        list_good = list(list_good)
-
-        for i in range(len(gen_list)):
-            list_good[i].stock -= list_goods_to_add[i].quantity
-
-        goods = Goods.objects.bulk_update(objs=list_good, fields=["stock", ])
-
-        doc.state = False
-        doc.save()
-
-    return HttpResponseRedirect(request.META['HTTP_REFERER'])
-
-
-# приходный документ - удаление, удаляется и таблица с номером документа и товары с этим же номером документа
-@login_required
-def receipt_document_delete(request, number_delete_receipt):
-    rec = Receipt_number.objects.get(id=number_delete_receipt)
-    good_list_delete = Receipt_list.objects.filter(number_receipt=number_delete_receipt)
-
-    rec.delete()
-    good_list_delete.delete()
-    return HttpResponseRedirect(request.META['HTTP_REFERER'])
-
-
-# добавление товара - в открытом документе. number_doc берется из номера открытого документа, который мы открыли функцией receipt_document_open он прокидывается в html.
-@login_required
-def receipt_add_goods(request, number_doc):
-    if request.method == 'POST':
-        form = Receipt_add_goods_form(data=request.POST)
-        if form.is_valid():
-            good_in_form = form.cleaned_data.get("product")
-            good_in_receipt = Receipt_list.objects.filter(product=good_in_form) & Receipt_list.objects.filter(number_receipt=number_doc)             
-            if not good_in_receipt:                
-                good = form.save(commit=False)
-                good.number_receipt = number_doc
-                good.user = request.user
-                good.save()
-
-            return redirect('receipt_document_open', number_doc)
-
-    else:
-        form = Receipt_add_goods_form()
-
-    context = {'form': form, "number_doc": number_doc}
-
-    return render(request, "shop/receipt_goods_add.html", context=context)
-
-
-# удаление товара из накладной
-@login_required
-def receipt_delete_goods(request, number_delete_good):
-    list_delete = Receipt_list.objects.get(id=number_delete_good)
-    list_delete.delete()
-    return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
 # загрузка файла накладной

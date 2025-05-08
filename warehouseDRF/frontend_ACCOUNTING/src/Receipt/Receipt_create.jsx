@@ -79,8 +79,7 @@ function Receipt_create() {
         
 		<h1>Создание приходного документа</h1>
 
-		<form onSubmit={handleSubmit} style={{ marginBottom: '1rem' }}>
-                
+		<form onSubmit={handleSubmit} style={{ marginBottom: '1rem' }}>                
 
                 <label htmlFor="id_name_group">Комментарий: </label>
                 <input 
