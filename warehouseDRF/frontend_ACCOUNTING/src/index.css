@@ -172,6 +172,64 @@ visibility: hidden;
 }
 
 
+/*стили для таблиц*/
+.receipt-editor {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.receipt-editor table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.receipt-editor th, .receipt-editor td {
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    text-align: left;
+}
+
+.receipt-editor th {
+    background-color: green;
+}
+
+.receipt-editor input[type="number"] {
+    width: 80px;
+    padding: 5px;
+}
+
+.receipt-editor .reset-price {
+    margin-left: 5px;
+    padding: 3px 6px;
+    font-size: 12px;
+    background-color: #f8f8f8;
+    border: 1px solid #ddd;
+}
+
+.receipt-editor .total-label {
+    text-align: right;
+    font-weight: bold;
+}
+
+.receipt-editor .total-sum {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.receipt-editor .actions {
+    text-align: right;
+}
+
+.receipt-editor .error {
+    color: #d32f2f;
+    margin-top: 10px;
+}
+
+
+
+
 /*
 position: fixed;
     right: 0; bottom: 0;

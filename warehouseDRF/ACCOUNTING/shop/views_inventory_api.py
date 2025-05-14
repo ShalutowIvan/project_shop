@@ -13,7 +13,8 @@ from transliterate import translit
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers_inventory import *
-
+from rest_framework.decorators import api_view
+from rest_framework import status
 
 
 
@@ -25,18 +26,7 @@ from .serializers_inventory import *
 # в инвенту закидываются все товары из группы с остатком из базы, остаток из базы закидывается в колонку колва "было"
 	#колонка стало нужно заполнять, она пустая либо можно что туда закинуть, после проведения инвенты колво прибавляется либо отнимается при отмене проведения, то есть именно сложение либо вычитание
 
-# def inventory_list(request):
-# 	inv_list = Inventory_number.objects.all()
-
-# 	context = {"inventory_list_view": inv_list}
-
-# 	org = Organization.objects.all()
-# 	if org:
-# 		context['org'] = org[0]
-
-# 	return render(request, "shop/inventory_list.html", context=context)
-
-
+# вывод списка ивент
 class Get_inventory_list(APIView):
 
     def get(self, request):
@@ -44,107 +34,249 @@ class Get_inventory_list(APIView):
 
         return Response(Inventory_number_serializer(instance=inventory_list, many=True).data)
 
+#создание
+class Inventory_document_create_api(APIView):
+    
+    def post(self, request, *args, **kwargs):
+        
+        serializer = Inventory_number_serializer(data=request.data)
+
+        if serializer.is_valid():            
+            # serializer.validated_data["user"] = self.request.user# юзера потом тянуть из токена, когда запилю авторизацию. 
+            serializer.save()
+            
+            return Response({"success": True, })
+        else:
+
+            return Response({"error": serializer.errors}, status=400)
+
+# удаление
+@api_view(['GET'])
+def api_inventory_document_delete(request, number_delete_inventory):
+    try:
+        inv = Inventory_number.objects.get(id=number_delete_inventory)
+        good_list_delete = Inventory_list.objects.filter(number_inventory=number_delete_inventory)
+
+        inv.delete()
+        good_list_delete.delete()
+        print("Инвентаризационный документ удален.")
+        return Response({"success": True}, status=status.HTTP_200_OK)    
+    except Exception as ex:
+        print("Ошибка при удалении документа:", ex)
+        return Response({"success": True}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# открытие инвентаризации
+class Inventory_document_open_api(APIView):
+
+    def get(self, request, number_inventory):
+        goods_in_inventory = Inventory_list.objects.filter(number_inventory=number_inventory)#тут список, queryset
+
+        return Response(Inventory_list_serializer(instance=goods_in_inventory, many=True).data)
+
+
+#получение позиции из таблицы с номерами документов. Роут относится к открытию дока. Этот роут используется в открытом доке
+class Inventory_number_open_api(APIView):
+
+    def get(self, request, number_inventory):
+        num_inventory = Inventory_number.objects.get(id=number_inventory)
+
+        return Response(Inventory_number_serializer(instance=num_inventory, many=False).data)
 
 
 
 
-def inventory_create(request):
-	if request.method == 'POST':
-		form = Inventory_number_form(data=request.POST)
-		if form.is_valid():
-			invent = form.save(commit=False)
-			invent.save()
+# добавление группы с товарами в инвенту
+class Inventory_goods_in_group_add_api(APIView):
 
-			return redirect('inventory_open', invent.id)
+	def post(self, request, number_inv, *args, **kwargs):		
+		serializer = Goods_in_group_add_Serializer(data=request.data)
 
-	else:
-		form = Inventory_number_form()
-
-	context = {'form': form}
-	org = Organization.objects.all()
-	if org:
-		context['org'] = org[0]
-
-	return render(request, 'shop/inventory_create.html', context=context)
-
-
-def inventory_delete(request, inv_number):
-	invent = Inventory_number.objects.get(id=inv_number)
-	invent_list_delete = Inventory_list.objects.filter(number_inventory=inv_number)
-	# invent_group = Inventory_group.objects.filter(number_inventory=inv_number)
-
-	invent.delete()
-	invent_list_delete.delete()
-	# invent_group.delete()
-	return HttpResponseRedirect(request.META['HTTP_REFERER'])
-
-
-
-def inventory_open(request, inv_number):
-	inv_number_obj = Inventory_number.objects.get(id=int(inv_number))
-	inv_good_list = Inventory_list.objects.filter(number_inventory=int(inv_number))
-	inv_buffer = Inventory_buffer.objects.filter(number_inventory=int(inv_number))
-
-	if request.method == 'POST':
-		try:			
-			for i in inv_good_list:
-				i.quantity_new = float(request.POST[str(i.id)].replace(",", "."))#ид работает как имя из формы
-
-			list_good = inv_good_list#возможно нужно будет тип поменять на list			
-			goods = Inventory_list.objects.bulk_update(objs=list_good, fields=["quantity_new",])
-			return redirect('inventory_open', inv_number)#остаемся на этой же странице, но тянем все из БД. 
-
-		except Exception as ex:
-			context = {"error": ex, "inv_number": inv_number}
-			return render(request, 'shop/error_with_inventory.html', context=context)
-	
-	context = {"number_inv": inv_number, 'inv_good_list': inv_good_list, "inv_number_obj": inv_number_obj, "inv_buffer": inv_buffer}
-	
-	org = Organization.objects.all()
-
-	if org:
-		context['org'] = org[0]
-	
-	return render(request, "shop/inventory_open.html", context=context)
-
-
-def inventory_add_group(request, inv_number):
-	groups_query = Group.objects.all()
-
-	if request.method == 'POST':
-		# form = Inventory_group_form(data=request.POST)
-		# if form.is_valid():
-			# group = form.save(commit=False)
-		group = Group.objects.get(id=int(request.POST["group_inv"]))#просто группа без модели
-			# group.number_inventory = inv_number
-
-		goods = Goods.objects.filter(group__slug=group.slug)
-		query_list_inventory = Inventory_list.objects.filter(number_inventory=inv_number)
-		list_goods_name_inventory = [i.product.name_product for i in query_list_inventory]
-		good_list_from_inventory = []
-		for i in goods:
-			if i.name_product in list_goods_name_inventory:
-				continue
-			else:
-				good_list_from_inventory.append(
-					Inventory_list(
+		if serializer.is_valid():		
+			
+			user = User.objects.get(id=1)
+			goods_in_group = Goods.objects.filter(group=serializer.validated_data["name_group"])
+			query_list_inventory = Inventory_list.objects.filter(number_inventory=number_inv)
+			list_goods_name_inventory = [i.product.name_product for i in query_list_inventory]
+			good_list_from_inventory = [
+							Inventory_list(
 							product=i,
-							number_inventory=inv_number,
+							number_inventory=number_inv,
 							quantity_old=i.stock,
 							quantity_new=0,
-							user=request.user
-							))
+							user=user
+							) for i in goods_in_group if i.name_product not in list_goods_name_inventory
+							]
+			
+			if good_list_from_inventory != []:
+				inventory_create = Inventory_list.objects.bulk_create(good_list_from_inventory)
+				# print(inventory_create)
+				return Response(Inventory_list_serializer(instance=good_list_from_inventory, many=True).data)
 
-		if good_list_from_inventory != []:
-			inventory_create = Inventory_list.objects.bulk_create(good_list_from_inventory)
-			# group.save()
-		return redirect('inventory_open', inv_number)
-	# else:
-	# 	form = Inventory_group_form()
+            
+			return Response({"answer": "empty"})
+		else:
 
-	context = {"groups_query": groups_query, "inv_number": inv_number}
+			return Response({"error": serializer.errors}, status=400)
 
-	return render(request, "shop/inventory_add_group.html", context=context)
+
+
+# удаление позиции в накладной
+@api_view(['DELETE'])
+def api_inventory_delete_goods(request, id_delete_good):
+    try:
+        list_delete = Inventory_list.objects.get(id=id_delete_good)
+        list_delete.delete()
+        return Response({"success": True}, status=status.HTTP_200_OK)    
+    except Exception as ex:
+        print("Ошибка при удалении товара:", ex)
+        return Response({"success": True}, status=status.HTTP_400_BAD_REQUEST)
+
+
+#удаление из буфера
+@api_view(['DELETE'])
+def api_inventory_delete_goods_buffer(request, id_delete_good):
+    try:
+        list_delete = Inventory_buffer.objects.get(id=id_delete_good)
+        list_delete.delete()
+        return Response({"success": True}, status=status.HTTP_200_OK)    
+    except Exception as ex:
+        print("Ошибка при удалении товара:", ex)
+        return Response({"success": True}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class Inventory_save_api(APIView):
+
+    def patch(self, request):
+        serializer = Inventory_save_good_serializer(data=request.data)
+
+        if serializer.is_valid():
+            # print(serializer.data['items'])#тут я получаю данные с колвом и ИД позиций в накладной. Нужно найти соответствуюзщие позиции в таблице в джанго и в них перезаписать колво.
+            #получаю списки и сортирую их по возрастанию id, потому что там порядок рандом...
+            data = serializer.data['items']
+            data = sorted(data, key=lambda x: x["id"])
+            list_id = [ i["id"] for i in serializer.data['items']]            
+            list_good = Inventory_list.objects.filter(pk__in=list_id)            
+            list_good = sorted(list(list_good), key=lambda x: x.id)  
+
+            products_to_update = []
+
+            for j in range(len(list_id)):
+                # print(data[j]["customPrice"])
+
+                list_good[j].quantity_new = data[j]["quantity_new"]
+                # if data[j]["customPrice"] != 0:
+                #     list_good[j].product.price = float(data[j]["customPrice"])
+                    
+                    # products_to_update.append(list_good[j].product)
+
+            goods = Inventory_list.objects.bulk_update(objs=list_good, fields=["quantity_new"])
+
+            # if products_to_update != []:
+            #     Goods.objects.bulk_update(objs=products_to_update, fields=["price"])
+            
+            return Response({"Все": "Супер"})
+        else:
+            return Response({"error": serializer.errors}, status=400)
+
+
+@api_view(['GET'])
+def url_from_load_template_inventory_api(request):    
+    path = os.path.abspath(r"shop\static\shop\xls\template_inv.xlsx")
+    response = FileResponse(open(path, 'rb'))
+    
+    return response
+
+
+#загрузка файла накладной
+class Inventory_load_file_api(APIView):
+
+    def post(self, request, number_inventory, *args, **kwargs):       
+        
+        fake_user = User.objects.get(id=1)        
+        file = request.FILES['load_file']  # тут имя файла
+
+        list_inventory = []
+        buffer_inventory = []
+        try:
+            file_inventory = pd.read_excel(file)
+
+            list_good_in_file = [i[0] for i in file_inventory.values]
+
+            query_objects_in_base = Goods.objects.filter(name_product__in=list_good_in_file)
+            goods_name_in_base = [i.name_product for i in query_objects_in_base]
+                        
+            #алгоритм аналогичен как в инвентаризации, только здесь каждый элемент это не список, а объект, либо если нет объекта, то 0 добавляем, а не пустую коллекцию. 
+            list_goods = []
+            for i in list_good_in_file:
+                if i not in goods_name_in_base:
+                    list_goods.append(0)
+                    continue
+                for j in query_objects_in_base:
+                    if j.name_product == i:
+                        list_goods.append(j)            
+
+            query_goods_in_receipt = list(Receipt_list.objects.filter(number_receipt=number_receipt))
+            goods_in_receipt = [i.product.name_product for i in query_goods_in_receipt]#делаем список из названий товара текущей накладной
+            objs_in_receipt = []#это будет список объектов товаров из текущей накладной, в которых нужно обновить колво из загружаемого файла. 
+
+            #это для тоже самое что и выше, но для обновления колва в буффере накладной, то есть в списке товаров, которых еще нет в общем каталоге товаров. 
+            query_goods_in_receipt_buffer = list(Buffer_receipt.objects.filter(number_receipt=number_receipt))
+            goods_in_receipt_buffer = [i.product for i in query_goods_in_receipt_buffer]
+            objs_in_receipt_buffer = []        
+
+            for i in range(len(list_good_in_file)):
+                if list_goods[i] != 0:#0 означает что товара нет в базе, и если не 0, значит товар есть в базе и его добавляем в накладную
+                    if list_good_in_file[i] in goods_in_receipt:#тут колво обновляться у существующего товара в накладной
+                        obj_receipt = query_goods_in_receipt[goods_in_receipt.index(list_good_in_file[i])]
+                        obj_receipt.quantity = file_receipt.values[i][1]                       
+                        objs_in_receipt.append(obj_receipt)
+                        continue
+
+                    receipts.append(
+                        Receipt_list(
+                            product=list_goods[i],
+                            number_receipt=number_receipt,                                                        
+                            quantity=file_receipt.values[i][1],
+                            user=fake_user
+                        ))
+                else:
+                    if list_good_in_file[i] in goods_in_receipt_buffer:
+                        obj_receipt_buffer = query_goods_in_receipt_buffer[goods_in_receipt_buffer.index(list_good_in_file[i])]
+                        obj_receipt_buffer.quantity = file_receipt.values[i][1]
+                        objs_in_receipt_buffer.append(obj_receipt_buffer)
+                        continue
+
+                    buffer_goods.append(Buffer_receipt(
+                        product=file_receipt.values[i][0],
+                        number_receipt=number_receipt,                        
+                        quantity=file_receipt.values[i][1],
+                        user=fake_user
+                    ))
+
+            if receipts != []:
+                receipts_create = Receipt_list.objects.bulk_create(receipts)
+            if buffer_goods != []:
+                buffer_create = Buffer_receipt.objects.bulk_create(buffer_goods)
+            if objs_in_receipt != []:
+                receipt_update_file = Receipt_list.objects.bulk_update(objs=objs_in_receipt, fields=["quantity",])
+            if objs_in_receipt_buffer != []:
+                receipt_update_file_buffer = Buffer_receipt.objects.bulk_update(objs=objs_in_receipt_buffer, fields=["quantity",])
+            
+
+            return Response({
+                'message': 'File processed successfully',
+                # 'data': data,
+                # 'rows_count': len(data)
+            }, status=status.HTTP_200_OK)
+
+        except Exception as ex:
+            print(ex)
+            return Response(
+                {'error': str(ex)}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
 
 
 #при проведении инвенты остаток либо отнимается либо прибивляется на разницу

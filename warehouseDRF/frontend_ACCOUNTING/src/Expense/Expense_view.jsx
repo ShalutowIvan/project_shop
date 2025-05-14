@@ -1,23 +1,30 @@
-import { useParams, Link, useNavigate, useLoaderData, Await, useAsyncValue } from 'react-router-dom'
-import { React, Suspense } from 'react';
+import { useParams, Link, useNavigate, useLoaderData, Await, useAsyncValue, NavLink } from 'react-router-dom'
+import { React, Suspense, useState } from 'react';
 import Cookies from "js-cookie";
 // import { API } from "../../apiAxios/apiAxios"
-
+import axios from "axios"
 
 
 function Expense_view() {
+	const setActive = ({isActive}) => isActive ? 'active-link' : '';
 	const {expenses} = useLoaderData()
+	const [list_expenses, setList_expenses] = useState(expenses)
+	
 
-	// if (orders === "error") {
-  //   	return <><h1>{"Вам нужно залогиниться!"}</h1></>;
-  // 	}
+	function deleteDocu(expense_number) {		
+		axios.get(`http://127.0.0.1:9999/api/expense_delete/${expense_number}/`)		
+		setList_expenses(currentState => currentState.filter(item => item.id !== expense_number));		
+		
+	}
 
 	return (
 		<>
 			<h1>Расходные документы</h1>
 
+			<h2><NavLink to="/expense_documents/create/">Создать документ</NavLink></h2>
+
 					<Suspense fallback={<h2>Loading...</h2>}>
-						<Await resolve={expenses}>
+						<Await resolve={list_expenses}>
 						{
 						(resolvedExpenses) => (
 							<>
@@ -27,9 +34,15 @@ function Expense_view() {
 									<h3>Номер документа: {expense.id}</h3>
 									
 									<h4>Дата: {expense.time_create}</h4>
+									{expense.state && <h3>Состояние документа: Проведен</h3>}
+									{!expense.state && <h3>Состояние документа: Не Проведен</h3>}
 									<Link key={expense.id} to={`/expense_documents/${expense.id}`}>
 										<button>Открыть документ</button>
-									</Link>									
+									</Link>	
+									&nbsp;&nbsp;&nbsp;																		
+									{!expense.state &&
+									<button onClick={() => deleteDocu(expense.id)}>Удалить документ</button>		
+									}									
 									<p>__________________________________________________________</p>
 									</>
 								))

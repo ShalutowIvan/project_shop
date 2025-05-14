@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from .models import *
-
+from .serializers_goods import GoodsSerializer
 
 # class Order_number_Serializer(serializers.Serializer):
 #     id = serializers.IntegerField()
@@ -33,5 +33,25 @@ class Expense_number_serializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class Expense_list_serializer(serializers.ModelSerializer):
+    #обработка связанного поля прописывается так. Просто в связанное поле товара присваиваем сериализатор для товара
+    product = GoodsSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Expense_list
+
+        fields = "__all__"
 
 
+class Expense_add_good_serializer(serializers.Serializer):
+    newGood = serializers.CharField(max_length=255)  
+
+
+class Expense_update_good_serializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    quantity = serializers.IntegerField(min_value=1)
+    # customPrice = serializers.FloatField(min_value=0)#это поле для получения цены ее потом записываем в связанное поле из таблицы товара - цена
+
+
+class Expense_save_good_serializer(serializers.Serializer):
+    items = Expense_update_good_serializer(many=True)

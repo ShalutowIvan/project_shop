@@ -87,9 +87,8 @@
 # wb.save(fn)
 # wb.close()
 
+a = [1, 2, 3]
 
-import sys
-print(sys.path)
+ls = [i for i in a if i == 5]
 
-
-
+print(ls)

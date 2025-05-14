@@ -107,7 +107,7 @@ class Receipt_number(models.Model):
 	class Meta:
 		verbose_name = "Номер накладной"
 		verbose_name_plural = "Номера накладных"
-		ordering = ['time_create']
+		ordering = ['id']
 		
 
 #таблица с товарами из приходных документов с номерами документов

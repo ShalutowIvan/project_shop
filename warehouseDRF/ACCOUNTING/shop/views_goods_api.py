@@ -424,7 +424,8 @@ class Goods_modify_api(APIView):
 			good.name_product = serializer.validated_data["name_product"]
 			good.slug = translit(serializer.validated_data["name_product"], language_code='ru', reversed=True)
 			good.vendor_code = serializer.validated_data["vendor_code"]
-			good.price = serializer.validated_data["price"]			
+			good.price = serializer.validated_data["price"]
+			good.stock = serializer.validated_data["stock"]
 			
 			
 			good.group = serializer.validated_data["group"]

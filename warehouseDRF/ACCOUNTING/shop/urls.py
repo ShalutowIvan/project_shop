@@ -132,15 +132,42 @@ urlpatterns = [
     path('api/receipt_goods_add/<int:number_doc>/', Receipt_add_goods_api.as_view(), name='receipt_goods_add'),
     path('api/receipt_goods_delete/<int:id_delete_good>/', api_receipt_delete_goods, name='receipt_goods_delete'),
     path('api/receipt_goods_save/', Receipt_save_api.as_view(), name='receipt_goods_save'),
-
-
+    path('api/receipt_goods/url_from_load_template_receipt/', url_from_load_template_receipt_api, name='url_from_load_template_receipt'),
+    path('api/receipt_goods/load_file/<int:number_receipt>/', Receipt_load_file_api.as_view(), name='receipt_load_file_api'),
+    path('api/receipt_list_open_buffer/<int:number_receipt>/', Receipt_load_buffer.as_view(), name='receipt_load_buffer'),
+    path('api/receipt_goods_buffer_delete/<int:id_delete_good>/', api_receipt_delete_goods_buffer, name='api_receipt_delete_goods_buffer'),
+    path('api/receipt_list/receipt_add_if_not_in_base/<int:number_receipt>/', Receipt_add_if_not_in_base_api.as_view(), name='Receipt_add_if_not_in_base_api'),
     
 
 
     #расходные документы
     path('api/expense_list_view/', Get_expense_list.as_view(), name='expense_list_view'),
+    path('api/expense_list_create/', Expense_document_create_api.as_view(), name='expense_list_create'),
+    path('api/expense_delete/<int:number_delete_expense>/', api_expense_document_delete, name='api_expense_document_delete'),
+    path('api/expense_list_open/<int:number_expense>', Expense_document_open_api.as_view(), name='expense_list_open'),
+    path('api/expense_number_open/<int:number_expense>', Expense_number_open_api.as_view(), name='expense_number_open'),
+    path('api/expense_number_open/activate/<int:expense_activate>/', api_expense_list_activate, name='api_expense_list_activate'),
+    path('api/expense_number_open/deactivate/<int:expense_deactivate>/', api_expense_list_deactivate, name='api_expense_list_deactivate'),
+    path('api/expense_goods_delete/<int:id_delete_good>/', api_expense_delete_goods, name='expense_goods_delete'),
+    path('api/expense_goods_add/<int:number_doc>/', Expense_add_goods_api.as_view(), name='expense_goods_add'),
+    path('api/expense_goods_save/', Expense_save_api.as_view(), name='expense_goods_save'),
+
+    
     #инвентаризация
     path('api/inventory_list_view/', Get_inventory_list.as_view(), name='inventory_list_view'),
+    path('api/inventory_list_create/', Inventory_document_create_api.as_view(), name='inventory_list_create'),
+    path('api/inventory_delete/<int:number_delete_inventory>/', api_inventory_document_delete, name='api_inventory_document_delete'),
+    path('api/inventory_add_group/<int:number_inv>/', Inventory_goods_in_group_add_api.as_view(), name='inventory_add_group_api'),
+    path('api/inventory_list_open/<int:number_inventory>', Inventory_document_open_api.as_view(), name='inventory_list_open'),
+    path('api/inventory_number_open/<int:number_inventory>', Inventory_number_open_api.as_view(), name='inventory_number_open'),
+    path('api/inventory_goods_delete/<int:id_delete_good>/', api_inventory_delete_goods, name='inventory_goods_delete'),
+    path('api/inventory_goods_buffer_delete/<int:id_delete_good>/', api_inventory_delete_goods_buffer, name='inventory_goods_buffer_delete'),
+    path('api/inventory_goods_save/', Inventory_save_api.as_view(), name='inventory_goods_save'),
+    path('api/inventory_goods/url_from_load_template_inventory/', url_from_load_template_inventory_api, name='url_from_load_template_inventory'),
+    path('api/inventory_goods/load_file/<int:number_inventory>/', Inventory_load_file_api.as_view(), name='inventory_load_file_api'),
+
+
+
     #отчеты
 
 

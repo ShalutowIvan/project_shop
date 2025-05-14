@@ -3,6 +3,7 @@ from rest_framework import serializers
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from .models import *
+from .serializers_goods import GoodsSerializer
 
 
 # class Order_number_Serializer(serializers.Serializer):
@@ -33,5 +34,29 @@ class Inventory_number_serializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class Goods_in_group_add_Serializer(serializers.ModelSerializer):    
+
+    class Meta:
+        model = Group
+        
+        fields = ("name_group",)
 
 
+class Inventory_list_serializer(serializers.ModelSerializer):    
+    product = GoodsSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Inventory_list
+
+        fields = "__all__"
+
+        
+#2 сериализатора ниже относятся к редактированию колва. Сюда возможно добавится цена...
+class Inventory_update_good_serializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    quantity_new = serializers.IntegerField(min_value=1)
+    # customPrice = serializers.FloatField(min_value=0)#это поле для получения цены ее потом записываем в связанное поле из таблицы товара - цена
+
+
+class Inventory_save_good_serializer(serializers.Serializer):
+    items = Inventory_update_good_serializer(many=True)

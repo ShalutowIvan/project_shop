@@ -46,7 +46,8 @@ export default function GoodsInGroup() {
 		fetchProducts()
 	}, [slug])
 	
-	
+	const navigate = useNavigate();
+
 	const modifyGood = (good_id) => {
 		return navigate(`/goods/modify/${good_id}/`);
 	}

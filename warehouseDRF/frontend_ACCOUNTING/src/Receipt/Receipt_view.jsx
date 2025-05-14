@@ -12,10 +12,10 @@ function Receipt_view() {
 	// if (orders === "error") {
   //   	return <><h1>{"Вам нужно залогиниться!"}</h1></>;
   // 	}
-	console.log(list_receipts[0].state)
+	// console.log(list_receipts[0].state)
 
 	function deleteDoc(receipt_number) {		
-		axios.get(`http://127.0.0.1:9999/api/receipt_delete/${receipt_number}`)		
+		axios.get(`http://127.0.0.1:9999/api/receipt_delete/${receipt_number}/`)		
 		setList_receipts(currentState => currentState.filter(item => item.id !== receipt_number));
 		
 	}

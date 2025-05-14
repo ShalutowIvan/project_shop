@@ -24,50 +24,63 @@ import axios from "axios"
 
 //order_state не сработает через состояние надо
 
-function Receipt_open() {
-	const {receipt, receipt_number} = useLoaderData()//загрузка данных из лоадера, загружается список товаров в документе и номер документа
-	const [state_receipt, setState_receipt] = useState(null);//состояние для статуса документа
-	const [goods_in_receipt, setGoods_in_receipt] = useState(receipt);//состояние с товарами из документа. Изначально берется из лоадера, далее будет меняться при добавлении товара в накладную. В накладной будет форма постоянная для добавления товаров в нее
-	const [goods_in_receipt_buffer, setGoods_in_receipt_buffer] = useState([])
+function Inventory_open() {
+	const {inventory, inventory_number} = useLoaderData()//загрузка данных из лоадера, загружается список товаров в документе и номер документа
+	const [state_inventory, setState_inventory] = useState(null);//состояние для статуса документа
+	const [goods_in_inventory, setGoods_in_inventory] = useState(inventory);//состояние с товарами из документа. Изначально берется из лоадера, далее будет меняться при добавлении товара в накладную. В накладной будет форма постоянная для добавления товаров в нее
+	const [goods_in_inventory_buffer, setGoods_in_inventory_buffer] = useState([])
 
-	const [newGood, setNewGood] = useState("")//состояние для добавления нового товара в накладную. 
-	
+	// const [newGood, setNewGood] = useState("")//состояние для добавления нового товара в накладную. 
+	// добавление группы тут будет через отдельный компонент с формой в select выпадающий список... в товарах такое делал при добавлении товара
+
 	const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [repeat_good, setRepeat_good] = useState("")
+    const [view_object, setView_object] = useState(false);//для смены кнопок в jsx
+
+    //поля формы
+    const [group, setGroup] = useState("");  
+
+    //для выпадающего списка с группами
+    const [groups, setGroups] = useState([]);
+
+
 
 
 	// useEffect загружает состояние документа когда документ открываем
 	useEffect(() => {
-		fetch(`http://127.0.0.1:9999/api/receipt_number_open/${receipt_number}`)
+		fetch(`http://127.0.0.1:9999/api/inventory_number_open/${inventory_number}`)
 			.then(res => res.json())
-			.then(data => setState_receipt(data["state"]))
+			.then(data => setState_inventory(data["state"]))
 			.catch((error) => {
         	console.error('Error fetching state receipt:', error);
       			});
 
+        //загрузка списка групп для выпадающего списка
+        fetch(`http://127.0.0.1:9999/api/get_group/`)
+                .then(res => res.json())
+                .then(data => setGroups(data)); 
+
         //трай кетч добавить потом?
-		// const response = axios.get(`http://127.0.0.1:9999/api/receipt_number_open/${receipt_number}`);
+		// const response = axios.get(`http://127.0.0.1:9999/api/inventory_number_open/${inventory_number}`);
         // тут что то не так с await... запрос идет в лоадере, в юзэффект он не нужен
 
          // Добавляем поле customPrice к каждому товару
-        const itemsWithCustomPrice = goods_in_receipt?.map(item => ({
-            ...item,
-            customPrice: item.custom_price || null // Используем существующее значение или null
-        }));
+        // const itemsWithCustomPrice = goods_in_inventory?.map(item => ({
+        //     ...item,
+        //     customPrice: item.custom_price || null // Используем существующее значение или null
+        // }));
                 
-        setGoods_in_receipt(itemsWithCustomPrice);
+        // setGoods_in_inventory(itemsWithCustomPrice);
 
 
         //загрузка товаров из буфера, актуально после загрузки файла excel с накладной когда новые товары в файле
-        fetch(`http://127.0.0.1:9999/api/receipt_list_open_buffer/${receipt_number}/`)
-			.then(res => res.json())
-			.then(data => setGoods_in_receipt_buffer(data))
-			.catch((error) => {
-        	console.error('Error fetching buffer receipt:', error);
-      			});
-
-		
+        // fetch(`http://127.0.0.1:9999/api/inventory_list_open_buffer/${inventory_number}/`)
+		// 	.then(res => res.json())
+		// 	.then(data => setGoods_in_inventory_buffer(data))
+		// 	.catch((error) => {
+        // 	console.error('Error fetching buffer receipt:', error);
+      	// 		});		
 		}, [])
 	
 	const navigate = useNavigate();
@@ -75,24 +88,23 @@ function Receipt_open() {
 	const goBack = () => {
 		return navigate(-1);
 	}
-
 	
-	const loadFileReceipt = () => {
-		return navigate(`/incoming_documents/load_file/${receipt_number}/`);
+	const loadFileInventory = () => {
+		return navigate(`/inventory/load_file/${inventory_number}/`);
 	}
 
 	
 	//функции для проведения и отмены проведения накладной
 	function api_receipt_list_activate() {
-		fetch(`http://127.0.0.1:9999/api/receipt_number_open/activate/${receipt_number}`)
+		fetch(`http://127.0.0.1:9999/api/inventory_number_open/activate/${inventory_number}`)
 			.then(res => res.json())
-			.then(data => setState_receipt(data.state_receipt))
+			.then(data => setState_inventory(data.state_inventory))
 	}
 
 	function api_receipt_list_deactivate() {
-		fetch(`http://127.0.0.1:9999/api/receipt_number_open/deactivate/${receipt_number}`)
+		fetch(`http://127.0.0.1:9999/api/inventory_number_open/deactivate/${inventory_number}`)
 			.then(res => res.json())
-			.then(data => setState_receipt(data.state_receipt))
+			.then(data => setState_inventory(data.state_inventory))
 	}
 
 	//функция для валидации формы
@@ -105,18 +117,23 @@ function Receipt_open() {
     //     return true;
     // }
 
+    //для отображения поля с добавлением группы
+    const make_view_object = () => {
+        setView_object(true)
+    }
+    
 
-    //обработчик формы добавления товара
-    const addGood_in_receipt = async (event) => {
+    //обработчик формы добавления группы с товарами
+    const addGroup_in_inventory = async (event) => {
         event.preventDefault();
         // if (!validateForm()) return;
         setLoading(true);
         // ссылки в запросах с фронта на бэк должны совпадать полностью до каждого символа сука!!!!!!!!!!!
         try {            
             const response = await axios.post(
-                `http://127.0.0.1:9999/api/receipt_goods_add/${receipt_number}/`,
+                `http://127.0.0.1:9999/api/inventory_add_group/${inventory_number}/`,
                 {                 
-                newGood,
+                name_group: group,
                 },
                     // { withCredentials: true }
                 );                        
@@ -124,14 +141,19 @@ function Receipt_open() {
             if (response.statusText==='OK') {
             	//запись новой позиции в состояние. Добавляется новая позиция в накладную с колвом 1 и названием после записи и ответа от сервера.             	
             	if (response.data["answer"] === "empty") {            		
-            		setRepeat_good("Такой товар уже есть в списке")
-                	setNewGood("")
+            		setRepeat_good("Товары из группы уже есть в списке")
+
+                	// setNewGood("")
                 	}
-                else {
-            	setGoods_in_receipt(prevItems => [...prevItems, response.data]);
-                console.log("Товар добавлен")
-                setNewGood("")//чистим состояние после успешного добавления
+                else {                        	
+                
+                setGoods_in_inventory(prevItems => [...prevItems, ...response.data]);//тут идет добавление к массиву объектов в состоянии нового массива из ответа от сервера
+
+                console.log("Товары добавлены")
+                setGroup("")//чистим состояние группы после успешного добавления
                 setRepeat_good("")
+                setError("")
+                setView_object(false)
                 }
 
             } else {
@@ -148,16 +170,16 @@ function Receipt_open() {
 
     // функиця для изменения состояния количества в накладной, 
     const updateQuantity = (productId, quantity) => {
-        setGoods_in_receipt(goods_in_receipt.map(item => 
+        setGoods_in_inventory(goods_in_inventory.map(item => 
             item.product.id === productId 
-                ? { ...item, quantity: Math.max(1, quantity) } 
+                ? { ...item, quantity_new: Math.max(0, quantity) } 
                 : item
         ));
     };
 
     //функция для изменения состояния цены товара
     // const updatePrice = (productId, price) => {
-    //     setGoods_in_receipt(goods_in_receipt.map(item => 
+    //     setGoods_in_inventory(goods_in_inventory.map(item => 
     //         item.product.id === productId 
     //             ? { ...item, price: Math.max(1, price) } 
     //             : item
@@ -165,55 +187,54 @@ function Receipt_open() {
     // };
 
     //проверить передачу цены в БД в джанго
-    const updateCustomPrice = (itemId, newPrice) => {
-        setGoods_in_receipt(prevItems => 
-            prevItems.map(item => 
-                item.id === itemId 
-                    ? { 
-                        ...item, 
-                        customPrice: newPrice === '' ? null : parseFloat(newPrice) 
-                      } 
-                    : item
-            )
-        );
-    };
+    // const updateCustomPrice = (itemId, newPrice) => {
+    //     setGoods_in_inventory(prevItems => 
+    //         prevItems.map(item => 
+    //             item.id === itemId 
+    //                 ? { 
+    //                     ...item, 
+    //                     customPrice: newPrice === '' ? null : parseFloat(newPrice) 
+    //                   } 
+    //                 : item
+    //         )
+    //     );
+    // };
 
 
 
-    //удаление позиции из накладной
+    //удаление позиции из инванты
     const removeItem = (productId) => {
-    	axios.delete(`http://127.0.0.1:9999/api/receipt_goods_delete/${productId}/`)//тут просто запрос на удаление по ИД записи в объекте
-        setGoods_in_receipt(goods_in_receipt.filter(item => item.id !== productId));//оставляем те элементы у которых ИД позиции не равен удаляемой
+    	axios.delete(`http://127.0.0.1:9999/api/inventory_goods_delete/${productId}/`)//тут просто запрос на удаление по ИД записи в объекте
+        setGoods_in_inventory(goods_in_inventory.filter(item => item.id !== productId));//оставляем те элементы у которых ИД позиции не равен удаляемой
     };
 
 
     const removeItemBuffer = (productId) => {
-    	axios.delete(`http://127.0.0.1:9999/api/receipt_goods_buffer_delete/${productId}/`)//тут просто запрос на удаление по ИД записи в объекте
-        setGoods_in_receipt_buffer(goods_in_receipt_buffer.filter(item => item.id !== productId));//оставляем те элементы у которых ИД позиции не равен удаляемой
+    	axios.delete(`http://127.0.0.1:9999/api/inventory_goods_buffer_delete/${productId}/`)//тут просто запрос на удаление по ИД записи в объекте
+        setGoods_in_inventory_buffer(goods_in_inventory_buffer.filter(item => item.id !== productId));//оставляем те элементы у которых ИД позиции не равен удаляемой
     };
 
 
     
     //сохранение накладной. На сервер изменения попадут только после сохранения, до сохранения изменения происходят только в состояниях реакта
-    const saveReceipt = async () => {
-        if (goods_in_receipt.length === 0) {
-            alert('Добавьте хотя бы один товар в накладную');
+    const saveInventory = async () => {
+        if (goods_in_inventory.length === 0) {
+            alert('Добавьте хотя бы один товар в инвентаризацию');
             return;
         }
-        setLoading(true);        
-        //отправляю из состояния в реакт ИД объектов позиций и колво в каждой позиции. В джанго при сохранении нужно будет изменить колво, дописать эту логику в джанго осталось. 
+        setLoading(true);                
         try {
-        const receiptData = {
-                items: goods_in_receipt.map(item => ({
+        const inventoryData = {
+                items: goods_in_inventory.map(item => ({
                 	id: item.id,
                     // product: item.product.id,
-                    quantity: item.quantity,
-                    customPrice: item.customPrice === null ? 0 : item.customPrice
+                    quantity_new: item.quantity_new,
+                    // customPrice: item.customPrice === null ? 0 : item.customPrice
                 }))
             };
 
-        const response = await axios.patch('http://127.0.0.1:9999/api/receipt_goods_save/', receiptData);
-        alert('Накладная успешно сохранена!');
+        const response = await axios.patch('http://127.0.0.1:9999/api/inventory_goods_save/', inventoryData);
+        alert('Инвентаризация успешно сохранена!');
         } catch (error) {
             console.error('Ошибка при сохранении накладной:', error);
             // alert('Ошибка при сохранении накладной');
@@ -227,14 +248,16 @@ function Receipt_open() {
 
     	setLoading(true);        
     	try {
-        	const response = await axios.post(`http://127.0.0.1:9999/api/receipt_list/receipt_add_if_not_in_base/${receipt_number}/`);
+        	const response = await axios.post(`http://127.0.0.1:9999/api/receipt_list/receipt_add_if_not_in_base/${inventory_number}/`);
     	
     		if (response.statusText==='OK') {
-    			//добавили в общий сет    	         	            	
-            	setGoods_in_receipt(prevItems => [...prevItems, response.data]);
+    			//добавили в общий сет
+                
+            	// setGoods_in_inventory(prevItems => [...prevItems, response.data]);
+
                 console.log("Товар добавлен")
                 //удалили из сета буфера
-                setGoods_in_receipt_buffer(goods_in_receipt_buffer.filter(item => item.id !== productId))
+                setGoods_in_inventory_buffer(goods_in_inventory_buffer.filter(item => item.id !== productId))
                 }
  			else {
                 const errorData = await response.data
@@ -248,18 +271,18 @@ function Receipt_open() {
         }
     }
 
-    const total = goods_in_receipt.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+    const total = goods_in_inventory.reduce((sum, item) => sum + (item.quantity * item.price), 0);
 
 
 	return (
 		<>
 
-			<h1>Содержание приходного документа</h1>
+			<h1>Содержание инвентаризации</h1>
 				<button onClick={goBack}>Назад</button>
 				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-				<button onClick={loadFileReceipt}>Загрузить файл</button>
+				<button onClick={loadFileInventory}>Загрузить файл</button>
 
-					<h2>Номер документа: {receipt_number}</h2>	
+					<h2>Номер инвентаризации: {inventory_number}</h2>	
 
                     <div className="receipt-editor">
 					<table>
@@ -267,57 +290,40 @@ function Receipt_open() {
                             <tr>
                                 <th>Товар</th>
                                 <th>Цена</th>
-                                <th>Количество</th>
+                                <th>Количество было</th>
+                                <th>Количество стало</th>
                                 <th>Сумма</th>
                                 <th>Действие</th>
                             </tr>
                         </thead>
 
                         <tbody>
-                        {goods_in_receipt?.map(item => (
+                        {goods_in_inventory?.map(item => (
                                 <tr key={item.product.id}>
-                                    <td>{item.product.name_product}</td>
-                                    {/*изменение цены*/}
-                                    {!state_receipt && 
+                                    <td>{item.product.name_product}</td>                                	
+                                	<td>{item.product.price} руб.</td>
+                                    <td>{item.quantity_old}</td>                                    
+                                    
+                                    {/*поле колво*/}
+                                    {!state_inventory && 
                                     <>
                                     <td>
                                         <input
                                             type="number"
                                             min="0"
-                                            step="0.01"
-                                            value={!item.customPrice ? item.product.price : item.customPrice}
-                                            onChange={(e) => updateCustomPrice(item.id, e.target.value)}
-                                            placeholder="Введите цену"
-                                        />
-                                    </td>
-                                    </>
-                                	}
-                                	{state_receipt && 
-                                	<>
-                                	<td>{item.product.price} руб.</td>
-                                	</>
-                                	}
-                                    
-                                    {/*поле колво*/}
-                                    {!state_receipt && 
-                                    <>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            value={item.quantity}
+                                            value={item.quantity_new}
                                             onChange={(e) => updateQuantity(item.product.id, parseInt(e.target.value))}
                                         />
                                     </td>
                                     </>
                                 	}
-                                	{state_receipt && 
+                                	{state_inventory && 
                                 	<>
-                                	<td>{item.quantity}</td>
+                                	<td>{item.quantity_new}</td>
                                 	</>
                                 	}
-                                    <td>{item.quantity * (!item.customPrice ? item.product.price : item.customPrice)} руб.</td>                                    
-                                    {!state_receipt &&                                     
+                                    <td>{item.quantity_new * item.product.price} руб.</td>                                    
+                                    {!state_inventory &&                                     
                                     <>
                                     <td>
                                         <button onClick={() => removeItem(item.id)}>
@@ -332,7 +338,7 @@ function Receipt_open() {
                     </table>
 
                     <h3>Итого: {total} руб.</h3>
-                    <br/>
+                    
 
                     {/*таблица с товарами из буффера*/}
                     <h2>Этих товаров нет в базе.</h2>
@@ -348,7 +354,7 @@ function Receipt_open() {
                         </thead>
 
                         <tbody>
-                        {goods_in_receipt_buffer?.map(item => (
+                        {goods_in_inventory_buffer?.map(item => (
                                 <tr key={item.id}>
                                     <td>{item.product}</td>
                                     {/*<td>{item.price} руб.</td>*/}
@@ -357,12 +363,14 @@ function Receipt_open() {
                                     
                                     
                                     {/*<td>{item.quantity * item.product.price} руб.</td>                                    */}
-                                    {!state_receipt &&                                     
+                                    {!state_inventory &&                                     
                                     <>
                                     <td>
                                         <button onClick={() => removeItemBuffer(item.id)}>Удалить</button>
                                         <br/>
                                         <button onClick={() => add_if_not_in_base(item.id)}>Добавить в базу</button>
+                                        <br/>
+                                        <button onClick={() => change_if_not_in_base(item.id)}>Заменить на другой товар</button>
                                     </td>
                                     </>
                                 	}
@@ -370,12 +378,11 @@ function Receipt_open() {
                             ))}
                         </tbody>
                     </table>
-                    </div>
-                    
+                    </div>                   
 
-                    {!state_receipt && 
+                    {!state_inventory && 
 					<>
-					<button onClick={saveReceipt}>Сохранить</button>
+					<button onClick={saveInventory}>Сохранить</button>
 					&nbsp;&nbsp;
 					
 					</>
@@ -383,7 +390,7 @@ function Receipt_open() {
 
 					{/*тут будет форма с добавленными товарами в накладной, в ней можно менять колво. Сделать добавление товара и потом в накладной редачить колво и сохранять накладную. Потом если надо проводить*/}
 
-					<br/><br/>
+					
 
 
 
@@ -391,35 +398,41 @@ function Receipt_open() {
 
 
 					{/*форма будет тут*/}
-					<form onSubmit={addGood_in_receipt} style={{ marginBottom: '1rem' }}>                
 
-		                <label htmlFor="id_newGood">Добавление товара: </label>
-		                <input 
-		                    placeholder="введите название товара"
-		                    name="newGood"                    
-		                    type="text"
-		                    id="id_newGood"
-		                    className="control"                        
-		                    value={newGood}
-		                    onChange={(e) => setNewGood(e.target.value)}   
-		                />
+                    {!view_object &&
+                    <button onClick={make_view_object}>Добавить группу</button>
+                    }
 
-		                &nbsp;&nbsp;
+					{view_object &&
+                    <form onSubmit={addGroup_in_inventory} style={{ marginBottom: '1rem' }}>
+                        <label htmlFor="id_group">Группа: </label>                
+                            <select
+                                name="group"
+                                id="id_group"
+                                // className="control"                        
+                                value={group}
+                                onChange={(e) => setGroup(e.target.value)}   
+                                // required
+                            >
+                                <option value="">Выберите группу</option>
+                                {groups?.map(group => (
+                                    <option key={group.id} value={group.id}>
+                                        {group.name_group}
+                                    </option>
+                                ))}
+                            </select>
 
-		                <button type="submit" disabled={loading}>                    
-		                    {loading ? 'Сохраняем...' : 'Добавить'}
-		                </button>
-		                <br/>
-
-		                {/*если ошибка error отображаем ее в параграфе ниже*/}
-		                {error && <p style={{ color: 'red'}}>{error}</p>}
-		                
-		                {repeat_good && <p style={{ color: 'red'}}>{repeat_good}</p>}
-
+    		                &nbsp;&nbsp;
+    		                <button type="submit" disabled={loading}>                    
+    		                    {loading ? 'Сохраняем...' : 'Добавить'}
+    		                </button>
+    		                <br/>		                
+    		                {error && <p style={{ color: 'red'}}>{error}</p>}		                
+    		                {repeat_good && <p style={{ color: 'red'}}>{repeat_good}</p>}
 		            </form>
-					
+					}
 
-					{state_receipt && 
+					{state_inventory && 
 					<>
 					<h3>Состояние документа: Проведен</h3>
 					<button onClick={api_receipt_list_deactivate}>Отменить проведение документа</button>
@@ -427,7 +440,7 @@ function Receipt_open() {
 					}
 
 
-					{!state_receipt && 
+					{!state_inventory && 
 					<>
 					<h3>Состояние документа: Не Проведен</h3>
 					<button onClick={api_receipt_list_activate}>Провести документ</button>
@@ -440,8 +453,8 @@ function Receipt_open() {
 
 
 
-async function getReceiptOpen(number_receipt) {	
-	const res = await fetch(`http://127.0.0.1:9999/api/receipt_list_open/${number_receipt}`)//тут берутся все элементы с одним и тем же номером документа
+async function getInventoryOpen(number_inventory) {	
+	const res = await fetch(`http://127.0.0.1:9999/api/inventory_list_open/${number_inventory}`)//тут берутся все элементы с одним и тем же номером документа
 
 	// try {
   //       const res = await API.get(`/api/checkout_list/orders/${id}`)			
@@ -458,13 +471,11 @@ async function getReceiptOpen(number_receipt) {
 }
 
 
-const receiptOpenLoader = async ({params}) => {
+const inventoryOpenLoader = async ({params}) => {
 	
-	const receipt_number = params.number_doc//после params писать название параметра которое прописали в файле AppRouter.jsx с урлками
-
-	// const receipt_state = params.state_order
+	const inventory_number = params.number_inv//после params писать название параметра которое прописали в файле AppRouter.jsx с урлками
 	
-	return {receipt: await getReceiptOpen(receipt_number), receipt_number}
+	return {inventory: await getInventoryOpen(inventory_number), inventory_number}
 }
 //переменная в функции выше в которую присваиваем useLoaderData() должна называться точно также как и переменная, которую возвращаем тут orderNumberLoader, то есть тоже orders, именно так. И дпругих хуках наверно тоже также работает. Иначе не распарсит.
 
@@ -473,4 +484,4 @@ const receiptOpenLoader = async ({params}) => {
 
 
 
-export { Receipt_open, receiptOpenLoader }
+export { Inventory_open, inventoryOpenLoader }

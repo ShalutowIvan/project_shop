@@ -10,24 +10,14 @@ from transliterate import translit
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers_expense import *
-
+from rest_framework.decorators import api_view
+from rest_framework import status
 
 
 ###########################################################################
-# РАСХОДНЫЙ документ - начало - открытие
-# @login_required
-# def expense_list(request):
-#     expense_list = Expense_number.objects.all()
+# РАСХОДНЫЙ документ - начало
 
-#     context = {"expense_list_view": expense_list}
-
-#     org = Organization.objects.all()
-#     if org:
-#         context['org'] = org[0]
-
-#     return render(request, "shop/expense_list.html", context=context)
-
-
+# отображение списка документов
 class Get_expense_list(APIView):
 
     def get(self, request):
@@ -36,71 +26,113 @@ class Get_expense_list(APIView):
         return Response(Expense_number_serializer(instance=expense_list, many=True).data)
 
 
+# создание документа списания
+class Expense_document_create_api(APIView):
+    
+    def post(self, request, *args, **kwargs):
+        
+        serializer = Expense_number_serializer(data=request.data)
 
-# создание акта списания - добавить документ с добавлением коммента. После создания документа он сразу открывается - редирект на урл receipt_document_open
-@login_required
-def expense_document_create(request):
-    if request.method == 'POST':
-        form = Expense_number_form(data=request.POST)
-        if form.is_valid():
-            comm = form.save(commit=False)
-            comm.save()
+        if serializer.is_valid():            
+            # serializer.validated_data["user"] = self.request.user# юзера потом тянуть из токена, когда запилю авторизацию. 
+            serializer.save()
+            
+            return Response({"success": True, })
+        else:
 
-            return redirect('expense_document_open', comm.id)
-
-    else:
-        form = Expense_number_form()
-
-    context = {'form': form}
-
-    return render(request, 'shop/expense_create.html', context=context)
+            return Response({"error": serializer.errors}, status=400)
 
 
-# приходный документ - открытие
-@login_required
-def expense_document_open(request, open_expense):
-    expense_open = Expense_number.objects.get(id=open_expense)
-    expense_good_list = Expense_list.objects.filter(number_act=open_expense)  # поиск по номеру акта
-    context = {"number": open_expense, 'expense_good_list': expense_good_list, "expense_doc": expense_open}
+# удаление документа
+@api_view(['GET'])
+def api_expense_document_delete(request, number_delete_expense):
+    try:
+        expense = Expense_number.objects.get(id=number_delete_expense)
+        good_list_delete = Expense_list.objects.filter(number_act=number_delete_expense)
 
-    org = Organization.objects.all()
+        expense.delete()
+        good_list_delete.delete()
+        print("Расходный документ удален.")
+        return Response({"success": True}, status=status.HTTP_200_OK)    
+    except Exception as ex:
+        print("Ошибка при удалении документа:", ex)
+        return Response({"success": True}, status=status.HTTP_400_BAD_REQUEST)
 
-    if org:
-        context['org'] = org[0]
 
-    return render(request, "shop/expense_open.html", context=context)
+#открытие документа
+class Expense_document_open_api(APIView):
+
+    def get(self, request, number_expense):
+        goods_in_expense = Expense_list.objects.filter(number_act=number_expense)#тут список, queryset
+
+        return Response(Expense_list_serializer(instance=goods_in_expense, many=True).data)
 
 
-# проведение документа - это функция после которой меняется статус документа и добавляется товар на остаток на основании документа
-@login_required
-def expense_document_activate(request, expense_activate):
+#получение позиции из таблицы с номерами документов. Роут относится к открытию дока. Номер и этот роут используется в открытом доке. Запрашивается только 1 номер. 
+class Expense_number_open_api(APIView):
+
+    def get(self, request, number_expense):
+        number_expense = Expense_number.objects.get(id=number_expense)
+
+        return Response(Expense_number_serializer(instance=number_expense, many=False).data)
+
+
+class Expense_add_goods_api(APIView):
+
+    def post(self, request, number_doc):
+        serializer = Expense_add_good_serializer(data=request.data)
+
+        if serializer.is_valid():
+            user = User.objects.get(id=1)            
+            good = Goods.objects.get(name_product=serializer.validated_data["newGood"])            
+            good_in_expense = Expense_list.objects.filter(product=good) & Expense_list.objects.filter(number_act=number_doc)
+
+            if not good_in_expense:#проверка есть ли такой товар уже в списке
+                new_good_in_expense = Expense_list(product=good, number_act=number_doc, quantity=1, user=user)
+                new_good_in_expense.save()            
+                return Response(Expense_list_serializer(instance=new_good_in_expense, many=False).data)
+
+            return Response({"answer": "empty"})
+        else:
+            return Response({"error": serializer.errors}, status=400)
+
+
+
+#проведение документа
+@api_view(['GET'])
+def api_expense_list_activate(request, expense_activate):
     doc = Expense_number.objects.get(id=expense_activate)
+
+    data = {'state_expense': doc.state}
+
     if doc.state == False:
         list_goods_to_subtract = Expense_list.objects.filter(number_act=expense_activate)
         gen_list = [i.product.id for i in list_goods_to_subtract]
 
-        list_good = Goods.objects.filter(
-            pk__in=gen_list)  # не понятно почему, но тут список объектов получается неизменяемый, у них нельзя записать новые значения. Сделал queryset типом list, и все норм. Теперь значения полей объектов стали меняться.
+        #список товаров из таблицы товары, которые содержатся в документе
+        list_good = Goods.objects.filter(pk__in=gen_list)#не понятно почему, но тут список объектов получается неизменяемый, у них нельзя записать новые значения. Сделал queryset типом list, и все норм. Теперь значения полей объектов стали меняться.
 
         list_good = list(list_good)
 
+        #перебираем сгенерированный лист товаров и отнимаем остаток по документу к каждому товару
         for i in range(len(gen_list)):
-            list_good[i].stock -= list_goods_to_subtract[i].quantity
+            list_good[i].stock -= list_goods_to_subtract[i].quantity        
 
-        # print(list_good[i].stock)
-
+        #пишем товары в базу
         goods = Goods.objects.bulk_update(objs=list_good, fields=["stock", ])
-
+        #меняем состояние на тру - проведен и кидаем в базу
         doc.state = True
         doc.save()
+        data = {'state_expense': doc.state}
 
-    return HttpResponseRedirect(request.META['HTTP_REFERER'])
+    return Response(data, status=status.HTTP_200_OK)
 
 
-# отмена проведения документа
-@login_required
-def expense_document_deactivate(request, expense_deactivate):
+#отмена проведения документа
+@api_view(['GET'])
+def api_expense_list_deactivate(request, expense_deactivate):
     doc = Expense_number.objects.get(id=expense_deactivate)
+    data = {'state_expense': doc.state}
 
     if doc.state == True:
         list_goods_to_subtract = Expense_list.objects.filter(number_act=expense_deactivate)
@@ -117,45 +149,50 @@ def expense_document_deactivate(request, expense_deactivate):
 
         doc.state = False
         doc.save()
+        data = {'state_expense': doc.state}
 
-    return HttpResponseRedirect(request.META['HTTP_REFERER'])
-
-
-# приходный документ - удаление, удаляется и таблица с номером документа и товары с этим же номером документа
-@login_required
-def expense_document_delete(request, number_delete_expense):
-    rec = Expense_number.objects.get(id=number_delete_expense)
-    good_list_delete = Expense_list.objects.filter(number_act=number_delete_expense)
-
-    rec.delete()
-    good_list_delete.delete()
-    return HttpResponseRedirect(request.META['HTTP_REFERER'])
+    return Response(data, status=status.HTTP_200_OK)
 
 
-# добавление товара - в открытом документе. number_doc берется из номера открытого документа, который мы открыли функцией receipt_document_open он прокидывается в html.
-@login_required
-def expense_add_goods(request, number_doc):
-    if request.method == 'POST':
-        form = Expense_add_goods_form(data=request.POST)
-        if form.is_valid():
-            good = form.save(commit=False)
-            good.number_act = number_doc
-            good.user = request.user
-            good.save()
-
-            return redirect('expense_document_open', number_doc)
-
-    else:
-        form = Expense_add_goods_form()
-
-    context = {'form': form, "number_doc": number_doc}
-
-    return render(request, "shop/expense_goods_add.html", context=context)
+#удаление позиции из акта
+@api_view(['DELETE'])
+def api_expense_delete_goods(request, id_delete_good):
+    try:
+        list_delete = Expense_list.objects.get(id=id_delete_good)
+        list_delete.delete()
+        return Response({"success": True}, status=status.HTTP_200_OK)    
+    except Exception as ex:
+        print("Ошибка при удалении товара:", ex)
+        return Response({"success": True}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# удаление товара из накладной
-@login_required
-def expense_delete_goods(request, number_delete_good):
-    list_delete = Expense_list.objects.get(id=number_delete_good)
-    list_delete.delete()
-    return HttpResponseRedirect(request.META['HTTP_REFERER'])
+class Expense_save_api(APIView):
+
+    def patch(self, request):
+        serializer = Expense_save_good_serializer(data=request.data)
+
+        if serializer.is_valid():
+            # print(serializer.data['items'])#тут я получаю данные с колвом и ИД позиций в накладной. Нужно найти соответствуюзщие позиции в таблице в джанго и в них перезаписать колво.
+            #получаю списки и сортирую их по возрастанию id, потому что там порядок рандом...            
+            data = serializer.data['items']
+            data = sorted(data, key=lambda x: x["id"])
+            list_id = [ i["id"] for i in serializer.data['items']]            
+            list_good = Expense_list.objects.filter(pk__in=list_id)            
+            list_good = sorted(list(list_good), key=lambda x: x.id)
+
+            for j in range(len(list_id)):
+                list_good[j].quantity = data[j]["quantity"]
+                
+
+            goods = Expense_list.objects.bulk_update(objs=list_good, fields=["quantity"])
+            
+            return Response({"Все": "Супер"})
+        else:
+            return Response({"error": serializer.errors}, status=400)
+
+
+
+
+
+
+

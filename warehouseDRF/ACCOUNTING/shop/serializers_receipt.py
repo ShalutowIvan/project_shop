@@ -43,15 +43,22 @@ class Receipt_list_serializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class Receipt_list_buffer_serializer(serializers.ModelSerializer):    
+
+    class Meta:
+        model = Buffer_receipt
+
+        fields = "__all__"
 
 
 class Receipt_add_good_serializer(serializers.Serializer):
     newGood = serializers.CharField(max_length=255)   
 
-
+#2 сериализатора ниже относятся к редактированию колва. Сюда возможно добавится цена...
 class Receipt_update_good_serializer(serializers.Serializer):
     id = serializers.IntegerField()
     quantity = serializers.IntegerField(min_value=1)
+    customPrice = serializers.FloatField(min_value=0)#это поле для получения цены ее потом записываем в связанное поле из таблицы товара - цена
 
 
 class Receipt_save_good_serializer(serializers.Serializer):
