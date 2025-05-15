@@ -165,8 +165,9 @@ urlpatterns = [
     path('api/inventory_goods_save/', Inventory_save_api.as_view(), name='inventory_goods_save'),
     path('api/inventory_goods/url_from_load_template_inventory/', url_from_load_template_inventory_api, name='url_from_load_template_inventory'),
     path('api/inventory_goods/load_file/<int:number_inventory>/', Inventory_load_file_api.as_view(), name='inventory_load_file_api'),
-
-
+    path('api/inventory_list_open_buffer/<int:number_inventory>/', Inventory_load_buffer.as_view(), name='inventory_list_open_buffer'),
+    path('api/inventory_list/inventory_add_if_not_in_base/<int:number_inventory>/', Inventory_add_if_not_in_base_api.as_view(), name='Inventory_add_if_not_in_base_api'),
+    # сделал ссылку и роут в джанго, осталось его указать в реакт
 
     #отчеты
 

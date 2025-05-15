@@ -54,9 +54,22 @@ class Inventory_list_serializer(serializers.ModelSerializer):
 #2 сериализатора ниже относятся к редактированию колва. Сюда возможно добавится цена...
 class Inventory_update_good_serializer(serializers.Serializer):
     id = serializers.IntegerField()
-    quantity_new = serializers.IntegerField(min_value=1)
+    quantity_new = serializers.IntegerField(min_value=0)
     # customPrice = serializers.FloatField(min_value=0)#это поле для получения цены ее потом записываем в связанное поле из таблицы товара - цена
 
 
 class Inventory_save_good_serializer(serializers.Serializer):
     items = Inventory_update_good_serializer(many=True)
+
+
+
+
+class Inventory_list_buffer_serializer(serializers.ModelSerializer):    
+
+    class Meta:
+        model = Inventory_buffer
+
+        fields = "__all__"
+
+
+    

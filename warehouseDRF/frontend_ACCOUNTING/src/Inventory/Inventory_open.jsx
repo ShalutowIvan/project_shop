@@ -30,13 +30,15 @@ function Inventory_open() {
 	const [goods_in_inventory, setGoods_in_inventory] = useState(inventory);//состояние с товарами из документа. Изначально берется из лоадера, далее будет меняться при добавлении товара в накладную. В накладной будет форма постоянная для добавления товаров в нее
 	const [goods_in_inventory_buffer, setGoods_in_inventory_buffer] = useState([])
 
-	// const [newGood, setNewGood] = useState("")//состояние для добавления нового товара в накладную. 
+	
 	// добавление группы тут будет через отдельный компонент с формой в select выпадающий список... в товарах такое делал при добавлении товара
 
 	const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [repeat_good, setRepeat_good] = useState("")
     const [view_object, setView_object] = useState(false);//для смены кнопок в jsx
+    const [view_change_good, setView_change_good] = useState(false);//для смены кнопок в jsx
+    const [good_name, setGood_name] = useState("")//состояние для добавления нового товара в накладную. 
 
     //поля формы
     const [group, setGroup] = useState("");  
@@ -75,12 +77,12 @@ function Inventory_open() {
 
 
         //загрузка товаров из буфера, актуально после загрузки файла excel с накладной когда новые товары в файле
-        // fetch(`http://127.0.0.1:9999/api/inventory_list_open_buffer/${inventory_number}/`)
-		// 	.then(res => res.json())
-		// 	.then(data => setGoods_in_inventory_buffer(data))
-		// 	.catch((error) => {
-        // 	console.error('Error fetching buffer receipt:', error);
-      	// 		});		
+        fetch(`http://127.0.0.1:9999/api/inventory_list_open_buffer/${inventory_number}/`)
+			.then(res => res.json())
+			.then(data => setGoods_in_inventory_buffer(data))
+			.catch((error) => {
+        	console.error('Error fetching buffer receipt:', error);
+      			});		
 		}, [])
 	
 	const navigate = useNavigate();
@@ -121,7 +123,6 @@ function Inventory_open() {
     const make_view_object = () => {
         setView_object(true)
     }
-    
 
     //обработчик формы добавления группы с товарами
     const addGroup_in_inventory = async (event) => {
@@ -244,16 +245,17 @@ function Inventory_open() {
     }
 
     //функция для кнопки добавления товара если его нет в БД из буфера
+    // ост тут
     const add_if_not_in_base = async (productId) => {
 
     	setLoading(true);        
     	try {
-        	const response = await axios.post(`http://127.0.0.1:9999/api/receipt_list/receipt_add_if_not_in_base/${inventory_number}/`);
+        	const response = await axios.post(`http://127.0.0.1:9999/api/inventory_list/inventory_add_if_not_in_base/${inventory_number}/`);
     	
     		if (response.statusText==='OK') {
     			//добавили в общий сет
                 
-            	// setGoods_in_inventory(prevItems => [...prevItems, response.data]);
+            	setGoods_in_inventory(prevItems => [...prevItems, response.data]);
 
                 console.log("Товар добавлен")
                 //удалили из сета буфера
@@ -270,6 +272,54 @@ function Inventory_open() {
             setLoading(false);
         }
     }
+
+    //замена товара на другой
+    const make_change_good = () => {
+        setView_change_good(true)
+    }
+
+    const change_if_not_in_base = async (event) => {
+        event.preventDefault();
+        // if (!validateForm()) return;
+        setLoading(true);
+        // ссылки в запросах с фронта на бэк должны совпадать полностью до каждого символа сука!!!!!!!!!!!
+        try {            
+            const response = await axios.post(
+                `http://127.0.0.1:9999/поиск нового товара для замены по аналогии с поиском товара/${inventory_number}/`,
+                {                 
+                name_good: good_name,
+                },
+                    // { withCredentials: true }
+                );                        
+            setLoading(false);
+            if (response.statusText==='OK') {
+                //запись новой позиции в состояние. Добавляется новая позиция в накладную с колвом 1 и названием после записи и ответа от сервера.              
+                if (response.data["answer"] === "empty") {                  
+                    setRepeat_good("Товары из группы уже есть в списке")                    
+                    }
+                else {                          
+                
+                setGoods_in_inventory(prevItems => [...prevItems, response.data]);
+
+                console.log("Товар добавлен")
+                setGood_name("")
+                setRepeat_good("")
+                setError("")
+                setView_change_good(false)
+                }
+
+            } else {
+                const errorData = await response.data
+                console.log(errorData, 'тут ошибка')                
+            }       
+
+        } catch (error) {
+            setLoading(false);
+            console.log(error)
+            setError('что-то пошло не так');            
+        }
+    };
+
 
     const total = goods_in_inventory.reduce((sum, item) => sum + (item.quantity * item.price), 0);
 
@@ -359,7 +409,7 @@ function Inventory_open() {
                                     <td>{item.product}</td>
                                     {/*<td>{item.price} руб.</td>*/}
                                     
-									<td>{item.quantity}</td>
+									<td>{item.quantity_new}</td>
                                     
                                     
                                     {/*<td>{item.quantity * item.product.price} руб.</td>                                    */}
@@ -368,9 +418,38 @@ function Inventory_open() {
                                     <td>
                                         <button onClick={() => removeItemBuffer(item.id)}>Удалить</button>
                                         <br/>
-                                        <button onClick={() => add_if_not_in_base(item.id)}>Добавить в базу</button>
+                                        <button onClick={() => add_if_not_in_base(item.id)}>Добавить в инвентаризацию</button>
                                         <br/>
-                                        <button onClick={() => change_if_not_in_base(item.id)}>Заменить на другой товар</button>
+                                        {/*<button onClick={() => change_if_not_in_base(item.id)}>Заменить на другой товар</button>*/}
+                                        {!view_change_good &&
+                                        <button onClick={make_change_good}>Заменить на другой товар</button>
+                                        }
+                                        {/*ИСПРАВИТЬ ФОРМУ НИЖЕ НА ПОИСК ДЛЯ ИЗМЕНЕНИЕ ТОВАРА, И В ДЖАНГО НАДО УРЛ СДЕЛАТЬ.*/}
+                                        {view_change_good &&
+                                        <form onSubmit={change_if_not_in_base} style={{ marginBottom: '1rem' }}>
+                                            <label htmlFor="id_good_name">Поиска товара для замены: </label>
+                                                <input 
+                                                    placeholder="введите название товара"
+                                                    name="good_name"                                        
+                                                    type="text"
+                                                    
+                                                    id="id_good_name"
+                                                    className="control"                        
+                                                    value={good_name}
+                                                    onChange={(e) => setGood_name(e.target.value)}   
+                                                />                
+
+                                                &nbsp;&nbsp;
+                                                <button type="submit" disabled={loading}>                    
+                                                    {loading ? 'Сохраняем...' : 'Добавить'}
+                                                </button>
+                                                <br/>                       
+                                                {error && <p style={{ color: 'red'}}>{error}</p>}                       
+                                                {repeat_good && <p style={{ color: 'red'}}>{repeat_good}</p>}
+                                        </form>
+                                        }
+
+
                                     </td>
                                     </>
                                 	}
@@ -397,7 +476,7 @@ function Inventory_open() {
 
 
 
-					{/*форма будет тут*/}
+					{/*форма добавления группы в инвенту будет тут*/}
 
                     {!view_object &&
                     <button onClick={make_view_object}>Добавить группу</button>

@@ -201,67 +201,71 @@ class Inventory_load_file_api(APIView):
         try:
             file_inventory = pd.read_excel(file)
 
-            list_good_in_file = [i[0] for i in file_inventory.values]
+            list_good_in_file = [i[0] for i in file_inventory.values]#список названий товаров из файла. Берем первый элемент так как в первой колонке название
 
-            query_objects_in_base = Goods.objects.filter(name_product__in=list_good_in_file)
-            goods_name_in_base = [i.name_product for i in query_objects_in_base]
+            query_objects_in_base = Goods.objects.filter(name_product__in=list_good_in_file)#фильтруем объекты по названиям товара из файла
+            goods_name_in_base = [i.name_product for i in query_objects_in_base]#список товаров из БД которые совпали с товарами из файла. В файле может быть больше товаров, так случаются несовпадения
                         
-            #алгоритм аналогичен как в инвентаризации, только здесь каждый элемент это не список, а объект, либо если нет объекта, то 0 добавляем, а не пустую коллекцию. 
-            list_goods = []
+            #алгоритм аналогичен как в инвентаризации без рест апи, только здесь каждый элемент это не список, а объект, либо если нет объекта, то 0 добавляем, а не пустую коллекцию. 
+            list_goods = []#это список товаров для проверки есть ли он в базе или нет
             for i in list_good_in_file:
                 if i not in goods_name_in_base:
                     list_goods.append(0)
                     continue
                 for j in query_objects_in_base:
                     if j.name_product == i:
-                        list_goods.append(j)            
+                        list_goods.append(j)#добавляем объект базы
 
-            query_goods_in_receipt = list(Receipt_list.objects.filter(number_receipt=number_receipt))
-            goods_in_receipt = [i.product.name_product for i in query_goods_in_receipt]#делаем список из названий товара текущей накладной
-            objs_in_receipt = []#это будет список объектов товаров из текущей накладной, в которых нужно обновить колво из загружаемого файла. 
 
-            #это для тоже самое что и выше, но для обновления колва в буффере накладной, то есть в списке товаров, которых еще нет в общем каталоге товаров. 
-            query_goods_in_receipt_buffer = list(Buffer_receipt.objects.filter(number_receipt=number_receipt))
-            goods_in_receipt_buffer = [i.product for i in query_goods_in_receipt_buffer]
-            objs_in_receipt_buffer = []        
+            #запросы для изменения колва в случае если загружаем файл повторно
+            query_goods_in_inventory = list(Inventory_list.objects.filter(number_inventory=number_inventory))
+            goods_in_inventory = [i.product.name_product for i in query_goods_in_inventory]#делаем список из названий товара текущей инвенты
+            objs_in_inventory = []#это будет список объектов товаров из текущей накладной, в которых нужно обновить колво из загружаемого файла. 
+
+            #это для тоже самое что и выше, но для обновления колва в буффере инвенты, то есть в списке товаров, которых еще нет в общем каталоге товаров. 
+            query_goods_in_inventory_buffer = list(Inventory_buffer.objects.filter(number_inventory=number_inventory))
+            goods_in_inventory_buffer = [i.product for i in query_goods_in_inventory_buffer]
+            objs_in_inventory_buffer = []        
 
             for i in range(len(list_good_in_file)):
                 if list_goods[i] != 0:#0 означает что товара нет в базе, и если не 0, значит товар есть в базе и его добавляем в накладную
-                    if list_good_in_file[i] in goods_in_receipt:#тут колво обновляться у существующего товара в накладной
-                        obj_receipt = query_goods_in_receipt[goods_in_receipt.index(list_good_in_file[i])]
-                        obj_receipt.quantity = file_receipt.values[i][1]                       
-                        objs_in_receipt.append(obj_receipt)
+                    if list_good_in_file[i] in goods_in_inventory:#тут колво обновляться у существующего товара в накладной
+                        obj_inventory = query_goods_in_inventory[goods_in_inventory.index(list_good_in_file[i])]
+                        obj_inventory.quantity_new = file_inventory.values[i][1]                       
+                        objs_in_inventory.append(obj_inventory)
                         continue
 
-                    receipts.append(
-                        Receipt_list(
+                    list_inventory.append(
+                        Inventory_list(
                             product=list_goods[i],
-                            number_receipt=number_receipt,                                                        
-                            quantity=file_receipt.values[i][1],
+                            number_inventory=number_inventory,
+                            quantity_old=list_goods[i].stock,                                                      
+                            quantity_new=file_inventory.values[i][1],
                             user=fake_user
                         ))
-                else:
-                    if list_good_in_file[i] in goods_in_receipt_buffer:
-                        obj_receipt_buffer = query_goods_in_receipt_buffer[goods_in_receipt_buffer.index(list_good_in_file[i])]
-                        obj_receipt_buffer.quantity = file_receipt.values[i][1]
-                        objs_in_receipt_buffer.append(obj_receipt_buffer)
+                else:#ниже тоже самое для буфера инвенты
+                    if list_good_in_file[i] in goods_in_inventory_buffer:
+                        obj_inventory_buffer = query_goods_in_inventory_buffer[goods_in_inventory_buffer.index(list_good_in_file[i])]
+                        obj_inventory_buffer.quantity_new = file_inventory.values[i][1]
+                        objs_in_inventory_buffer.append(obj_inventory_buffer)
                         continue
 
-                    buffer_goods.append(Buffer_receipt(
-                        product=file_receipt.values[i][0],
-                        number_receipt=number_receipt,                        
-                        quantity=file_receipt.values[i][1],
+                    buffer_inventory.append(Inventory_buffer(
+                        product=file_inventory.values[i][0],
+                        number_inventory=number_inventory,
+                        quantity_old=0,                   
+                        quantity_new=file_inventory.values[i][1],
                         user=fake_user
                     ))
 
-            if receipts != []:
-                receipts_create = Receipt_list.objects.bulk_create(receipts)
-            if buffer_goods != []:
-                buffer_create = Buffer_receipt.objects.bulk_create(buffer_goods)
-            if objs_in_receipt != []:
-                receipt_update_file = Receipt_list.objects.bulk_update(objs=objs_in_receipt, fields=["quantity",])
-            if objs_in_receipt_buffer != []:
-                receipt_update_file_buffer = Buffer_receipt.objects.bulk_update(objs=objs_in_receipt_buffer, fields=["quantity",])
+            if list_inventory != []:
+                inventory_create = Inventory_list.objects.bulk_create(list_inventory)
+            if buffer_inventory != []:
+                buffer_create = Inventory_buffer.objects.bulk_create(buffer_inventory)
+            if objs_in_inventory != []:
+                inventory_update_file = Inventory_list.objects.bulk_update(objs=objs_in_inventory, fields=["quantity_new",])
+            if objs_in_inventory_buffer != []:
+                inventory_update_file_buffer = Inventory_buffer.objects.bulk_update(objs=objs_in_inventory_buffer, fields=["quantity_new",])
             
 
             return Response({
@@ -277,6 +281,53 @@ class Inventory_load_file_api(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+
+#загрузка товаров из буфера после загрузки файла
+class Inventory_load_buffer(APIView):
+    
+    def get(self, request, number_inventory):
+        goods_in_inventory = Inventory_buffer.objects.filter(number_inventory=number_inventory)#тут список, queryset
+        
+        # ост тут
+
+        return Response(Inventory_list_buffer_serializer(instance=goods_in_inventory, many=True).data)
+
+
+# добавить если нет в бд
+class Inventory_add_if_not_in_base_api(APIView):
+
+    def post(self, request, number_inventory):
+        try:
+            fake_user = User.objects.get(id=1)
+            good_in_buffer = Inventory_buffer.objects.get(number_inventory=number_inventory)
+            letters = string.ascii_lowercase  # это создания артикула, будет случайная последовательность символов
+
+            good_in_base = Goods(
+                name_product=good_in_buffer.product,
+                slug=translit(good_in_buffer.product, language_code='ru', reversed=True),
+                vendor_code=''.join(random.choice(letters) for i in range(15)),
+                price=0,
+                stock=0,
+                group=Group.objects.get(name_group="Без группы"),
+                photo="_",
+                user=fake_user
+            )
+            good_in_base.save()
+
+            good_in_inventory = Inventory_list(
+                product=good_in_base,
+                number_inventory=number_inventory,
+                quantity_old=0,
+                quantity_new=good_in_buffer.quantity_new,
+                user=fake_user
+            )
+            good_in_inventory.save()
+
+            good_in_buffer.delete()
+            return Response(Inventory_list_serializer(instance=good_in_inventory, many=False).data)
+        except Exception as ex:
+            print("Ошибка при добавлении товара:", ex)
+            return Response({"success": True}, status=status.HTTP_400_BAD_REQUEST)
 
 
 #при проведении инвенты остаток либо отнимается либо прибивляется на разницу
@@ -452,7 +503,7 @@ def inventory_add_all_buffer(request, number_inv):
     		)
 		list_goods.append(goods_from_buffer)
 
-		#ост тут
+		
 		list_inventory.append(
 			Inventory_list(
 			product=goods_from_buffer,
@@ -597,7 +648,7 @@ def inventory_update_quantity(request, number_inv):
 	return redirect('inventory_open', number_inv)
 
 
-def inventory_print(request, inv_number):#ост тут
+def inventory_print(request, inv_number):
 	list_inventory = Inventory_list.objects.filter(number_inventory=inv_number)
 
 	name = [i.product for i in list_inventory]
