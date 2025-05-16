@@ -330,6 +330,58 @@ class Inventory_add_if_not_in_base_api(APIView):
             return Response({"success": True}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class Inventory_change_goods_api(APIView):
+
+
+    def post(self, request, id_good_buffer):        
+        serializer = Inventory_change_good_serializer(data=request.data)
+
+        if serializer.is_valid():
+            good_in_form = serializer.validated_data["good_name"]#название товара из формы
+            user = User.objects.get(id=1)
+            good_in_buffer = Inventory_buffer.objects.get(id=id_good_buffer)#поиск товара по ИД товара из буфера
+            good = Goods.objects.get(name_product=good_in_form)
+            good_in_inventory = Inventory_list.objects.get(product=good)#для поиска товара есть ли он уже в инвенте
+
+            if not good_in_inventory:#проверка нет ли такого товара уже в списке, если нет, то создаем товар в инвенте
+                new_good_in_inventory = Inventory_list(
+                    product=good,
+                    number_inventory=good_in_buffer.number_inventory,
+                    quantity_old=good.stock,
+                    quantity_new=good_in_buffer.quantity_new,
+                    user=user)
+                new_good_in_inventory.save()
+                good_in_buffer.delete()
+                return Response(Inventory_list_serializer(instance=new_good_in_inventory, many=False).data)
+            else:
+                good_in_inventory.quantity_new = good_in_buffer.quantity_new
+                good_in_inventory.save()
+                good_in_buffer.delete()
+                return Response({"good": Inventory_list_serializer(instance=good_in_inventory, many=False).data, "answer": "change"})
+
+                # return Response({"answer": "empty"})
+            
+
+        else:
+            return Response({"error": serializer.errors}, status=400)
+
+
+        # if form.is_valid():
+        #     good_in_form = form.cleaned_data.get("product")
+        #     good_in_invent = Inventory_list.objects.filter(product=good_in_form)
+        #     if good_in_invent:#при добавлении товара который уже есть в инвенте, обновится колво в товаре инвенты
+        #         good_in_invent.quantity_new = good_in_buffer.quantity_new
+        #         good_in_invent.save()
+        #     else:
+        #         good_in_inv = form.save(commit=False)
+        #         good_in_inv.number_inventory = number_inv
+        #         good_in_inv.quantity_old = good_in_form.stock
+        #         good_in_inv.quantity_new = good_in_buffer.quantity_new
+        #         good_in_inv.user = request.user
+        #         good_in_inv.save()
+        #     good_in_buffer.delete()
+
+
 #при проведении инвенты остаток либо отнимается либо прибивляется на разницу
 def inventory_activate(request, inv_number):
 	invent_number = Inventory_number.objects.get(id=inv_number)

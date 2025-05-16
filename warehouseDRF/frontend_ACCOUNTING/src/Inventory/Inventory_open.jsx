@@ -278,34 +278,48 @@ function Inventory_open() {
         setView_change_good(true)
     }
 
-    const change_if_not_in_base = async (event) => {
+    const change_if_not_in_base = async (buffer_id, event) => {
         event.preventDefault();
         // if (!validateForm()) return;
         setLoading(true);
         // ссылки в запросах с фронта на бэк должны совпадать полностью до каждого символа сука!!!!!!!!!!!
         try {            
             const response = await axios.post(
-                `http://127.0.0.1:9999/поиск нового товара для замены по аналогии с поиском товара/${inventory_number}/`,
+                `http://127.0.0.1:9999/api/inventory_goods_change/${buffer_id}/`,
                 {                 
-                name_good: good_name,
+                good_name,
                 },
                     // { withCredentials: true }
                 );                        
             setLoading(false);
             if (response.statusText==='OK') {
                 //запись новой позиции в состояние. Добавляется новая позиция в накладную с колвом 1 и названием после записи и ответа от сервера.              
-                if (response.data["answer"] === "empty") {                  
-                    setRepeat_good("Товары из группы уже есть в списке")                    
+                if (response.data["answer"] === "change") {                  
+                    console.log("Товары из группы изменен") 
+                    // тут нужно обновить колво в существующем товаре из состояния
+                    
+                    setGoods_in_inventory(
+                        prevGoods => 
+                          prevGoods.map(good => 
+                            good.id === response.data["good"].id 
+                              ? { ...good, ...response.data["good"] }  // Мерджим все изменения
+                              : good
+                          )
+                        )
+                    setGoods_in_inventory_buffer(goods_in_inventory_buffer.filter(item => item.id !== buffer_id))
                     }
                 else {                          
                 
                 setGoods_in_inventory(prevItems => [...prevItems, response.data]);
+
+                setGoods_in_inventory_buffer(goods_in_inventory_buffer.filter(item => item.id !== buffer_id))
 
                 console.log("Товар добавлен")
                 setGood_name("")
                 setRepeat_good("")
                 setError("")
                 setView_change_good(false)
+
                 }
 
             } else {
@@ -420,14 +434,17 @@ function Inventory_open() {
                                         <br/>
                                         <button onClick={() => add_if_not_in_base(item.id)}>Добавить в инвентаризацию</button>
                                         <br/>
-                                        {/*<button onClick={() => change_if_not_in_base(item.id)}>Заменить на другой товар</button>*/}
+                                        
                                         {!view_change_good &&
                                         <button onClick={make_change_good}>Заменить на другой товар</button>
                                         }
                                         {/*ИСПРАВИТЬ ФОРМУ НИЖЕ НА ПОИСК ДЛЯ ИЗМЕНЕНИЕ ТОВАРА, И В ДЖАНГО НАДО УРЛ СДЕЛАТЬ.*/}
                                         {view_change_good &&
-                                        <form onSubmit={change_if_not_in_base} style={{ marginBottom: '1rem' }}>
+                                        
+                                        // <form onSubmit={change_if_not_in_base} style={{ marginBottom: '1rem' }}>
+                                        <form onSubmit={(event) => change_if_not_in_base(item.id, event) } style={{ marginBottom: '1rem' }}>
                                             <label htmlFor="id_good_name">Поиска товара для замены: </label>
+                                            <br/>
                                                 <input 
                                                     placeholder="введите название товара"
                                                     name="good_name"                                        

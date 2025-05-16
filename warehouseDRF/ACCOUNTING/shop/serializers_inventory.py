@@ -72,4 +72,6 @@ class Inventory_list_buffer_serializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-    
+#для поиска товара для замены товара из буфера
+class Inventory_change_good_serializer(serializers.Serializer):
+    good_name = serializers.CharField(max_length=255)   
