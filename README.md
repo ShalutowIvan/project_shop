@@ -1,5 +1,6 @@
 # Project name - "Internet market"
-![Uploading image.png…]()
+![image](https://github.com/user-attachments/assets/0442fefd-b401-47da-9d6f-5a4c9991104c)
+
 
 
 ## О проекте
